@@ -92,8 +92,9 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Airport with rentable plane size" setting='display.markers.sizes.rentable' />
               <Setting s={s} setS={setS} label="Highlighted airport color" setting='display.markers.colors.selected' />
               <Setting s={s} setS={setS} label="Highlighted airport size" setting='display.markers.sizes.selected' />
-              <Setting s={s} setS={setS} label="Passenger leg color" setting='display.legs.colors.passengers' />
-              <Setting s={s} setS={setS} label="Cargo leg color" setting='display.legs.colors.cargo' />
+              <Setting s={s} setS={setS} label="Passenger leg color" setting='display.legs.colors.passengers' xs={4} />
+              <Setting s={s} setS={setS} label="Cargo leg color" setting='display.legs.colors.cargo' xs={4} />
+              <Setting s={s} setS={setS} label="Cargo leg color" setting='display.legs.colors.highlight' xs={4} />
               <Setting s={s} setS={setS} label="Max passenger leg weight" setting='display.legs.weights.passengers' helperText="Leave empty to disable adaptative weight" xs={4}/>
               <Setting s={s} setS={setS} label="Max cargo leg weight" setting='display.legs.weights.cargo' helperText="Leave empty to disable adaptative weight" xs={4}/>
               <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" xs={4}/>

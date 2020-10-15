@@ -47,7 +47,38 @@ class PolylineDecorator extends Component {
   }
 
   render() {
-    return <Polyline ref={this.polyRef} {...this.props} />;
+    const {weight, color, ...props} = this.props;
+    return (
+      <React.Fragment>
+        <Polyline
+          ref={this.polyRef}
+          weight={weight}
+          color={color}
+          positions={props.positions}
+        />
+        <Polyline
+          onMouseOver={(evt) => {
+            this.polyRef.current.leafletElement.setStyle({
+              color: this.props.highlight
+            });
+            this.obj.setStyle({
+              color: this.props.highlight
+            });
+          }}
+          onMouseOut={(evt) => {
+            this.polyRef.current.leafletElement.setStyle({
+              color: this.props.color
+            });
+            this.obj.setStyle({
+              color: this.props.color
+            });
+          }}
+          weight={Math.max(weight, 20)}
+          opacity={0}
+          {...props}
+        />
+      </React.Fragment>
+    );
   }
 }
 

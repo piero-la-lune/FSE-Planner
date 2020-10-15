@@ -45,8 +45,9 @@ const defaultSettings = {
     },
     legs: {
       colors: {
-        passengers: 'blue',
-        cargo: 'blue'
+        passengers: '#3f51b5',
+        cargo: '#3f51b5',
+        highlight: 'yellow'
       },
       weights: {
         base: '1.2',

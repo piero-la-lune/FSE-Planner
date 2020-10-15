@@ -162,6 +162,7 @@ const FSEMap = React.memo(function FSEMap(props) {
           return (
             <PolylineDecorator
               color={s.display.legs.colors.passengers}
+              highlight={s.display.legs.colors.highlight}
               key={key}
               weight={weight}
               positions={[[icaodata[icaos[0]].lat, icaodata[icaos[0]].lon], [icaodata[icaos[1]].lat, icaodata[icaos[1]].lon]]}
@@ -180,6 +181,7 @@ const FSEMap = React.memo(function FSEMap(props) {
           return (
             <PolylineDecorator
               color={s.display.legs.colors.cargo}
+              highlight={s.display.legs.colors.highlight}
               key={key}
               weight={weight}
               positions={[[icaodata[icaos[0]].lat, icaodata[icaos[0]].lon], [icaodata[icaos[1]].lat, icaodata[icaos[1]].lon]]}
