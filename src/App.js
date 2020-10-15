@@ -81,7 +81,9 @@ const useStyles = makeStyles(theme => ({
     color: "rgba(255, 255, 255, 1) !important"
   },
   box: {
-    marginLeft: theme.spacing(2)
+    marginLeft: theme.spacing(2),
+    marginTop: theme.spacing(1)/2,
+    marginBottom: theme.spacing(1)/2,
   },
   input: {
     backgroundColor: "rgba(255, 255, 255, 0.2)",
@@ -108,6 +110,8 @@ const useStyles = makeStyles(theme => ({
     paddingTop: '7px',
     paddingBottom: '7px',
     marginLeft: theme.spacing(2),
+    marginTop: theme.spacing(1)/2,
+    marginBottom: theme.spacing(1)/2,
     display: 'flex',
     alignItems: 'center'
   },
@@ -115,7 +119,9 @@ const useStyles = makeStyles(theme => ({
     color: "rgba(255, 255, 255, 0.5)",
     "&:hover": {
       color: "#fff"
-    }
+    },
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2)
   },
   popover: {
     padding: theme.spacing(2),
@@ -137,10 +143,20 @@ const useStyles = makeStyles(theme => ({
   title: {
     flexGrow: 1,
     display: 'flex',
-    alignItems: 'baseline'
+    alignItems: 'baseline',
+    flexWrap: 'wrap'
+  },
+  h6: {
+    lineHeight: 1
   },
   version: {
     marginLeft: theme.spacing(1)
+  },
+  filters: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    margin: theme.spacing(1)/2,
+    justifyContent: 'flex-end'
   }
 }));
 
@@ -222,145 +238,147 @@ function App() {
       <AppBar position="static">
         <Toolbar>
           <div className={classes.title}>
-            <Typography variant="h6">
+            <Typography variant="h6" className={classes.h6}>
               FSE Planner
             </Typography>
             <Typography variant="caption" className={classes.version}>
               v{process.env.REACT_APP_VERSION}
             </Typography>
           </div>
-          <Tooltip title='Jobs radiating FROM this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-            <div className={classes.boxBorder}>
-              <FlightTakeoffIcon className={fromIcao === null ? classes.tgBtn : null}/>
-              &nbsp;&nbsp;
-              <InputBase
-                placeholder="ICAO"
-                className={classes.input}
-                inputProps={{maxLength:4}}
-                value={fromIcaoInput}
-                onChange={evt => {
-                  let val = evt.target.value.toUpperCase();
-                  setFromIcaoInput(val);
-                  if (icaodata.hasOwnProperty(val)) {
-                    setFromIcao(val);
-                  }
-                  else {
-                    setFromIcao(null)
-                  }
-                }}
-              />
-            </div>
-          </Tooltip>
-          <Tooltip title='Jobs radiating TO this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-            <div className={classes.boxBorder}>
-              <FlightLandIcon className={toIcao === null ? classes.tgBtn : null} />
-              &nbsp;&nbsp;
-              <InputBase
-                placeholder="ICAO"
-                className={classes.input}
-                inputProps={{maxLength:4}}
-                value={toIcaoInput}
-                onChange={evt => {
-                  let val = evt.target.value.toUpperCase();
-                  setToIcaoInput(val);
-                  if (icaodata.hasOwnProperty(val)) {
-                    setToIcao(val);
-                  }
-                  else {
-                    setToIcao(null)
-                  }
-                }}
-              />
-            </div>
-          </Tooltip>
-          <Tooltip title='Jobs going in this direction (+/- 30°)' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-            <div className={classes.boxBorder}>
-              <ExploreIcon className={direction === '' ? classes.tgBtn : null}/>
-              &nbsp;&nbsp;
-              <InputBase
-                placeholder="145°"
-                className={classes.input}
-                inputProps={{maxLength:3}}
-                value={direction}
-                onChange={evt => { setDirection(evt.target.value); }}
-              />
-            </div>
-          </Tooltip>
-          <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} className={classes.box} exclusive>
-            <TooltipToggleButton value="Trip-Only" title="Cargo" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-              <EmojiPeopleIcon />
-            </TooltipToggleButton>
-            <TooltipToggleButton value="VIP" title="VIP" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-              <StarIcon />
-            </TooltipToggleButton>
-            <TooltipToggleButton value="All-In" title="All in" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-              <FlightIcon />
-            </TooltipToggleButton>
-          </ToggleButtonGroup>
-          <ToggleButtonGroup value={cargo} onChange={(evt, val) => {setCargo(val);setMin('');setMax('');}} className={classes.box} exclusive>
-            <TooltipToggleButton value="passengers" title="Passengers" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-              <PeopleIcon />
-            </TooltipToggleButton>
-            <TooltipToggleButton value="kg" title="Cargo" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-              <BusinessCenterIcon />
-            </TooltipToggleButton>
-          </ToggleButtonGroup>
-          <div className={classes.boxBorder}>
-            {cargo === 'passengers' ?
-              <PeopleIcon className={min === '' && max === '' ? classes.tgBtn : null}/>
-            :
-              <BusinessCenterIcon className={min === '' && max === '' ? classes.tgBtn : null} />
-            }
-            &nbsp;
-            <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-              <InputBase
-                placeholder="min"
-                className={classes.inputNb}
-                value={min}
-                onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMin(nb); }}
-              />
+          <div className={classes.filters}>
+            <Tooltip title='Jobs radiating FROM this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+              <div className={classes.boxBorder}>
+                <FlightTakeoffIcon className={fromIcao === null ? classes.tgBtn : null}/>
+                &nbsp;&nbsp;
+                <InputBase
+                  placeholder="ICAO"
+                  className={classes.input}
+                  inputProps={{maxLength:4}}
+                  value={fromIcaoInput}
+                  onChange={evt => {
+                    let val = evt.target.value.toUpperCase();
+                    setFromIcaoInput(val);
+                    if (icaodata.hasOwnProperty(val)) {
+                      setFromIcao(val);
+                    }
+                    else {
+                      setFromIcao(null)
+                    }
+                  }}
+                />
+              </div>
             </Tooltip>
-            -
-            <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-              <InputBase
-                placeholder="max"
-                className={classes.inputNb}
-                value={max}
-                onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMax(nb); }}
-              />
+            <Tooltip title='Jobs radiating TO this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+              <div className={classes.boxBorder}>
+                <FlightLandIcon className={toIcao === null ? classes.tgBtn : null} />
+                &nbsp;&nbsp;
+                <InputBase
+                  placeholder="ICAO"
+                  className={classes.input}
+                  inputProps={{maxLength:4}}
+                  value={toIcaoInput}
+                  onChange={evt => {
+                    let val = evt.target.value.toUpperCase();
+                    setToIcaoInput(val);
+                    if (icaodata.hasOwnProperty(val)) {
+                      setToIcao(val);
+                    }
+                    else {
+                      setToIcao(null)
+                    }
+                  }}
+                />
+              </div>
             </Tooltip>
+            <Tooltip title='Jobs going in this direction (+/- 30°)' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+              <div className={classes.boxBorder}>
+                <ExploreIcon className={direction === '' ? classes.tgBtn : null}/>
+                &nbsp;&nbsp;
+                <InputBase
+                  placeholder="145°"
+                  className={classes.input}
+                  inputProps={{maxLength:3}}
+                  value={direction}
+                  onChange={evt => { setDirection(evt.target.value); }}
+                />
+              </div>
+            </Tooltip>
+            <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} className={classes.box} exclusive>
+              <TooltipToggleButton value="Trip-Only" title="Cargo" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                <EmojiPeopleIcon />
+              </TooltipToggleButton>
+              <TooltipToggleButton value="VIP" title="VIP" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                <StarIcon />
+              </TooltipToggleButton>
+              <TooltipToggleButton value="All-In" title="All in" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                <FlightIcon />
+              </TooltipToggleButton>
+            </ToggleButtonGroup>
+            <ToggleButtonGroup value={cargo} onChange={(evt, val) => {setCargo(val);setMin('');setMax('');}} className={classes.box} exclusive>
+              <TooltipToggleButton value="passengers" title="Passengers" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                <PeopleIcon />
+              </TooltipToggleButton>
+              <TooltipToggleButton value="kg" title="Cargo" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                <BusinessCenterIcon />
+              </TooltipToggleButton>
+            </ToggleButtonGroup>
+            <div className={classes.boxBorder}>
+              {cargo === 'passengers' ?
+                <PeopleIcon className={min === '' && max === '' ? classes.tgBtn : null}/>
+              :
+                <BusinessCenterIcon className={min === '' && max === '' ? classes.tgBtn : null} />
+              }
+              &nbsp;
+              <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <InputBase
+                  placeholder="min"
+                  className={classes.inputNb}
+                  value={min}
+                  onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMin(nb); }}
+                />
+              </Tooltip>
+              -
+              <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <InputBase
+                  placeholder="max"
+                  className={classes.inputNb}
+                  value={max}
+                  onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMax(nb); }}
+                />
+              </Tooltip>
+            </div>
+            <div className={classes.boxBorder}>
+              <SettingsEthernetIcon className={minDist === '' && maxDist === '' ? classes.tgBtn : null} />
+              &nbsp;
+              <Tooltip title='Minimum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <InputBase
+                  placeholder="min"
+                  className={classes.inputNb}
+                  value={minDist}
+                  onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinDist(nb); }}
+                />
+              </Tooltip>
+              -
+              <Tooltip title='Maximum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <InputBase
+                  placeholder="max"
+                  className={classes.inputNb}
+                  value={maxDist}
+                  onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxDist(nb); }}
+                />
+              </Tooltip>
+            </div>
+            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setSettingsPopup(true)}>
+              <Tooltip title="More options">
+                <TuneIcon />
+              </Tooltip>
+            </IconButton>
+            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setUpdatePopup(true)}>
+              <Tooltip title="Update data">
+                <UpdateIcon />
+              </Tooltip>
+            </IconButton>
           </div>
-          <div className={classes.boxBorder}>
-            <SettingsEthernetIcon className={minDist === '' && maxDist === '' ? classes.tgBtn : null} />
-            &nbsp;
-            <Tooltip title='Minimum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-              <InputBase
-                placeholder="min"
-                className={classes.inputNb}
-                value={minDist}
-                onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinDist(nb); }}
-              />
-            </Tooltip>
-            -
-            <Tooltip title='Maximum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-              <InputBase
-                placeholder="max"
-                className={classes.inputNb}
-                value={maxDist}
-                onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxDist(nb); }}
-              />
-            </Tooltip>
-          </div>
-          <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setSettingsPopup(true)}>
-            <Tooltip title="More options">
-              <TuneIcon />
-            </Tooltip>
-          </IconButton>
-          <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setUpdatePopup(true)}>
-            <Tooltip title="Update data">
-              <UpdateIcon />
-            </Tooltip>
-          </IconButton>
         </Toolbar>
       </AppBar>
       <FSEMap
