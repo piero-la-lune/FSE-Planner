@@ -1,9 +1,10 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import NavigationIcon from '@material-ui/icons/Navigation';
+import { default as RTooltip } from '@material-ui/core/Tooltip';
 import { Map, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import PolylineDecorator from "./PolylineDecorator.js";
-import { getDistance, getRhumbLineBearing, getCompassDirection, convertDistance } from "geolib";
+import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import { makeStyles } from '@material-ui/core/styles';
 
 import Link from '@material-ui/core/Link';
@@ -105,10 +106,18 @@ function cleanLegs(jobs, opts) {
 
 function bonus(icao, plane) {
   if (icao === plane.Home) { return ''; }
-  return ' '+getCompassDirection(
-    { latitude: icaodata[icao].lat, longitude: icaodata[icao].lon },
-    { latitude: icaodata[plane.Home].lat, longitude: icaodata[plane.Home].lon }
-  );
+  const fr = { latitude: icaodata[icao].lat, longitude: icaodata[icao].lon };
+  const to = { latitude: icaodata[plane.Home].lat, longitude: icaodata[plane.Home].lon };
+  const dir = Math.round(getRhumbLineBearing(fr, to));
+  const dist = Math.round(convertDistance(getDistance(fr, to), 'sm'));
+  return (
+    <React.Fragment>
+      &nbsp;
+      <RTooltip title={plane.Home+' ('+dir+'° '+dist+'NM)'}>
+        <NavigationIcon style={{transform: 'rotate('+dir+'deg)'}} fontSize='inherit' />
+      </RTooltip>
+    </React.Fragment>
+  )
 }
 
 const useStyles = makeStyles(theme => ({
