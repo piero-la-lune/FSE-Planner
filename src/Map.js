@@ -1,7 +1,10 @@
 import React from 'react';
+import Typography from '@material-ui/core/Typography';
+import NavigationIcon from '@material-ui/icons/Navigation';
 import { Map, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import PolylineDecorator from "./PolylineDecorator.js";
 import { getDistance, getRhumbLineBearing, getCompassDirection, convertDistance } from "geolib";
+import { makeStyles } from '@material-ui/core/styles';
 
 import Link from '@material-ui/core/Link';
 
@@ -75,7 +78,7 @@ function cleanLegs(jobs, opts) {
           amount: 0,
           pay: 0,
           list: [],
-          direction: getRhumbLineBearing(fr, to),
+          direction: Math.round(getRhumbLineBearing(fr, to)),
           distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
         };
       }
@@ -108,12 +111,20 @@ function bonus(icao, plane) {
   );
 }
 
+const useStyles = makeStyles(theme => ({
+  leg: {
+    display: 'flex',
+    alignItems: 'center'
+  }
+}));
+
 
 const FSEMap = React.memo(function FSEMap(props) {
 
   const s = props.options.settings;
   let [markers, legs, max] = cleanLegs(props.options.jobs, props.options);
   let rentablePlaces = Object.keys(props.options.planes);
+  const classes = useStyles();
 
   const icons = {
     civil1: CivilIcon(s.display.markers.colors.base, s.display.markers.sizes.base),
@@ -151,13 +162,17 @@ const FSEMap = React.memo(function FSEMap(props) {
         );
       })}
       {Object.entries(legs).map(([key, leg]) => {
-        let icaos = key.split('-');
+        const icaos = key.split('-');
+        // Ensure only one line for both way legs
+        if (icaos[0] > icaos[1]) { return null; }
+        const rleg = legs[icaos[1]+'-'+icaos[0]];
         if (props.options.cargo === 'passengers') {
           const mw = parseFloat(s.display.legs.weights.passengers);
           const min = props.options.min || 1;
+          const amount = rleg ? Math.max(leg.amount, rleg.amount) : leg.amount;
           let weight = parseFloat(s.display.legs.weights.base);
           if (mw) {
-            weight = ((leg.amount-min) / (max-min)) * (mw - weight) + weight;
+            weight = ((amount-min) / (max-min)) * (mw - weight) + weight;
           }
           return (
             <PolylineDecorator
@@ -166,17 +181,30 @@ const FSEMap = React.memo(function FSEMap(props) {
               key={key}
               weight={weight}
               positions={[[icaodata[icaos[0]].lat, icaodata[icaos[0]].lon], [icaodata[icaos[1]].lat, icaodata[icaos[1]].lon]]}
+              reverse={rleg !== undefined}
             >
-              <Tooltip sticky={true}>{leg.distance}NM - {leg.amount} passagers (${leg.pay})</Tooltip>
+              <Tooltip sticky={true}>
+                <Typography variant="body"><b>{leg.distance}NM</b></Typography>
+                <Typography variant="body2" className={classes.leg}>
+                  <NavigationIcon style={{transform: 'rotate('+leg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{leg.amount} passagers (${leg.pay})</span>
+                </Typography>
+                {rleg ?
+                  <Typography variant="body2" className={classes.leg}>
+                    <NavigationIcon style={{transform: 'rotate('+rleg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{rleg.amount} passagers (${rleg.pay})</span>
+                  </Typography>
+                :
+                null}
+              </Tooltip>
             </PolylineDecorator>
           )
         }
         else {
           const mw = parseFloat(s.display.legs.weights.cargo);
           const min = props.options.min || 1;
+          const amount = rleg ? Math.max(leg.amount, rleg.amount) : leg.amount;
           let weight = parseFloat(s.display.legs.weights.base);
           if (mw) {
-            weight = ((leg.amount-min) / (max-min)) * (mw - weight) + weight;
+            weight = ((amount-min) / (max-min)) * (mw - weight) + weight;
           }
           return (
             <PolylineDecorator
@@ -185,8 +213,20 @@ const FSEMap = React.memo(function FSEMap(props) {
               key={key}
               weight={weight}
               positions={[[icaodata[icaos[0]].lat, icaodata[icaos[0]].lon], [icaodata[icaos[1]].lat, icaodata[icaos[1]].lon]]}
+              reverse={rleg !== undefined}
             >
-              <Tooltip sticky={true}>{leg.amount} kg (${leg.pay})</Tooltip>
+              <Tooltip sticky={true}>
+                <Typography variant="body"><b>{leg.distance}NM</b></Typography>
+                <Typography variant="body2" className={classes.leg}>
+                  <NavigationIcon style={{transform: 'rotate('+leg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{leg.amount} kg (${leg.pay})</span>
+                </Typography>
+                {rleg ?
+                  <Typography variant="body2" className={classes.leg}>
+                    <NavigationIcon style={{transform: 'rotate('+rleg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{rleg.amount} kg (${rleg.pay})</span>
+                  </Typography>
+                :
+                null}
+              </Tooltip>
             </PolylineDecorator>
           )
         }

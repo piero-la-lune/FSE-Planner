@@ -21,15 +21,36 @@ class PolylineDecorator extends Component {
         pixelSize: 15,
         polygon: false,
         pathOptions: {
+          interactive: false,
           stroke: true,
           color: this.props.color,
           weight: this.props.weight
         }
       })
     };
+    const patterns = [arrow];
+    if (this.props.reverse) {
+      const rarrow = {
+        offset: '10%',
+        endOffset: '10%',
+        repeat: 800,
+        symbol: L.Symbol.arrowHead({
+          headAngle: 300,
+          pixelSize: 15,
+          polygon: false,
+          pathOptions: {
+            interactive: false,
+            stroke: true,
+            color: this.props.color,
+            weight: this.props.weight
+          }
+        })
+      };
+      patterns.push(rarrow);
+    }
 
     this.obj = L.polylineDecorator(polyline, {
-      patterns: [arrow]
+      patterns: patterns
     }).addTo(map);
   }
 
