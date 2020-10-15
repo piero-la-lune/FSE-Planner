@@ -151,7 +151,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         return (
           <Marker position={[icaodata[marker].lat, icaodata[marker].lon]} key={marker} icon={icons[icaodata[marker].type+color]}>
             <Popup>
-              <p><b><Link href={"https://server.fseconomy.net/airport.jsp?icao="+marker} target="_blank">{marker}</Link></b></p>
+              <Typography variant="h6"><Link href={"https://server.fseconomy.net/airport.jsp?icao="+marker} target="_blank">{marker}</Link></Typography>
               { rentable ?
                 props.options.planes[marker].map(plane => <p key={plane.Registration}>{plane.Registration} : ${plane.RentalDry}/${plane.RentalWet} (${plane.Bonus}{bonus(marker, plane)})</p>)
               :
