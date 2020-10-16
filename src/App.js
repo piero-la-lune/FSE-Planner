@@ -4,7 +4,9 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import InputBase from '@material-ui/core/InputBase';
 import Typography from '@material-ui/core/Typography';
+import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
 import IconButton from '@material-ui/core/IconButton';
+import Popper from '@material-ui/core/Popper';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import StarIcon from '@material-ui/icons/Star';
@@ -17,6 +19,7 @@ import FlightLandIcon from '@material-ui/icons/FlightLand';
 import ExploreIcon from '@material-ui/icons/Explore';
 import UpdateIcon from '@material-ui/icons/Update';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
+import CloseIcon from '@material-ui/icons/Close';
 import TuneIcon from '@material-ui/icons/Tune';
 import { makeStyles } from '@material-ui/core/styles';
 import { default as _defaultsDeep } from 'lodash/defaultsDeep';
@@ -72,6 +75,16 @@ const defaultSettings = {
 };
 
 
+const icaos = Object.entries(icaodata).map(([icao, obj]) => {
+  obj['icao'] = icao;
+  return obj;
+});
+const filter = createFilterOptions({limit: 5});
+const PopperMy = function (props) {
+  return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
+}
+
+
 const useStyles = makeStyles(theme => ({
   tgBtn: {
     color: "rgba(255, 255, 255, 0.5)",
@@ -100,6 +113,13 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: theme.spacing(1),
     paddingRight: theme.spacing(1),
     width: "50px"
+  },
+  inputSearch: {
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    color: "#fff",
+    borderRadius: theme.shape.borderRadius,
+    paddingLeft: theme.spacing(1),
+    width: "120px"
   },
   boxBorder: {
     borderRadius: theme.shape.borderRadius,
@@ -157,6 +177,36 @@ const useStyles = makeStyles(theme => ({
     flexWrap: 'wrap',
     margin: theme.spacing(1)/2,
     justifyContent: 'flex-end'
+  },
+  search: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  searchOption: {
+    display: 'flex',
+    alignItems: 'center',
+    overflow: 'hidden'
+  },
+  searchInfos: {
+    display: 'flex',
+    flexDirection: 'column',
+    marginLeft: theme.spacing(2),
+    overflow: 'hidden',
+  },
+  searchLocation: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    color: '#aaa'
+  },
+  searchName: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap'
+  },
+  searchIcao: {
+    minWidth: 40,
+    textAlign: 'center'
   }
 }));
 
@@ -211,7 +261,10 @@ function App() {
       return _defaultsDeep(s, defaultSettings);
     }
     return defaultSettings;
-  })
+  });
+  const [search, setSearch] = React.useState('');
+  const [searchInput, setSearchInput] = React.useState('');
+  const [searchHistory, setSearchHistory] = React.useState(JSON.parse(localStorage.getItem("searchHistory")) || []);
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
@@ -226,8 +279,9 @@ function App() {
     toIcao: toIcao,
     jobs: jobs,
     planes: planes,
-    settings: settings
-  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, settings]);
+    settings: settings,
+    search: search
+  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, settings, search]);
 
   return (
     <div style={{
@@ -246,6 +300,58 @@ function App() {
             </Typography>
           </div>
           <div className={classes.filters}>
+            <div className={classes.search}>
+              <Autocomplete
+                options={icaos}
+                getOptionLabel={(a) => a.icao ? a.icao : ''}
+                renderOption={(a) =>
+                  <span className={classes.searchOption}>
+                    <b className={classes.searchIcao}>{a.icao}</b>
+                    <span className={classes.searchInfos}>
+                      <span className={classes.searchName}>{a.name}</span>
+                      <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                    </span>
+                  </span>
+                }
+                filterOptions={(options, params) => {
+                  // If input is empty and search history is not, display search history
+                  if (!searchInput && searchHistory.length > 0) {
+                    return options.filter(elm => searchHistory.includes(elm.icao));
+                  }
+                  // Search for ICAO
+                  let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
+                  // If not enough results, search for city name
+                  if (filtered.length < 5) {
+                    const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
+                    filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                  }
+                  return filtered;
+                }}
+                renderInput={(params) =>
+                  <InputBase
+                    placeholder="Search..."
+                    className={classes.inputSearch}
+                    ref={params.InputProps.ref}
+                    inputProps={params.inputProps}
+                    endAdornment={params.inputProps.value ? <IconButton size="small" onClick={() => {setSearch(''); setSearchInput('');}}><CloseIcon /></IconButton> : null}
+                  />
+                }
+                PopperComponent={PopperMy}
+                onChange={(evt, value) => {
+                  setSearch(value);
+                  if (value) {
+                    const list = [...(new Set([value.icao, ...searchHistory]))].slice(0, 5);
+                    setSearchHistory(list);
+                    localStorage.setItem('searchHistory', JSON.stringify(list));
+                  }
+                }}
+                value={search || null}
+                inputValue={searchInput}
+                onInputChange={(evt, value) => setSearchInput(value)}
+                autoHighlight={true}
+                selectOnFocus={false}
+              />
+            </div>
             <Tooltip title='Jobs radiating FROM this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
               <div className={classes.boxBorder}>
                 <FlightTakeoffIcon className={fromIcao === null ? classes.tgBtn : null}/>

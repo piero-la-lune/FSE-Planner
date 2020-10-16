@@ -24,6 +24,7 @@ function cleanLegs(jobs, opts) {
   // Add markers in filtering options
   if (opts.fromIcao) { markers.add(opts.fromIcao); }
   if (opts.toIcao) { markers.add(opts.toIcao); }
+  if (opts.search) { markers.add(opts.search.icao); }
   // Get legs
   for (var i = ids.length - 1; i >= 0; i--) {
     const job = jobs[ids[i]];
@@ -120,6 +121,16 @@ function bonus(icao, plane) {
   )
 }
 
+function CMarker({openPopup, ...props}) {
+  const markerRef = React.useRef();
+  React.useEffect(() => {
+    if (openPopup) {
+      markerRef.current.leafletElement.openPopup();
+    }
+  }, [openPopup])
+  return <Marker ref={markerRef} {...props} />
+}
+
 const useStyles = makeStyles(theme => ({
   leg: {
     display: 'flex',
@@ -134,6 +145,14 @@ const FSEMap = React.memo(function FSEMap(props) {
   let [markers, legs, max] = cleanLegs(props.options.jobs, props.options);
   let rentablePlaces = Object.keys(props.options.planes);
   const classes = useStyles();
+  const mapRef = React.useRef();
+
+  const search = (props.options.search) ? props.options.search.icao : null;
+  React.useEffect(() => {
+    if (props.options.search) {
+      mapRef.current.leafletElement.flyTo([props.options.search.lat, props.options.search.lon], 8);
+    }
+  }, [props.options.search]);
 
   const icons = {
     civil1: CivilIcon(s.display.markers.colors.base, s.display.markers.sizes.base),
@@ -148,7 +167,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   }
 
   return (
-    <Map center={[46.5344, 3.42167]} zoom={6}>
+    <Map center={[46.5344, 3.42167]} zoom={6} ref={mapRef}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
@@ -156,25 +175,27 @@ const FSEMap = React.memo(function FSEMap(props) {
         const rentable = rentablePlaces.includes(marker);
         let color = '1';
         if (rentable) { color = '2'; }
-        if (marker === props.options.fromIcao || marker === props.options.toIcao) { color = '3'; }
+        if (marker === props.options.fromIcao || marker === props.options.toIcao || (search === marker)) { color = '3'; }
         return (
-          <Marker position={[icaodata[marker].lat, icaodata[marker].lon]} key={marker} icon={icons[icaodata[marker].type+color]}>
+          <CMarker position={[icaodata[marker].lat, icaodata[marker].lon]} key={marker} icon={icons[icaodata[marker].type+color]} openPopup={search === marker}>
             <Popup>
               <Typography variant="h6"><Link href={"https://server.fseconomy.net/airport.jsp?icao="+marker} target="_blank">{marker}</Link></Typography>
               { rentable ?
-                props.options.planes[marker].map(plane => <p key={plane.Registration}>{plane.Registration} : ${plane.RentalDry}/${plane.RentalWet} (${plane.Bonus}{bonus(marker, plane)})</p>)
+                props.options.planes[marker].map(plane =>
+                  <Typography variant="body2" key={plane.Registration}>{plane.Registration} : ${plane.RentalDry}/${plane.RentalWet} (${plane.Bonus}{bonus(marker, plane)})</Typography>
+                )
               :
                 null
               }
             </Popup>
-          </Marker>
+          </CMarker>
         );
       })}
       {Object.entries(legs).map(([key, leg]) => {
         const icaos = key.split('-');
-        // Ensure only one line for both way legs
-        if (icaos[0] > icaos[1]) { return null; }
         const rleg = legs[icaos[1]+'-'+icaos[0]];
+        // Ensure only one line for both way legs
+        if (rleg && icaos[0] > icaos[1]) { return null; }
         if (props.options.cargo === 'passengers') {
           const mw = parseFloat(s.display.legs.weights.passengers);
           const min = props.options.min || 1;
@@ -193,7 +214,7 @@ const FSEMap = React.memo(function FSEMap(props) {
               reverse={rleg !== undefined}
             >
               <Tooltip sticky={true}>
-                <Typography variant="body"><b>{leg.distance}NM</b></Typography>
+                <Typography variant="body1"><b>{leg.distance}NM</b></Typography>
                 <Typography variant="body2" className={classes.leg}>
                   <NavigationIcon style={{transform: 'rotate('+leg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{leg.amount} passagers (${leg.pay})</span>
                 </Typography>
@@ -225,7 +246,7 @@ const FSEMap = React.memo(function FSEMap(props) {
               reverse={rleg !== undefined}
             >
               <Tooltip sticky={true}>
-                <Typography variant="body"><b>{leg.distance}NM</b></Typography>
+                <Typography variant="body1"><b>{leg.distance}NM</b></Typography>
                 <Typography variant="body2" className={classes.leg}>
                   <NavigationIcon style={{transform: 'rotate('+leg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{leg.amount} kg (${leg.pay})</span>
                 </Typography>
