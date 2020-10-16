@@ -279,9 +279,8 @@ function App() {
     toIcao: toIcao,
     jobs: jobs,
     planes: planes,
-    settings: settings,
-    search: search
-  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, settings, search]);
+    settings: settings
+  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, settings]);
 
   return (
     <div style={{
@@ -489,6 +488,7 @@ function App() {
       </AppBar>
       <FSEMap
         options={options}
+        search={search}
       />
       <UpdatePopup
         open={updatePopup}
