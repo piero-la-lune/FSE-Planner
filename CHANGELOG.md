@@ -9,14 +9,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Backlog
-- Add a search ICAO input to highlight its location on the map (unrelated to filters and assignments)
-- Better display for "both way" legs
 - Show current user assignments on map
 - (allow for bigger area data requests, and multi-planes data requests) => not sure if it will be implemented 
 
 
 
-## [0.0.3] - 2020-10-14
+## [0.4.0] - 2020-10-17
+
+### Added
+- Highlight leg on mouse over
+- Search airport by ICAO or name, and display its location on map
+- Search history is saved between sessions, and shown in drop-down list
+- Display home information for rentable planes (arrow + details in tooltip)
+
+### Changed
+- Both way legs are now merged into one line on map
+- Better design for map tooltips and popups
+
+### Fixed
+- App header now adapt to window width
+
+
+
+## [0.3.0] - 2020-10-14
 
 ### Added
 - Display settings
@@ -25,7 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
-## [0.0.2] - 2020-10-12
+## [0.2.0] - 2020-10-12
 
 ### Added
 - You can now select an area on a map to load jobs from, instead of selecting countries
@@ -35,7 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
-## [0.0.1] - 2020-10-11
+## [0.1.0] - 2020-10-11
 
 ### Added
 - Show available jobs on map
