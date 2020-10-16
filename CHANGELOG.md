@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [0.4.1] - 2020-10-17
+
+### Fixed
+- "From ICAO" and "To ICAO" filters now work as expected for jobs departing/arriving from/to the selected airport
+when a maximum angle is set
+
+
+
 ## [0.4.0] - 2020-10-17
 
 ### Added

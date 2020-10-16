@@ -48,7 +48,7 @@ function cleanLegs(jobs, opts) {
         if (convertDistance(getDistance(fromIcao, fr), 'sm') > parseFloat(opts.settings.from.maxDist)) { continue; }
       }
       if (opts.settings.from.angle !== '') {
-        if (180 - Math.abs(Math.abs(getRhumbLineBearing(fr, to) - getRhumbLineBearing(fromIcao, fr)) - 180) > parseInt(opts.settings.from.angle)) { continue; }
+        if (opts.fromIcao !== job.Location && 180 - Math.abs(Math.abs(getRhumbLineBearing(fr, to) - getRhumbLineBearing(fromIcao, fr)) - 180) > parseInt(opts.settings.from.angle)) { continue; }
       }
     }
     if (opts.toIcao) {
@@ -60,7 +60,7 @@ function cleanLegs(jobs, opts) {
         if (convertDistance(getDistance(toIcao, to), 'sm') > parseFloat(opts.settings.to.maxDist)) { continue; }
       }
       if (opts.settings.to.angle !== '') {
-        if (180 - Math.abs(Math.abs(getRhumbLineBearing(fr, to) - getRhumbLineBearing(to, toIcao)) - 180) > parseInt(opts.settings.to.angle)) { continue; }
+        if (opts.toIcao !== job.ToIcao && 180 - Math.abs(Math.abs(getRhumbLineBearing(fr, to) - getRhumbLineBearing(to, toIcao)) - 180) > parseInt(opts.settings.to.angle)) { continue; }
       }
     }
     if (opts.direction) {
