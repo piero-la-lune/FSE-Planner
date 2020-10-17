@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Map, TileLayer } from "react-leaflet";
+import { getBounds } from "geolib";
 
 import { CivilIcon, MilitaryIcon, WaterIcon } from "./Icons.js";
 import MapContent from "./MapContent.js";
@@ -20,6 +21,15 @@ function FSEMap(props) {
       mapRef.current.leafletElement.flyTo([props.search.lat, props.search.lon], 8);
     }
   }, [props.search]);
+  React.useEffect(() => {
+    let points = {};
+    Object.values(props.options.jobs).forEach((elm) => points[elm.Location] = icaodata[elm.Location]);
+    points = Object.values(points);
+    if (points.length > 4) {
+      const bounds = getBounds(points);
+      mapRef.current.leafletElement.fitBounds([[bounds.minLat, bounds.minLng], [bounds.maxLat, bounds.maxLng]]);
+    }
+  }, [props.options.jobs]);
 
   const icons = {
     civil: CivilIcon(s.display.markers.colors.selected, s.display.markers.sizes.selected),
