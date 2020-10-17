@@ -12,7 +12,7 @@ function militarySVG(color, size) {
 
 // SVG icon for marine airports
 function waterSVG(color, size) {
-  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" class="cls-1" fill="'+color+'"/><rect x="9" y="4" width="2" height="13" fill="#fff"/><path d="M5.000,8.000 L5.000,7.000 L15.000,7.000 L15.000,8.000 L5.000,8.000 Z" fill="#fff"/><path d="M4.000,12.000 C4.000,12.000 7.038,15.066 10.000,15.000 C12.763,14.938 15.000,12.000 15.000,12.000 " fill="#fff"/></svg>';
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" class="cls-1" fill="'+color+'"/><rect x="9" y="4" width="2" height="13" fill="#fff"/><path d="M5.000,8.000 L5.000,7.000 L15.000,7.000 L15.000,8.000 L5.000,8.000 Z" fill="#fff"/><path d="M4.000,12.000 C4.000,12.000 7.038,15.066 10.000,15.000 C12.763,14.938 15.000,12.000 15.000,12.000 " stroke="#fff" stroke-width="1.5" fill="none"/></svg>';
 }
 
 // Build leaflet icon
