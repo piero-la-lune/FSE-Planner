@@ -51,9 +51,11 @@ function CustomAreaPopup(props) {
         </IconButton>
       </DialogTitle>
       <DialogContent className={classes.popupContent}>
-        <Map bounds={startBounds} boundsOptions={boundsOptions}>
+        <Map bounds={startBounds} boundsOptions={boundsOptions} maxBounds={[[-90, -180], [90, 180]]}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            noWrap={true}
+            bounds={[[-90, -180], [90, 180]]}
           />
           <RectangleTransform bounds={bounds} onUpdate={(bounds) => setBounds(bounds)} />
         </Map>

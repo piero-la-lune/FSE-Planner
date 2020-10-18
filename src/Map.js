@@ -38,9 +38,11 @@ function FSEMap(props) {
   }
 
   return (
-    <Map center={[46.5344, 3.42167]} zoom={6} ref={mapRef}>
+    <Map center={[46.5344, 3.42167]} zoom={6} ref={mapRef} maxBounds={[[-90, -180], [90, 180]]}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        noWrap={true}
+        bounds={[[-90, -180], [90, 180]]}
       />
       <MapContent options={props.options} />
       { search ?
