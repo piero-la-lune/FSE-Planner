@@ -41,6 +41,14 @@ function CustomAreaPopup(props) {
   const classes = useStyles();
   const [bounds, setBounds] = React.useState(() => startBounds);
 
+  const maxBounds=[[-90, props.settings.display.map.center-180], [90, props.settings.display.map.center+180]];
+
+  const mapRef = React.useCallback(node => {
+    if (node !== null) {
+      node.leafletElement.setMinZoom(node.leafletElement.getBoundsZoom(maxBounds, true));
+    }
+  }, [maxBounds]);
+
   return (
 
     <Dialog onClose={handleClose} open={props.open} fullWidth={true} maxWidth="lg" classes={{paper: classes.popup}}>
@@ -51,11 +59,9 @@ function CustomAreaPopup(props) {
         </IconButton>
       </DialogTitle>
       <DialogContent className={classes.popupContent}>
-        <Map bounds={startBounds} boundsOptions={boundsOptions} maxBounds={[[-90, -180], [90, 180]]}>
+        <Map ref={mapRef} bounds={startBounds} boundsOptions={boundsOptions} maxBounds={maxBounds} minZoom={2}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            noWrap={true}
-            bounds={[[-90, -180], [90, 180]]}
           />
           <RectangleTransform bounds={bounds} onUpdate={(bounds) => setBounds(bounds)} />
         </Map>

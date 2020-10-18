@@ -20,13 +20,12 @@ import L from "leaflet";
 
 import CustomAreaPopup from './CustomArea.js';
 
-import icaodata from "./data/icaodata.json";
 import aircrafts from "./data/aircraft.json";
 
 
 
 
-function getAreas() {
+function getAreas(icaodata) {
   let a = new Set();
   let icaos = Object.keys(icaodata);
   for (var i = icaos.length - 1; i >= 0; i--) {
@@ -40,11 +39,9 @@ function getAreas() {
   }
   return [...a].sort();
 }
-const areas = getAreas();
-areas.unshift('Custom area');
 
 
-function getIcaoList(countries, bounds) {
+function getIcaoList(countries, bounds, icaodata) {
   let points = null;
   // If custom area, compute polygon points
   if (countries.includes('Custom area')) {
@@ -129,10 +126,13 @@ function UpdatePopup(props) {
   const [openCustom, setOpenCustom] = React.useState(() => false);
   const classes = useStyles();
 
+  const areas = getAreas(props.icaodata);
+  areas.unshift('Custom area');
+
   const updateJobs = () => {
     setLoading(true);
     // Compute ICAO list
-    const icaos = getIcaoList(jobsAreas, jobsCustom);
+    const icaos = getIcaoList(jobsAreas, jobsCustom, props.icaodata);
     const url = 'https://server.fseconomy.net/data?userkey='+key+'&format=csv&query=icao&search=jobsfrom&icaos='+icaos;
     // Fetch job list
     fetch('https://cors-anywhere.herokuapp.com/'+url)
@@ -258,7 +258,7 @@ function UpdatePopup(props) {
             }
             else {
               setJobsAreas(value);
-              setJobsError(getIcaoList(value, jobsCustom).length > 8000)  
+              setJobsError(getIcaoList(value, jobsCustom, props.icaodata).length > 8000)  
             }
           }}
           value={jobsAreas}
@@ -290,9 +290,10 @@ function UpdatePopup(props) {
             const a = [...jobsAreas, 'Custom area'];
             setJobsCustom(bounds);
             setJobsAreas(a);
-            setJobsError(getIcaoList(a, bounds).length > 8000);
+            setJobsError(getIcaoList(a, bounds, props.icaodata).length > 8000);
           }}
           bounds={jobsCustom}
+          settings={props.settings}
         />
 
         <Divider className={classes.divider} />

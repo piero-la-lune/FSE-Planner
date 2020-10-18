@@ -8,10 +8,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Marker as LMarker, Popup } from "react-leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 
-import icaodata from "./data/icaodata.json";
 
-
-function bonus(icao, plane) {
+function bonus(icao, plane, icaodata) {
   if (icao === plane.Home) { return ''; }
   const fr = { latitude: icaodata[icao].lat, longitude: icaodata[icao].lon };
   const to = { latitude: icaodata[plane.Home].lat, longitude: icaodata[plane.Home].lon };
@@ -36,7 +34,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-function Marker({openPopup, position, icon, icao, planes, ...props}) {
+function Marker({openPopup, position, icon, icao, planes, icaodata, ...props}) {
   const markerRef = React.useRef();
   const classes = useStyles();
 
@@ -53,7 +51,7 @@ function Marker({openPopup, position, icon, icao, planes, ...props}) {
         <Typography variant="h6"><Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="_blank">{icao}</Link></Typography>
         { planes ?
           planes.map(plane =>
-            <Typography variant="body2" className={classes.p} key={plane.Registration}>{plane.Registration} : ${plane.RentalDry}/${plane.RentalWet} (${plane.Bonus}{bonus(icao, plane)})</Typography>
+            <Typography variant="body2" className={classes.p} key={plane.Registration}>{plane.Registration} : ${plane.RentalDry}/${plane.RentalWet} (${plane.Bonus}{bonus(icao, plane, icaodata)})</Typography>
           )
         :
           null

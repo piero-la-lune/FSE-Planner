@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Polyline, withLeaflet } from "react-leaflet";
 import L from "leaflet";
 import "leaflet-polylinedecorator";
+import { default as _isEqual } from 'lodash/isEqual';
 
 class PolylineDecorator extends Component {
   constructor(props) {
@@ -55,7 +56,7 @@ class PolylineDecorator extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.color !== this.props.color || prevProps.weight !== this.props.weight) {
+    if (prevProps.color !== this.props.color || prevProps.weight !== this.props.weight || !_isEqual(prevProps.positions, this.props.positions)) {
       this.obj.remove();
       this.componentDidMount();
     }

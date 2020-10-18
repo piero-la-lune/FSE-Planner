@@ -10,9 +10,6 @@ import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import { CivilIcon, MilitaryIcon, WaterIcon } from "./Icons.js";
 import Marker from "./Marker.js";
 
-import icaodata from "./data/icaodata.json";
-
-
 function cleanLegs(jobs, opts) {
   let ids = Object.keys(jobs);
   let markers = new Set();
@@ -28,8 +25,8 @@ function cleanLegs(jobs, opts) {
   // Get legs
   for (var i = ids.length - 1; i >= 0; i--) {
     const job = jobs[ids[i]];
-    const fr = { latitude: icaodata[job.Location].lat, longitude: icaodata[job.Location].lon };
-    const to = { latitude: icaodata[job.ToIcao].lat, longitude: icaodata[job.ToIcao].lon };
+    const fr = { latitude: opts.icaodata[job.Location].lat, longitude: opts.icaodata[job.Location].lon };
+    const to = { latitude: opts.icaodata[job.ToIcao].lat, longitude: opts.icaodata[job.ToIcao].lon };
     // Filter out non paying jobs
     if (!job.Pay) { continue; }
     // Filter out jobs of wrong type
@@ -40,7 +37,7 @@ function cleanLegs(jobs, opts) {
     if (opts.max && job.Amount > opts.max) { continue; }
     // Filter out jobs with wrong direction
     if (opts.fromIcao) {
-      const fromIcao = { latitude: icaodata[opts.fromIcao].lat, longitude: icaodata[opts.fromIcao].lon };
+      const fromIcao = { latitude: opts.icaodata[opts.fromIcao].lat, longitude: opts.icaodata[opts.fromIcao].lon };
       if (opts.settings.from.distCoef !== '') {
         if (getDistance(fromIcao, to)/getDistance(fromIcao, fr) < parseFloat(opts.settings.from.distCoef)) { continue; }
       }
@@ -52,7 +49,7 @@ function cleanLegs(jobs, opts) {
       }
     }
     if (opts.toIcao) {
-      const toIcao = { latitude: icaodata[opts.toIcao].lat, longitude: icaodata[opts.toIcao].lon };
+      const toIcao = { latitude: opts.icaodata[opts.toIcao].lat, longitude: opts.icaodata[opts.toIcao].lon };
       if (opts.settings.to.distCoef !== '') {
         if (getDistance(toIcao, fr)/getDistance(toIcao, to) < parseFloat(opts.settings.to.distCoef)) { continue; }
       }
@@ -141,11 +138,12 @@ const MapContent = React.memo(function MapContent(props) {
         if (marker === props.options.fromIcao || marker === props.options.toIcao) { color = '3'; }
         return (
           <Marker
-            position={[icaodata[marker].lat, icaodata[marker].lon]}
+            position={[props.options.icaodata[marker].lat, props.options.icaodata[marker].lon]}
             key={marker}
-            icon={icons[icaodata[marker].type+color]}
+            icon={icons[props.options.icaodata[marker].type+color]}
             icao={marker}
             planes={props.options.planes[marker]}
+            icaodata={props.options.icaodata}
           />
         );
       })}
@@ -168,7 +166,7 @@ const MapContent = React.memo(function MapContent(props) {
               highlight={s.display.legs.colors.highlight}
               key={key}
               weight={weight}
-              positions={[[icaodata[icaos[0]].lat, icaodata[icaos[0]].lon], [icaodata[icaos[1]].lat, icaodata[icaos[1]].lon]]}
+              positions={[[props.options.icaodata[icaos[0]].lat, props.options.icaodata[icaos[0]].lon], [props.options.icaodata[icaos[1]].lat, props.options.icaodata[icaos[1]].lon]]}
               reverse={rleg !== undefined}
             >
               <Tooltip sticky={true}>
@@ -200,7 +198,7 @@ const MapContent = React.memo(function MapContent(props) {
               highlight={s.display.legs.colors.highlight}
               key={key}
               weight={weight}
-              positions={[[icaodata[icaos[0]].lat, icaodata[icaos[0]].lon], [icaodata[icaos[1]].lat, icaodata[icaos[1]].lon]]}
+              positions={[[props.options.icaodata[icaos[0]].lat, props.options.icaodata[icaos[0]].lon], [props.options.icaodata[icaos[1]].lat, props.options.icaodata[icaos[1]].lon]]}
               reverse={rleg !== undefined}
             >
               <Tooltip sticky={true}>

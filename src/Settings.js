@@ -8,6 +8,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import Typography from '@material-ui/core/Typography';
+import Slider from '@material-ui/core/Slider';
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
@@ -46,6 +47,28 @@ function Setting({xs, setting, s, setS, ...props}) {
         onChange={(evt) => {
           const obj = Object.assign({}, s);
           _set(obj, setting, evt.target.value)
+          setS(obj);
+        }}
+      />
+    </Grid>
+  );
+}
+function SettingSlider({xs, setting, s, setS, ...props}) {
+  return (
+    <Grid item xs={xs || 6}>
+      <Typography variant="body2">Map center:</Typography>
+      <Slider
+        defaultValue={0}
+        min={-180}
+        max={180}
+        step={10}
+        marks={[{value: 0, label: 'Europe/Africa'}, {value: 100, label: 'Asia/Oceania'}, {value: -100, label: 'America'}]}
+        track={false}
+        value={parseInt(setting.split('.').reduce((a, b) => a[b], s))}
+        valueLabelDisplay="auto"
+        onChange={(evt, value) => {
+          const obj = Object.assign({}, s);
+          _set(obj, setting, value)
           setS(obj);
         }}
       />
@@ -95,9 +118,10 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Passenger leg color" setting='display.legs.colors.passengers' xs={4} />
               <Setting s={s} setS={setS} label="Cargo leg color" setting='display.legs.colors.cargo' xs={4} />
               <Setting s={s} setS={setS} label="Cargo leg color" setting='display.legs.colors.highlight' xs={4} />
-              <Setting s={s} setS={setS} label="Max passenger leg weight" setting='display.legs.weights.passengers' helperText="Leave empty to disable adaptative weight" xs={4}/>
-              <Setting s={s} setS={setS} label="Max cargo leg weight" setting='display.legs.weights.cargo' helperText="Leave empty to disable adaptative weight" xs={4}/>
-              <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" xs={4}/>
+              <Setting s={s} setS={setS} label="Max passenger leg weight" setting='display.legs.weights.passengers' helperText="Leave empty to disable adaptative weight" xs={4} />
+              <Setting s={s} setS={setS} label="Max cargo leg weight" setting='display.legs.weights.cargo' helperText="Leave empty to disable adaptative weight" xs={4} />
+              <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" xs={4} />
+              <SettingSlider s={s} setS={setS} label="Map center" setting='display.map.center' xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>

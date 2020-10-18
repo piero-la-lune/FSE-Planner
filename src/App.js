@@ -22,6 +22,8 @@ import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import CloseIcon from '@material-ui/icons/Close';
 import TuneIcon from '@material-ui/icons/Tune';
 import { makeStyles } from '@material-ui/core/styles';
+
+import {default as _clone} from 'lodash/cloneDeep';
 import { default as _defaultsDeep } from 'lodash/defaultsDeep';
 
 import FSEMap from './Map.js';
@@ -29,7 +31,7 @@ import UpdatePopup from './Update.js';
 import SettingsPopup from './Settings.js';
 
 import './App.css';
-import icaodata from "./data/icaodata.json";
+import icaodataSrc from "./data/icaodata.json";
 
 
 const defaultSettings = {
@@ -57,6 +59,9 @@ const defaultSettings = {
         passengers: '10',
         cargo: '10'
       }
+    },
+    map: {
+      center: 0
     }
   },
   from: {
@@ -75,15 +80,18 @@ const defaultSettings = {
 };
 
 
-const icaos = Object.entries(icaodata).map(([icao, obj]) => {
-  obj['icao'] = icao;
-  return obj;
-});
+Object.keys(icaodataSrc).forEach(icao => icaodataSrc[icao].icao = icao);
+
 const filter = createFilterOptions({limit: 5});
 const PopperMy = function (props) {
   return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
 }
 
+function wrap(num, center) {
+  if (num < center-180) { return num+360; }
+  if (num >= center+180) { return num-360; }
+  return num;
+}
 
 const useStyles = makeStyles(theme => ({
   tgBtn: {
@@ -265,6 +273,7 @@ function App() {
   const [search, setSearch] = React.useState('');
   const [searchInput, setSearchInput] = React.useState('');
   const [searchHistory, setSearchHistory] = React.useState(JSON.parse(localStorage.getItem("searchHistory")) || []);
+  const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
@@ -279,8 +288,18 @@ function App() {
     toIcao: toIcao,
     jobs: jobs,
     planes: planes,
-    settings: settings
-  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, settings]);
+    settings: settings,
+    icaodata: icaodata
+  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, settings, icaodata]);
+
+  React.useEffect(() => {
+    const obj = _clone(icaodataSrc);
+    Object.keys(obj).forEach((icao) => {
+      obj[icao].lon = wrap(obj[icao].lon, settings.display.map.center);
+    });
+    setIcaodata(obj);
+  }, [settings.display.map.center]);
+
 
   return (
     <div style={{
@@ -301,7 +320,7 @@ function App() {
           <div className={classes.filters}>
             <div className={classes.search}>
               <Autocomplete
-                options={icaos}
+                options={Object.values(icaodata)}
                 getOptionLabel={(a) => a.icao ? a.icao : ''}
                 renderOption={(a) =>
                   <span className={classes.searchOption}>
@@ -495,6 +514,8 @@ function App() {
         handleClose={() => setUpdatePopup(false)}
         setJobs={setJobs}
         setPlanes={(planes) => setPlanes(rentable(planes))}
+        icaodata={icaodata}
+        settings={settings}
       />
       <SettingsPopup
         open={settingsPopop}
