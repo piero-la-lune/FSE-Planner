@@ -52,12 +52,14 @@ const defaultSettings = {
       colors: {
         passengers: '#3f51b5',
         cargo: '#3f51b5',
-        highlight: 'yellow'
+        highlight: 'yellow',
+        flight: '#3087A8'
       },
       weights: {
         base: '1.2',
         passengers: '10',
-        cargo: '10'
+        cargo: '10',
+        flight: '10'
       }
     },
     map: {
@@ -263,6 +265,7 @@ function App() {
     if (p) { return rentable(p); }
     return {};
   });
+  const [flight, setFlight] = React.useState(JSON.parse(localStorage.getItem("flight")) || {});
   const [settings, setSettings] = React.useState(() => {
     const s = JSON.parse(localStorage.getItem("settings"));
     if (s) {
@@ -288,9 +291,10 @@ function App() {
     toIcao: toIcao,
     jobs: jobs,
     planes: planes,
+    flight: flight,
     settings: settings,
     icaodata: icaodata
-  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, settings, icaodata]);
+  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, flight, settings, icaodata]);
 
   React.useEffect(() => {
     const obj = _clone(icaodataSrc);
@@ -514,6 +518,7 @@ function App() {
         handleClose={() => setUpdatePopup(false)}
         setJobs={setJobs}
         setPlanes={(planes) => setPlanes(rentable(planes))}
+        setFlight={setFlight}
         icaodata={icaodata}
         settings={settings}
       />

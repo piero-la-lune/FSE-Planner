@@ -76,14 +76,12 @@ function cleanLegs(jobs, opts) {
         tmpLegs[key] = {
           amount: 0,
           pay: 0,
-          list: [],
           direction: Math.round(getRhumbLineBearing(fr, to)),
           distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
         };
       }
       tmpLegs[key].amount += job.Amount;
       tmpLegs[key].pay += job.Pay;
-      tmpLegs[key].list.push(job);
       if (!opts.min || tmpLegs[key].amount >= opts.min) {
         legs[key] = tmpLegs[key];
         delete tmpLegs[key];
@@ -95,27 +93,70 @@ function cleanLegs(jobs, opts) {
     else {
       legs[key].amount += job.Amount;
       legs[key].pay += job.Pay;
-      legs[key].list.push(job);
       max = Math.max(max, legs[key].amount);
     }
   }
   return [[...markers], legs, max];
 }
-
+function addFlight(markers, legs, jobs, opts) {
+  let m = new Set(markers);
+  for (const job of Object.values(jobs)) {
+    const fr = { latitude: opts.icaodata[job.Location].lat, longitude: opts.icaodata[job.Location].lon };
+    const to = { latitude: opts.icaodata[job.Destination].lat, longitude: opts.icaodata[job.Destination].lon };
+    // Create source FBO
+    let key = job.Location+"-"+job.Destination;
+    if (!legs.hasOwnProperty(key)) {
+      legs[key] = {
+        amount: 0,
+        pay: 0,
+        direction: Math.round(getRhumbLineBearing(fr, to)),
+        distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
+      }
+    }
+    if (!legs[key].hasOwnProperty('flight')) {
+      legs[key].flight = {
+        passengers: 0,
+        kg: 0,
+        pay: 0,
+      }
+    }
+    m.add(job.Location);
+    m.add(job.Destination);
+    legs[key].flight[job.Units] += job.Amount;
+    legs[key].flight.pay += job.Pay;
+  }
+  return [[...m], legs];
+}
 
 
 const useStyles = makeStyles(theme => ({
   leg: {
     display: 'flex',
     alignItems: 'center'
+  },
+  flight: {
+    marginTop: theme.spacing(2)
   }
 }));
 
+function Leg(props) {
+  const classes = useStyles();
+  const text = [];
+  if (props.passengers) { text.push(props.passengers+' passengers'); }
+  if (props.kg) { text.push(props.kg+' kg'); }
+  if (text.length === 0) { return null; }
+  return (
+    <Typography variant="body2" className={classes.leg}>
+      <NavigationIcon style={{transform: 'rotate('+props.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{text.join(', ')}&nbsp;(${props.pay})</span>
+    </Typography>
+  );
+}
 
 const MapContent = React.memo(function MapContent(props) {
 
   const s = props.options.settings;
   let [markers, legs, max] = cleanLegs(props.options.jobs, props.options);
+  [markers, legs] = addFlight(markers, legs, props.options.flight, props.options);
   const classes = useStyles();
 
   const icons = {
@@ -160,9 +201,14 @@ const MapContent = React.memo(function MapContent(props) {
           if (mw) {
             weight = ((amount-min) / (max-min)) * (mw - weight) + weight;
           }
+          let color = s.display.legs.colors.passengers;
+          if (leg.flight || (rleg && rleg.flight)) {
+            color = s.display.legs.colors.flight;
+            weight = parseFloat(s.display.legs.weights.flight);
+          }
           return (
             <PolylineDecorator
-              color={s.display.legs.colors.passengers}
+              color={color}
               highlight={s.display.legs.colors.highlight}
               key={key}
               weight={weight}
@@ -171,15 +217,21 @@ const MapContent = React.memo(function MapContent(props) {
             >
               <Tooltip sticky={true}>
                 <Typography variant="body1"><b>{leg.distance}NM</b></Typography>
-                <Typography variant="body2" className={classes.leg}>
-                  <NavigationIcon style={{transform: 'rotate('+leg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{leg.amount} passagers (${leg.pay})</span>
-                </Typography>
-                {rleg ?
-                  <Typography variant="body2" className={classes.leg}>
-                    <NavigationIcon style={{transform: 'rotate('+rleg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{rleg.amount} passagers (${rleg.pay})</span>
-                  </Typography>
-                :
-                null}
+                <Leg passengers={leg.amount} direction={leg.direction} pay={leg.pay} />
+                {rleg &&
+                  <Leg passengers={rleg.amount} direction={rleg.direction} pay={rleg.pay} />
+                }
+                {(leg.flight || (rleg && rleg.flight)) &&
+                  <React.Fragment>
+                    <Typography variant="body1" className={classes.flight}><b>My flight</b></Typography>
+                    {leg.flight &&
+                      <Leg passengers={leg.flight.passengers} kg={leg.flight.kg} direction={leg.direction} pay={leg.flight.pay} />
+                    }
+                    {rleg && rleg.flight &&
+                      <Leg passengers={rleg.flight.passengers} kg={rleg.flight.kg} direction={rleg.direction} pay={rleg.flight.pay} />
+                    }
+                  </React.Fragment>
+                }
               </Tooltip>
             </PolylineDecorator>
           )
@@ -192,9 +244,14 @@ const MapContent = React.memo(function MapContent(props) {
           if (mw) {
             weight = ((amount-min) / (max-min)) * (mw - weight) + weight;
           }
+          let color = s.display.legs.colors.cargo;
+          if (leg.flight || (rleg && rleg.flight)) {
+            color = s.display.legs.colors.flight;
+            weight = parseFloat(s.display.legs.weights.flight);
+          }
           return (
             <PolylineDecorator
-              color={s.display.legs.colors.cargo}
+              color={color}
               highlight={s.display.legs.colors.highlight}
               key={key}
               weight={weight}
@@ -203,15 +260,21 @@ const MapContent = React.memo(function MapContent(props) {
             >
               <Tooltip sticky={true}>
                 <Typography variant="body1"><b>{leg.distance}NM</b></Typography>
-                <Typography variant="body2" className={classes.leg}>
-                  <NavigationIcon style={{transform: 'rotate('+leg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{leg.amount} kg (${leg.pay})</span>
-                </Typography>
-                {rleg ?
-                  <Typography variant="body2" className={classes.leg}>
-                    <NavigationIcon style={{transform: 'rotate('+rleg.direction+'deg)'}} fontSize='inherit' /><span>&nbsp;{rleg.amount} kg (${rleg.pay})</span>
-                  </Typography>
-                :
-                null}
+                <Leg kg={leg.amount} direction={leg.direction} pay={leg.pay} />
+                {rleg &&
+                  <Leg kg={rleg.amount} direction={rleg.direction} pay={rleg.pay} />
+                }
+                {(leg.flight || (rleg && rleg.flight)) &&
+                  <React.Fragment>
+                    <Typography variant="body1" className={classes.flight}><b>My flight</b></Typography>
+                    {leg.flight &&
+                      <Leg passengers={leg.flight.passengers} kg={leg.flight.kg} direction={leg.direction} pay={leg.flight.pay} />
+                    }
+                    {rleg && rleg.flight &&
+                      <Leg passengers={rleg.flight.passengers} kg={rleg.flight.kg} direction={rleg.direction} pay={rleg.flight.pay} />
+                    }
+                  </React.Fragment>
+                }
               </Tooltip>
             </PolylineDecorator>
           )

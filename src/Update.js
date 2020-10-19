@@ -135,6 +135,7 @@ function UpdatePopup(props) {
   const [jobsError, setJobsError] = React.useState(false);
   const [planeModel, setPlaneModel] = React.useState(localStorage.getItem("planeModel") || '');
   const [planesTime, setPlanesTime] = React.useState(localStorage.getItem("planesTime") || null);
+  const [flightTime, setFlightTime] = React.useState(localStorage.getItem("flightTime") || null);
   const [loading, setLoading] = React.useState(false);
   const [openCustom, setOpenCustom] = React.useState(false);
   const [expanded, setExpanded] = React.useState(localStorage.getItem("key") ? false : 'panel1');
@@ -204,9 +205,9 @@ function UpdatePopup(props) {
   const updatePlanes = (evt) => {
     evt.stopPropagation();
     setLoading(true);
-    // Compute ICAO list
+    // Build URL
     const url = 'https://server.fseconomy.net/data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURI(planeModel);
-    // Fetch job list
+    // Fetch planes list
     fetch('https://cors-anywhere.herokuapp.com/'+url)
     .then(function(response) {
       if (!response.ok) {
@@ -252,6 +253,60 @@ function UpdatePopup(props) {
     localStorage.removeItem('planes');
     localStorage.removeItem('planesTime');
     setPlanesTime(null);
+    // Close popup
+    setLoading(false);
+    props.handleClose();
+  }
+
+  const updateFlight = (evt) => {
+    evt.stopPropagation();
+    setLoading(true);
+    // Build URL
+    const url = 'https://server.fseconomy.net/data?userkey='+key+'&format=csv&query=assignments&search=key&readaccesskey='+key
+    // Fetch job list
+    fetch('https://cors-anywhere.herokuapp.com/'+url)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error("Network error");
+      }
+      return response.text();
+    })
+    .then(function(csv) {
+      // Parse CSV
+      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy', dynamicTyping: true});
+      if (parse.errors.length > 0) {
+        throw new Error("Parsing error");
+      }
+      // Convert array to object
+      let jobs = parse.data.reduce((obj, item) => {
+        obj[item.Id] = item;
+        return obj;
+      }, {});
+      // Update flight
+      props.setFlight(jobs);
+      localStorage.setItem('flight', JSON.stringify(jobs));
+      // Update date
+      let date = new Date();
+      localStorage.setItem('flightTime', date);
+      setFlightTime(localStorage.getItem("flightTime"));
+      // Close popup
+      setLoading(false);
+      props.handleClose();
+    })
+    .catch(function(error) {
+      alert('Could not get data. Check your read access key.');
+      setLoading(false);
+    });
+  }
+
+  const clearFlight = (evt) => {
+    evt.stopPropagation();
+    setLoading(true);
+    // Update planes
+    props.setFlight({});
+    localStorage.removeItem('flight');
+    localStorage.removeItem('flightTime');
+    setFlightTime(null);
     // Close popup
     setLoading(false);
     props.handleClose();
@@ -386,6 +441,24 @@ function UpdatePopup(props) {
               value={planeModel}
             />
           </AccordionDetails>
+        </Accordion>
+
+        <Accordion expanded={expanded === 'panel4'} onChange={panelChange('panel4')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
+            <Typography className={classes.title}>My flight</Typography>
+            <Button color="secondary" onClick={clearFlight}>
+              Clear
+            </Button>
+            &nbsp;
+            <Tooltip title={<span>Last update : {flightTime ? ((new Date(flightTime)).toLocaleString()) : "never"}</span>}>
+              <span>
+                <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading || !key}>
+                  Update
+                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                </Button>
+              </span>
+            </Tooltip>
+          </AccordionSummary>
         </Accordion>
 
       </DialogContent>
