@@ -6,13 +6,17 @@ import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
+import Tooltip from '@material-ui/core/Tooltip';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import Alert from '@material-ui/lab/Alert';
-import Divider from '@material-ui/core/Divider';
+import Accordion from '@material-ui/core/Accordion';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { makeStyles } from '@material-ui/core/styles';
 import { readString } from 'react-papaparse';
 import { isPointInPolygon } from "geolib";
@@ -84,8 +88,8 @@ const useStyles = makeStyles(theme => ({
     top: theme.spacing(1),
     color: theme.palette.grey[500],
   },
-  part: {
-    marginTop: theme.spacing(2)
+  alert: {
+    marginBottom: theme.spacing(2)
   },
   buttonProgress: {
     position: 'absolute',
@@ -103,6 +107,15 @@ const useStyles = makeStyles(theme => ({
   },
   dialog: {
     padding: theme.spacing(3)
+  },
+  accSummary: {
+    alignItems: 'center'
+  },
+  accDetails: {
+    flexDirection: 'column'
+  },
+  title: {
+    flexGrow: 1
   }
 }));
 
@@ -111,25 +124,27 @@ const filter = createFilterOptions();
 
 function UpdatePopup(props) {
 
-  const [key, setKey] = React.useState(() => localStorage.getItem("key") || '');
+  const [key, setKey] = React.useState(localStorage.getItem("key") || '');
   const [jobsAreas, setJobsAreas] = React.useState(() => JSON.parse(localStorage.getItem("jobsAreas")) || []);
   const [jobsCustom, setJobsCustom] = React.useState(() => {
     const b = JSON.parse(localStorage.getItem("jobsCustom"))
     if (b) { return L.latLngBounds(b._southWest, b._northEast); }
     return null;
   });
-  const [jobsTime, setJobsTime] = React.useState(() => localStorage.getItem("jobsTime") || null);
-  const [jobsError, setJobsError] = React.useState(() => false);
-  const [planeModel, setPlaneModel] = React.useState(() => localStorage.getItem("planeModel") || '');
-  const [planesTime, setPlanesTime] = React.useState(() => localStorage.getItem("planesTime") || null);
-  const [loading, setLoading] = React.useState(() => false);
-  const [openCustom, setOpenCustom] = React.useState(() => false);
+  const [jobsTime, setJobsTime] = React.useState(localStorage.getItem("jobsTime") || null);
+  const [jobsError, setJobsError] = React.useState(false);
+  const [planeModel, setPlaneModel] = React.useState(localStorage.getItem("planeModel") || '');
+  const [planesTime, setPlanesTime] = React.useState(localStorage.getItem("planesTime") || null);
+  const [loading, setLoading] = React.useState(false);
+  const [openCustom, setOpenCustom] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(localStorage.getItem("key") ? false : 'panel1');
   const classes = useStyles();
 
   const areas = getAreas(props.icaodata);
   areas.unshift('Custom area');
 
-  const updateJobs = () => {
+  const updateJobs = (evt) => {
+    evt.stopPropagation();
     setLoading(true);
     // Compute ICAO list
     const icaos = getIcaoList(jobsAreas, jobsCustom, props.icaodata);
@@ -173,7 +188,21 @@ function UpdatePopup(props) {
     });
   }
 
-  const updatePlanes = () => {
+  const clearJobs = (evt) => {
+    evt.stopPropagation();
+    setLoading(true);
+    // Update planes
+    props.setJobs({});
+    localStorage.removeItem('jobs');
+    localStorage.removeItem('jobsTime');
+    setJobsTime(null);
+    // Close popup
+    setLoading(false);
+    props.handleClose();
+  }
+
+  const updatePlanes = (evt) => {
+    evt.stopPropagation();
     setLoading(true);
     // Compute ICAO list
     const url = 'https://server.fseconomy.net/data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURI(planeModel);
@@ -215,6 +244,23 @@ function UpdatePopup(props) {
     });
   }
 
+  const clearPlanes = (evt) => {
+    evt.stopPropagation();
+    setLoading(true);
+    // Update planes
+    props.setPlanes({});
+    localStorage.removeItem('planes');
+    localStorage.removeItem('planesTime');
+    setPlanesTime(null);
+    // Close popup
+    setLoading(false);
+    props.handleClose();
+  }
+
+  const panelChange = (panel) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
   return (
     <Dialog onClose={props.handleClose} open={props.open} fullWidth={true} maxWidth="sm">
       <DialogTitle>
@@ -224,100 +270,124 @@ function UpdatePopup(props) {
         </IconButton>
       </DialogTitle>
       <DialogContent dividers className={classes.dialog}>
-        <TextField
-          label="Read Access Key"
-          type="text"
-          onChange={(evt) => {
-            let k = evt.target.value;
-            setKey(k);
-            localStorage.setItem("key", k);
-          }}
-          value={key}
-          helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}
-          variant='outlined'
-          fullWidth
-        />
-        <Alert severity="warning" className={classes.part}>Each update below is 1 request to the FSE servers. You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
 
-        <Divider className={classes.divider} />
+        <Alert severity="warning" className={classes.alert}>Each update below is 1 request to the FSE servers. You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
 
-        <Typography><b>Assignments area</b></Typography>
-        <Autocomplete
-          multiple
-          limitTags={2}
-          options={areas}
-          renderInput={(params) => (
-            jobsError ?
-              <TextField {...params} label='Included countries' variant='outlined' error helperText='Selected area is too big' />
-            :
-              <TextField {...params} label='Included countries' variant='outlined' />
-          )}
-          onChange={(evt, value) => {
-            if (value.includes('Custom area') && !jobsAreas.includes('Custom area')) {
-              setOpenCustom(true);
-            }
-            else {
-              setJobsAreas(value);
-              setJobsError(getIcaoList(value, jobsCustom, props.icaodata).length > 8000)  
-            }
-          }}
-          value={jobsAreas}
-          className={classes.part}
-          filterOptions={(options, params) => {
-            const filtered = filter(options, params);
-            if (!filtered.includes('Custom area')) {
-              filtered.unshift('Custom area');
-            }
-            return filtered;
-          }}
-          selectOnFocus
-          clearOnBlur
-          handleHomeEndKeys
-          renderOption={option => (option === 'Custom area') ? <span className={classes.span}><AspectRatioIcon />&nbsp;Select custom area on map</span> : option}
-        />
-        <div className={classes.part}>
-          <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading || !key || jobsError}>
-            Update
-            {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
-          </Button>
-          &nbsp;
-          <Typography variant="caption">Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</Typography>
-        </div>
-        <CustomAreaPopup
-          open={openCustom}
-          handleClose={() => setOpenCustom(false)}
-          setArea={(bounds) => {
-            const a = [...jobsAreas, 'Custom area'];
-            setJobsCustom(bounds);
-            setJobsAreas(a);
-            setJobsError(getIcaoList(a, bounds, props.icaodata).length > 8000);
-          }}
-          bounds={jobsCustom}
-          settings={props.settings}
-        />
+        <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography>Read access key</Typography>
+          </AccordionSummary>
+          <AccordionDetails className={classes.accDetails}>
+            <TextField
+              label="Read Access Key"
+              type="text"
+              onChange={(evt) => {
+                let k = evt.target.value;
+                setKey(k);
+                localStorage.setItem("key", k);
+              }}
+              value={key}
+              helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}
+              variant='outlined'
+              fullWidth
+            />
+          </AccordionDetails>
+        </Accordion>
 
-        <Divider className={classes.divider} />
+        <Accordion expanded={expanded === 'panel2'} onChange={panelChange('panel2')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
+            <Typography className={classes.title}>Jobs</Typography>
+            <Button color="secondary" onClick={clearJobs}>
+              Clear
+            </Button>
+            &nbsp;
+            <Tooltip title={<span>Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</span>}>
+              <span>
+                <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading || !key || jobsError || !jobsAreas.length}>
+                  Update
+                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                </Button>
+              </span>
+            </Tooltip>
+          </AccordionSummary>
+          <AccordionDetails className={classes.accDetails}>
+            <Autocomplete
+              multiple
+              limitTags={2}
+              options={areas}
+              renderInput={(params) => (
+                jobsError ?
+                  <TextField {...params} label='Included countries' variant='outlined' error helperText='Selected area is too big' />
+                :
+                  <TextField {...params} label='Included countries' variant='outlined' />
+              )}
+              onChange={(evt, value) => {
+                if (value.includes('Custom area') && !jobsAreas.includes('Custom area')) {
+                  setOpenCustom(true);
+                }
+                else {
+                  setJobsAreas(value);
+                  setJobsError(getIcaoList(value, jobsCustom, props.icaodata).length > 8000)  
+                }
+              }}
+              value={jobsAreas}
+              filterOptions={(options, params) => {
+                const filtered = filter(options, params);
+                if (!filtered.includes('Custom area')) {
+                  filtered.unshift('Custom area');
+                }
+                return filtered;
+              }}
+              selectOnFocus
+              clearOnBlur
+              handleHomeEndKeys
+              renderOption={option => (option === 'Custom area') ? <span className={classes.span}><AspectRatioIcon />&nbsp;Select custom area on map</span> : option}
+            />
+            <CustomAreaPopup
+              open={openCustom}
+              handleClose={() => setOpenCustom(false)}
+              setArea={(bounds) => {
+                const a = [...jobsAreas, 'Custom area'];
+                setJobsCustom(bounds);
+                setJobsAreas(a);
+                setJobsError(getIcaoList(a, bounds, props.icaodata).length > 8000);
+              }}
+              bounds={jobsCustom}
+              settings={props.settings}
+            />
+          </AccordionDetails>
+        </Accordion>
 
-        <Typography><b>Rentable planes</b></Typography>
-        <Autocomplete
-          options={Object.keys(aircrafts)}
-          renderInput={(params) => (
-            <TextField {...params} label="Aircraft model" variant='outlined' />
-          )}
-          onChange={(evt, value) => {
-            setPlaneModel(value);
-          }}
-          value={planeModel}
-          className={classes.part}
-        />
-        <div className={classes.part}>
-          <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key}>
-            Update
-            {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
-          </Button>
-          &nbsp;
-          <Typography variant="caption">Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</Typography>
-        </div>
+        <Accordion expanded={expanded === 'panel3'} onChange={panelChange('panel3')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
+            <Typography className={classes.title}>Rentable planes</Typography>
+            <Button color="secondary" onClick={clearPlanes}>
+              Clear
+            </Button>
+            &nbsp;
+            <Tooltip title={<span>Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</span>}>
+              <span>
+                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key || !planeModel}>
+                  Update
+                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                </Button>
+              </span>
+            </Tooltip>
+          </AccordionSummary>
+          <AccordionDetails className={classes.accDetails}>
+            <Autocomplete
+              options={Object.keys(aircrafts)}
+              renderInput={(params) => (
+                <TextField {...params} label="Aircraft model" variant='outlined' />
+              )}
+              onChange={(evt, value) => {
+                setPlaneModel(value);
+              }}
+              value={planeModel}
+            />
+          </AccordionDetails>
+        </Accordion>
+
       </DialogContent>
     </Dialog>
   );
