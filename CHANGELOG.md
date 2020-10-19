@@ -14,6 +14,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [0.5.0] - 2020-10-20
+
+### Added
+- Auto center/zoom map to jobs on loading
+- New setting to change map middle
+- Show My Flight (FSE selected jobs) on map
+
+### Changed
+- Update popup improved
+
+### Fixed
+- From/To ICAO bug with max angle
+- Naval airport icon
+- Map issue at around longitude -180
+- Typo
+
+
+
 ## [0.4.1] - 2020-10-17
 
 ### Fixed
