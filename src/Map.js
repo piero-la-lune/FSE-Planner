@@ -25,7 +25,7 @@ function FSEMap(props) {
     points = Object.values(points);
     if (points.length > 4) {
       const bounds = getBounds(points);
-      mapRef.current.leafletElement.fitBounds([[bounds.minLat, bounds.minLng], [bounds.maxLat, bounds.maxLng]]);
+      mapRef.current.leafletElement.fitBounds([[bounds.minLat, bounds.minLng], [bounds.maxLat, bounds.maxLng]], {animate:false});
     }
   }, [props.options.jobs, props.options.icaodata]);
 
