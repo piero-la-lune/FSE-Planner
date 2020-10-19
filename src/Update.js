@@ -302,7 +302,7 @@ function UpdatePopup(props) {
         <Autocomplete
           options={Object.keys(aircrafts)}
           renderInput={(params) => (
-            <TextField {...params} label="Aircraf model" variant='outlined' />
+            <TextField {...params} label="Aircraft model" variant='outlined' />
           )}
           onChange={(evt, value) => {
             setPlaneModel(value);
