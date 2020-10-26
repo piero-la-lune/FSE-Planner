@@ -78,6 +78,11 @@ const defaultSettings = {
   },
   direction: {
     angle: '30'
+  },
+  pay: {
+    min_job: '',
+    min_leg: '',
+    top: '',
   }
 };
 

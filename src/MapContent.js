@@ -12,16 +12,9 @@ import Marker from "./Marker.js";
 
 function cleanLegs(jobs, opts) {
   let ids = Object.keys(jobs);
-  let markers = new Set();
   let legs = {};
   let tmpLegs = {};
   let max = 0;
-  // Add markers where a plane can be rented
-  Object.keys(opts.planes).forEach(elm => markers.add(elm));
-  // Add markers in filtering options
-  if (opts.fromIcao) { markers.add(opts.fromIcao); }
-  if (opts.toIcao) { markers.add(opts.toIcao); }
-  if (opts.search) { markers.add(opts.search.icao); }
   // Get legs
   for (var i = ids.length - 1; i >= 0; i--) {
     const job = jobs[ids[i]];
@@ -29,6 +22,7 @@ function cleanLegs(jobs, opts) {
     const to = { latitude: opts.icaodata[job.ToIcao].lat, longitude: opts.icaodata[job.ToIcao].lon };
     // Filter out non paying jobs
     if (!job.Pay) { continue; }
+    if (opts.settings.pay.min_job && job.Pay < opts.settings.pay.min_job) { continue; }
     // Filter out jobs of wrong type
     if (opts.type !== job.Type) { continue; }
     // Filter out jobs with wrong cargo
@@ -82,12 +76,10 @@ function cleanLegs(jobs, opts) {
       }
       tmpLegs[key].amount += job.Amount;
       tmpLegs[key].pay += job.Pay;
-      if (!opts.min || tmpLegs[key].amount >= opts.min) {
+      if ((!opts.min || tmpLegs[key].amount >= opts.min) && (!opts.settings.pay.min_leg || tmpLegs[key].pay >= opts.settings.pay.min_leg)) {
         legs[key] = tmpLegs[key];
         delete tmpLegs[key];
         max = Math.max(max, legs[key].amount);
-        markers.add(job.Location);
-        markers.add(job.ToIcao);
       }
     }
     else {
@@ -96,10 +88,25 @@ function cleanLegs(jobs, opts) {
       max = Math.max(max, legs[key].amount);
     }
   }
-  return [[...markers], legs, max];
+  // Only keep top x% paying jobs
+  if (opts.settings.pay.top) {
+    const values = [];
+    // Compute each leg pay / amount / distance
+    Object.values(legs).forEach(leg => {
+      leg.pay_r = leg.pay/leg.amount/leg.distance
+      values.push(leg.pay_r);
+    });
+    values.sort((a, b) => a - b);
+    // Get values index
+    const index = Math.floor(values.length*(1-parseInt(opts.settings.pay.top)/100)) - 1;
+    // Get min pay
+    const min_pay = values[Math.min(Math.max(index, 0), values.length-1)];
+    // Filter out jobs
+    Object.keys(legs).filter(icao => legs[icao].pay_r < min_pay).forEach(icao => delete legs[icao]);
+  }
+  return [legs, max];
 }
-function addFlight(markers, legs, jobs, opts) {
-  let m = new Set(markers);
+function addFlight(legs, jobs, opts) {
   for (const job of Object.values(jobs)) {
     const fr = { latitude: opts.icaodata[job.Location].lat, longitude: opts.icaodata[job.Location].lon };
     const to = { latitude: opts.icaodata[job.Destination].lat, longitude: opts.icaodata[job.Destination].lon };
@@ -120,12 +127,26 @@ function addFlight(markers, legs, jobs, opts) {
         pay: 0,
       }
     }
-    m.add(job.Location);
-    m.add(job.Destination);
     legs[key].flight[job.Units] += job.Amount;
     legs[key].flight.pay += job.Pay;
   }
-  return [[...m], legs];
+  return legs;
+}
+function getMarkers(legs, opts) {
+  let markers = new Set();
+  // Add markers where a plane can be rented
+  Object.keys(opts.planes).forEach(elm => markers.add(elm));
+  // Add markers in filtering options
+  if (opts.fromIcao) { markers.add(opts.fromIcao); }
+  if (opts.toIcao) { markers.add(opts.toIcao); }
+  if (opts.search) { markers.add(opts.search.icao); }
+  // Add markers in legs
+  Object.keys(legs).forEach((key) => {
+    let arr = key.split('-');
+    markers.add(arr[0]);
+    markers.add(arr[1]);
+  });
+  return [...markers];
 }
 
 
@@ -155,8 +176,9 @@ function Leg(props) {
 const MapContent = React.memo(function MapContent(props) {
 
   const s = props.options.settings;
-  let [markers, legs, max] = cleanLegs(props.options.jobs, props.options);
-  [markers, legs] = addFlight(markers, legs, props.options.flight, props.options);
+  let [legs, max] = cleanLegs(props.options.jobs, props.options);
+  legs = addFlight(legs, props.options.flight, props.options);
+  const markers = getMarkers(legs, props.options);
   const classes = useStyles();
 
   const icons = {

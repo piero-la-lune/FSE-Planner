@@ -16,6 +16,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import FlightLandIcon from '@material-ui/icons/FlightLand';
 import ExploreIcon from '@material-ui/icons/Explore';
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import Grid from '@material-ui/core/Grid';
 import {default as _set} from 'lodash/set';
 import {default as _clone} from 'lodash/cloneDeep';
@@ -169,7 +170,19 @@ function SettingsPopup(props) {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={3}>
-              <Setting s={s} setS={setS} label="Maximum tolerance angle " setting='direction.angle' />
+              <Setting s={s} setS={setS} label="Maximum tolerance angle" setting='direction.angle' />
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <MonetizationOnIcon />&nbsp;<Typography>Pay settings</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={3}>
+              <Setting s={s} setS={setS} label="Minimum job pay (in $)" setting='pay.min_job' xs={4} />
+              <Setting s={s} setS={setS} label="Minimum leg pay (in $)" setting='pay.min_leg' xs={4} />
+              <Setting s={s} setS={setS} label="Top paying jobs (in percent)" setting='pay.top' xs={4} />
             </Grid>
           </AccordionDetails>
         </Accordion>
