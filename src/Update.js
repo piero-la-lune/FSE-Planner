@@ -149,9 +149,9 @@ function UpdatePopup(props) {
     setLoading(true);
     // Compute ICAO list
     const icaos = getIcaoList(jobsAreas, jobsCustom, props.icaodata);
-    const url = 'https://server.fseconomy.net/data?userkey='+key+'&format=csv&query=icao&search=jobsfrom&icaos='+icaos;
+    const url = 'data?userkey='+key+'&format=csv&query=icao&search=jobsfrom&icaos='+icaos;
     // Fetch job list
-    fetch('https://cors-anywhere.herokuapp.com/'+url)
+    fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
       if (!response.ok) {
         throw new Error("Network error");
@@ -206,9 +206,9 @@ function UpdatePopup(props) {
     evt.stopPropagation();
     setLoading(true);
     // Build URL
-    const url = 'https://server.fseconomy.net/data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURI(planeModel);
+    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURI(planeModel);
     // Fetch planes list
-    fetch('https://cors-anywhere.herokuapp.com/'+url)
+    fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
       if (!response.ok) {
         throw new Error("Network error");
@@ -262,9 +262,9 @@ function UpdatePopup(props) {
     evt.stopPropagation();
     setLoading(true);
     // Build URL
-    const url = 'https://server.fseconomy.net/data?userkey='+key+'&format=csv&query=assignments&search=key&readaccesskey='+key
+    const url = 'data?userkey='+key+'&format=csv&query=assignments&search=key&readaccesskey='+key
     // Fetch job list
-    fetch('https://cors-anywhere.herokuapp.com/'+url)
+    fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
       if (!response.ok) {
         throw new Error("Network error");
