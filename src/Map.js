@@ -3,7 +3,7 @@ import React from 'react';
 import { Map, TileLayer } from "react-leaflet";
 import { getBounds } from "geolib";
 
-import { CivilIcon, MilitaryIcon, WaterIcon } from "./Icons.js";
+import AirportIcons from "./Icons.js";
 import MapContent from "./MapContent.js";
 import Marker from "./Marker.js";
 
@@ -29,11 +29,7 @@ function FSEMap(props) {
     }
   }, [props.options.jobs, props.options.icaodata]);
 
-  const icons = {
-    civil: CivilIcon(s.display.markers.colors.selected, s.display.markers.sizes.selected),
-    military: MilitaryIcon(s.display.markers.colors.selected, s.display.markers.sizes.selected),
-    water: WaterIcon(s.display.markers.colors.selected, s.display.markers.sizes.selected),
-  }
+  const icons = new AirportIcons(s.display.markers.colors.selected, s.display.markers.sizes.selected);
 
   const bounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
 
@@ -47,7 +43,7 @@ function FSEMap(props) {
         <Marker
           position={[props.options.icaodata[search].lat, props.options.icaodata[search].lon]}
           key={search}
-          icon={icons[props.options.icaodata[search].type]}
+          icon={icons.get(props.options.icaodata[search].type, props.options.icaodata[search].size)}
           openPopup={true}
           icao={search}
           planes={props.options.planes[search]}

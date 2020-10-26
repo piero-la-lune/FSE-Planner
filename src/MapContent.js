@@ -7,7 +7,7 @@ import { Tooltip } from "react-leaflet";
 import PolylineDecorator from "./PolylineDecorator.js";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 
-import { CivilIcon, MilitaryIcon, WaterIcon } from "./Icons.js";
+import AirportIcons from "./Icons.js";
 import Marker from "./Marker.js";
 
 function cleanLegs(jobs, opts) {
@@ -181,29 +181,23 @@ const MapContent = React.memo(function MapContent(props) {
   const markers = getMarkers(legs, props.options);
   const classes = useStyles();
 
-  const icons = {
-    civil1: CivilIcon(s.display.markers.colors.base, s.display.markers.sizes.base),
-    military1: MilitaryIcon(s.display.markers.colors.base, s.display.markers.sizes.base),
-    water1: WaterIcon(s.display.markers.colors.base, s.display.markers.sizes.base),
-    civil2: CivilIcon(s.display.markers.colors.rentable, s.display.markers.sizes.rentable),
-    military2: MilitaryIcon(s.display.markers.colors.rentable, s.display.markers.sizes.rentable),
-    water2: WaterIcon(s.display.markers.colors.rentable, s.display.markers.sizes.rentable),
-    civil3: CivilIcon(s.display.markers.colors.selected, s.display.markers.sizes.selected),
-    military3: MilitaryIcon(s.display.markers.colors.selected, s.display.markers.sizes.selected),
-    water3: WaterIcon(s.display.markers.colors.selected, s.display.markers.sizes.selected),
-  }
+  const icons = [
+    new AirportIcons(s.display.markers.colors.base, s.display.markers.sizes.base),
+    new AirportIcons(s.display.markers.colors.rentable, s.display.markers.sizes.rentable),
+    new AirportIcons(s.display.markers.colors.selected, s.display.markers.sizes.selected)
+  ];
 
   return (
     <React.Fragment>
       {markers.map(marker => {
-        let color = '1';
-        if (props.options.planes[marker]) { color = '2'; }
-        if (marker === props.options.fromIcao || marker === props.options.toIcao) { color = '3'; }
+        let color = 0;
+        if (props.options.planes[marker]) { color = 1; }
+        if (marker === props.options.fromIcao || marker === props.options.toIcao) { color = 2; }
         return (
           <Marker
             position={[props.options.icaodata[marker].lat, props.options.icaodata[marker].lon]}
             key={marker}
-            icon={icons[props.options.icaodata[marker].type+color]}
+            icon={icons[color].get(props.options.icaodata[marker].type, props.options.icaodata[marker].size)}
             icao={marker}
             planes={props.options.planes[marker]}
             icaodata={props.options.icaodata}
