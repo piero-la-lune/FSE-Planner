@@ -18,6 +18,8 @@ import FlightLandIcon from '@material-ui/icons/FlightLand';
 import ExploreIcon from '@material-ui/icons/Explore';
 import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import Grid from '@material-ui/core/Grid';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 import {default as _set} from 'lodash/set';
 import {default as _clone} from 'lodash/cloneDeep';
 import { makeStyles } from '@material-ui/core/styles';
@@ -54,10 +56,10 @@ function Setting({xs, setting, s, setS, ...props}) {
     </Grid>
   );
 }
-function SettingSlider({xs, setting, s, setS, ...props}) {
+function SettingSlider({xs, setting, s, setS, label, ...props}) {
   return (
     <Grid item xs={xs || 6}>
-      <Typography variant="body2">Map center:</Typography>
+      <Typography variant="body2">{label}:</Typography>
       <Slider
         defaultValue={0}
         min={-180}
@@ -72,6 +74,26 @@ function SettingSlider({xs, setting, s, setS, ...props}) {
           _set(obj, setting, value)
           setS(obj);
         }}
+      />
+    </Grid>
+  );
+}
+function SettingSwitch({xs, setting, s, setS, label, ...props}) {
+  return (
+    <Grid item xs={xs || 6}>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={setting.split('.').reduce((a, b) => a[b], s) === true}
+            onChange={(evt, value) => {
+              const obj = Object.assign({}, s);
+              _set(obj, setting, value)
+              setS(obj);
+            }}
+            color="primary"
+          />
+        }
+        label={label}
       />
     </Grid>
   );
@@ -125,6 +147,7 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Highlighted leg color" setting='display.legs.colors.highlight' />
               <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" />
               <SettingSlider s={s} setS={setS} label="Map center" setting='display.map.center' xs={12} />
+              <SettingSwitch s={s} setS={setS} label="Display all FSE airports on map" setting='display.markers.all' />
             </Grid>
           </AccordionDetails>
         </Accordion>

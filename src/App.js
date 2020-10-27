@@ -46,7 +46,8 @@ const defaultSettings = {
         base: '17',
         rentable: '20',
         selected: '25'
-      }
+      },
+      all: true
     },
     legs: {
       colors: {
