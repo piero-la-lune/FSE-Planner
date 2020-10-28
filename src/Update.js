@@ -37,9 +37,7 @@ function getAreas(icaodata) {
     if (country === 'United States') {
       a.add('US - '+icaodata[icaos[i]].state)
     }
-    else {
-      a.add(country);
-    }
+    a.add(country);
   }
   return [...a].sort();
 }
@@ -58,26 +56,36 @@ function getIcaoList(countries, bounds, icaodata) {
     ];
   }
   let icaos = [];
-  for (const [icao, obj] of Object.entries(icaodata)) {
+  for (const icao of Object.keys(icaodata)) {
     // If custom area, check if icao is inside the polygon
-    if (points && isPointInPolygon({ latitude: obj.lat, longitude: obj.lon}, points)) {
+    if (points && isPointInPolygon({ latitude: icaodata[icao].lat, longitude: icaodata[icao].lon}, points)) {
       icaos.push(icao);
     }
     else {
-      // For the United States, we use states instead
-      if (obj.country === 'United States') {
-        if (countries.includes('US - '+obj.state)) {
-          icaos.push(icao);
-        }
+      // For the United States, we can use states instead
+      if (icaodata[icao].country === 'United States' && countries.includes('US - '+icaodata[icao].state)) {
+        icaos.push(icao);
       }
-      else {
-        if (countries.includes(obj.country)) {
-          icaos.push(icao);
-        }
+      else if (countries.includes(icaodata[icao].country)) {
+        icaos.push(icao);
       }
     }
   }
-  return icaos.join('-');
+  let reminder = icaos.join('-');
+  // Split list into chunks smaller than about 8000 chars
+  const list = [];
+  while (true) {
+    let start = reminder.slice(0, 8000);
+    reminder = reminder.slice(8000);
+    const index = reminder.indexOf('-');
+    if (index === -1) {
+      list.push(start+reminder);
+      break;
+    }
+    list.push(start+reminder.slice(0, index));
+    reminder = reminder.slice(index+1);
+  }
+  return list;
 }
 
 
@@ -132,7 +140,7 @@ function UpdatePopup(props) {
     return null;
   });
   const [jobsTime, setJobsTime] = React.useState(localStorage.getItem("jobsTime") || null);
-  const [jobsError, setJobsError] = React.useState(false);
+  const [jobsRequests, setJobsRequests] = React.useState(getIcaoList(jobsAreas, jobsCustom, props.icaodata).length);
   const [planeModel, setPlaneModel] = React.useState(localStorage.getItem("planeModel") || '');
   const [planesTime, setPlanesTime] = React.useState(localStorage.getItem("planesTime") || null);
   const [flightTime, setFlightTime] = React.useState(localStorage.getItem("flightTime") || null);
@@ -144,12 +152,12 @@ function UpdatePopup(props) {
   const areas = getAreas(props.icaodata);
   areas.unshift('Custom area');
 
-  const updateJobs = (evt) => {
-    evt.stopPropagation();
-    setLoading(true);
-    // Compute ICAO list
-    const icaos = getIcaoList(jobsAreas, jobsCustom, props.icaodata);
-    const url = 'data?userkey='+key+'&format=csv&query=icao&search=jobsfrom&icaos='+icaos;
+  const updateJobsRequest = (icaosList, jobs, callback) => {
+    if (!icaosList.length) {
+      callback(jobs);
+      return;
+    }
+    const url = 'data?userkey='+key+'&format=csv&query=icao&search=jobsfrom&icaos='+icaosList.pop();
     // Fetch job list
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
@@ -165,10 +173,23 @@ function UpdatePopup(props) {
         throw new Error("Parsing error");
       }
       // Convert array to object
-      let jobs = parse.data.reduce((obj, item) => {
+      const newJobs = parse.data.reduce((obj, item) => {
         obj[item.Id] = item;
         return obj;
       }, {});
+      updateJobsRequest(icaosList, {...jobs, ...newJobs}, callback);
+    })
+    .catch(function(error) {
+      alert('Could not get data. Check your read access key and ensure you have not reached your quota limit.');
+      setLoading(false);
+    });
+  }
+  const updateJobs = (evt) => {
+    evt.stopPropagation();
+    setLoading(true);
+    // Compute ICAO list
+    const icaosList = getIcaoList(jobsAreas, jobsCustom, props.icaodata);
+    updateJobsRequest(icaosList, {}, (jobs) => {
       // Update jobs
       props.setJobs(jobs);
       localStorage.setItem('jobs', JSON.stringify(jobs));
@@ -183,10 +204,6 @@ function UpdatePopup(props) {
       setLoading(false);
       props.handleClose();
     })
-    .catch(function(error) {
-      alert('Could not get data. Check your read access key.');
-      setLoading(false);
-    });
   }
 
   const clearJobs = (evt) => {
@@ -358,7 +375,7 @@ function UpdatePopup(props) {
             &nbsp;
             <Tooltip title={<span>Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading || !key || jobsError || !jobsAreas.length}>
+                <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading || !key || !jobsAreas.length || jobsRequests > 10}>
                   Update
                   {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
@@ -371,8 +388,8 @@ function UpdatePopup(props) {
               limitTags={2}
               options={areas}
               renderInput={(params) => (
-                jobsError ?
-                  <TextField {...params} label='Included countries' variant='outlined' error helperText='Selected area is too big' />
+                jobsRequests > 1 ?
+                  <TextField {...params} label='Included countries' variant='outlined' error helperText={'Selected area is very large, it will require '+jobsRequests+' requests (10 max)'} />
                 :
                   <TextField {...params} label='Included countries' variant='outlined' />
               )}
@@ -382,7 +399,7 @@ function UpdatePopup(props) {
                 }
                 else {
                   setJobsAreas(value);
-                  setJobsError(getIcaoList(value, jobsCustom, props.icaodata).length > 8000)  
+                  setJobsRequests(getIcaoList(value, jobsCustom, props.icaodata).length)  
                 }
               }}
               value={jobsAreas}
@@ -405,7 +422,7 @@ function UpdatePopup(props) {
                 const a = [...jobsAreas, 'Custom area'];
                 setJobsCustom(bounds);
                 setJobsAreas(a);
-                setJobsError(getIcaoList(a, bounds, props.icaodata).length > 8000);
+                setJobsRequests(getIcaoList(a, bounds, props.icaodata).length);
               }}
               bounds={jobsCustom}
               settings={props.settings}
