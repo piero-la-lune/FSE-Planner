@@ -2,6 +2,7 @@ import React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
+import Button from '@material-ui/core/Button';
 import InputBase from '@material-ui/core/InputBase';
 import Typography from '@material-ui/core/Typography';
 import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
@@ -30,6 +31,7 @@ import Tour from 'reactour';
 import FSEMap from './Map.js';
 import UpdatePopup from './Update.js';
 import SettingsPopup from './Settings.js';
+import CreditsPopup from './Credits.js';
 import TourStep from './TourStep.js';
 
 import './App.css';
@@ -188,7 +190,16 @@ const useStyles = makeStyles(theme => ({
     lineHeight: 1
   },
   version: {
-    marginLeft: theme.spacing(1)
+    marginLeft: theme.spacing(1),
+    paddingLeft: '2px',
+    paddingRight: '2px',
+    paddingTop: theme.spacing(0.5),
+    paddingBottom: theme.spacing(0.5),
+    fontWeight: 'normal',
+    color: '#fff',
+    letterSpacing: 'normal',
+    textTransform: 'none',
+    minWidth: 'auto'
   },
   filters: {
     display: 'flex',
@@ -267,6 +278,7 @@ function App() {
   const [direction, setDirection] = React.useState('');
   const [updatePopup, setUpdatePopup] = React.useState(false);
   const [settingsPopop, setSettingsPopup] = React.useState(false);
+  const [creditsPopop, setCreditsPopup] = React.useState(false);
   const [jobs, setJobs] = React.useState(JSON.parse(localStorage.getItem("jobs")) || {});
   const [planes, setPlanes] = React.useState(() => {
     const p = JSON.parse(localStorage.getItem("planes"));
@@ -312,6 +324,15 @@ function App() {
     });
     setIcaodata(obj);
   }, [settings.display.map.center]);
+
+  React.useEffect(() => {
+    if (localStorage.getItem('version') !== process.env.REACT_APP_VERSION) {
+      if (localStorage.getItem('tutorial') === 'done') {
+        setCreditsPopup(true);
+      }
+      localStorage.setItem('version', process.env.REACT_APP_VERSION);
+    }
+  }, []);
 
 
   const steps = React.useRef([
@@ -363,9 +384,10 @@ function App() {
         <TourStep
           step={9}
           title="Your turn!"
-          text="You can launch again this tutorial or review the credits and changelog here."
+          text="You can launch again this tutorial or review the changelog and credits here."
           goTo={goTo}
           end={() => {
+            goTo(0);
             setIsTourOpen(false);
             localStorage.setItem("tutorial", 'done');
           }}
@@ -386,9 +408,11 @@ function App() {
             <Typography variant="h6" className={classes.h6}>
               FSE Planner
             </Typography>
-            <Typography variant="caption" className={classes.version} data-tour="Step9">
-              v{process.env.REACT_APP_VERSION}
-            </Typography>
+            <Tooltip title="Changelog & credits">
+              <Button className={classes.version} onClick={() => setCreditsPopup(true)} data-tour="Step9" size="small">
+                v{process.env.REACT_APP_VERSION}
+              </Button>
+            </Tooltip>
           </div>
           <div className={classes.filters}>
             <div className={classes.search}>
@@ -597,6 +621,11 @@ function App() {
         settings={settings}
         setSettings={setSettings}
         defaultSettings={defaultSettings}
+      />
+      <CreditsPopup
+        open={creditsPopop}
+        handleClose={() => setCreditsPopup(false)}
+        openTutorial={() => setIsTourOpen(true)}
       />
       <Tour
         steps={steps.current}

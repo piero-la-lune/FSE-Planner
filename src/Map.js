@@ -67,7 +67,7 @@ function FSEMap(props) {
   };
 
   return (
-    <Map center={[46.5344, 3.42167]} zoom={6} ref={mapRef} maxBounds={maxBounds} onZoomEnd={evt => handleZoom(mapRef.current.leafletElement.getZoom())}>
+    <Map center={[46.5344, 3.42167]} zoom={6} ref={mapRef} maxBounds={maxBounds} onZoomEnd={evt => handleZoom(mapRef.current.leafletElement.getZoom())} attributionControl={false}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
