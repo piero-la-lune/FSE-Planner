@@ -345,7 +345,7 @@ function UpdatePopup(props) {
 
         <Alert severity="warning" className={classes.alert}>Each update below is 1 request to the FSE servers. You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
 
-        <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')}>
+        <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')} data-tour="Step4">
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Read access key</Typography>
           </AccordionSummary>
@@ -366,7 +366,7 @@ function UpdatePopup(props) {
           </AccordionDetails>
         </Accordion>
 
-        <Accordion expanded={expanded === 'panel2'} onChange={panelChange('panel2')}>
+        <Accordion expanded={expanded === 'panel2'} onChange={panelChange('panel2')} data-tour="Step5">
           <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
             <Typography className={classes.title}>Jobs</Typography>
             <Button color="secondary" onClick={clearJobs}>
@@ -430,7 +430,7 @@ function UpdatePopup(props) {
           </AccordionDetails>
         </Accordion>
 
-        <Accordion expanded={expanded === 'panel3'} onChange={panelChange('panel3')}>
+        <Accordion expanded={expanded === 'panel3'} onChange={panelChange('panel3')} data-tour="Step6">
           <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
             <Typography className={classes.title}>Rentable planes</Typography>
             <Button color="secondary" onClick={clearPlanes}>
