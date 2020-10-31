@@ -147,7 +147,6 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Highlighted leg color" setting='display.legs.colors.highlight' />
               <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" />
               <SettingSlider s={s} setS={setS} label="Map center" setting='display.map.center' xs={12} />
-              <SettingSwitch s={s} setS={setS} label="Display all FSE airports on map" setting='display.markers.all' />
             </Grid>
           </AccordionDetails>
         </Accordion>

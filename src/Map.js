@@ -1,15 +1,16 @@
 import React from 'react';
 
-import { Map, TileLayer } from "react-leaflet";
+import { Map, TileLayer, LayersControl } from "react-leaflet";
 import { getBounds } from "geolib";
 import L from "leaflet";
 
 import AirportIcons from "./Icons.js";
 import MapContent from "./MapContent.js";
 import Marker from "./Marker.js";
+import ZonesLayer from "./MapLayers/Zones.js";
+import AirportsLayer from "./MapLayers/Airports.js";
 
-
-function FSEMap(props) {
+const FSEMap = React.memo(function FSEMap(props) {
 
   const s = props.options.settings;
   const mapRef = React.useRef();
@@ -34,43 +35,31 @@ function FSEMap(props) {
 
   const maxBounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
 
-  const icaodataRef = React.useRef(props.options.icaodata);
-  const layerMarkersRef = React.useRef(L.featureGroup());
-  const iconSizeRef = React.useRef(1);
-  // Display all airports on map
-  React.useEffect(() => {
-    layerMarkersRef.current.clearLayers();
-    if (!s.display.markers.all) { return; }
-    // Create a canvas renderer to improve performance
-    const renderer = L.canvas({ padding: 0.5 });
-    Object.keys(icaodataRef.current).forEach(icao =>
-      // Create marker
-      L.circleMarker(
-        [icaodataRef.current[icao].lat, icaodataRef.current[icao].lon],
-        {radius: iconSizeRef.current, opacity: 0, weight: 10, fillOpacity: 1, fillColor: s.display.markers.colors.base, renderer: renderer}
-      )
-        .addTo(layerMarkersRef.current)
-        .bindPopup('<h6 class="MuiTypography-root MuiTypography-h6"><a class="MuiTypography-root MuiLink-root MuiLink-underlineHover MuiTypography-colorPrimary" href="https://server.fseconomy.net/airport.jsp?icao='+icao+'" target="_blank">'+icao+'</a></h6>')
-    );
-    // Add canvas to map
-    layerMarkersRef.current.addTo(mapRef.current.leafletElement);
-  }, [s.display.markers.colors.base, s.display.markers.all]);
+
   // Change icon size on map zoom
+  const [aRadius, setARadius] = React.useState(1);
   const handleZoom = (zoom) => {
     let z = 1;
     if (zoom > 11) { z = 6; }
     else if (zoom > 8) { z = 3; }
-    if (z !== iconSizeRef.current) {
-      layerMarkersRef.current.eachLayer(function(layer){ layer.setRadius(z); });
-      iconSizeRef.current = z;
-    }
+    setARadius(z);
   };
+
+  const canvasRendererRef = React.useRef(L.canvas({ padding: 0.5 }));
 
   return (
     <Map center={[46.5344, 3.42167]} zoom={6} ref={mapRef} maxBounds={maxBounds} onZoomEnd={evt => handleZoom(mapRef.current.leafletElement.getZoom())} attributionControl={false}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <LayersControl position="topleft">
+        <LayersControl.Overlay name="FSE airports" checked={true}>
+          <AirportsLayer icaos={props.icaos} icaodata={props.options.icaodata} renderer={canvasRendererRef.current} color={s.display.markers.colors.base} radius={aRadius} />
+        </LayersControl.Overlay>
+        <LayersControl.Overlay name="FSE airports landing area" checked={false}>
+          <ZonesLayer icaos={props.icaos} icaodata={props.options.icaodata} renderer={canvasRendererRef.current} color={s.display.markers.colors.base} />
+        </LayersControl.Overlay>
+      </LayersControl>
       <MapContent options={props.options} />
       { search ?
         <Marker
@@ -88,6 +77,6 @@ function FSEMap(props) {
     </Map>
   );
 
-}
+});
 
 export default FSEMap;

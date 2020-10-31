@@ -24,7 +24,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import TuneIcon from '@material-ui/icons/Tune';
 import { makeStyles } from '@material-ui/core/styles';
 
-import {default as _clone} from 'lodash/cloneDeep';
+import { default as _clone } from 'lodash/cloneDeep';
 import { default as _defaultsDeep } from 'lodash/defaultsDeep';
 import Tour from 'reactour';
 
@@ -35,7 +35,7 @@ import CreditsPopup from './Credits.js';
 import TourStep from './TourStep.js';
 
 import './App.css';
-import icaodataSrc from "./data/icaodata.json";
+import icaodataSrc from "./data/icaodata-with-zones.json";
 
 
 const defaultSettings = {
@@ -50,8 +50,7 @@ const defaultSettings = {
         base: '17',
         rentable: '20',
         selected: '25'
-      },
-      all: true
+      }
     },
     legs: {
       colors: {
@@ -91,8 +90,8 @@ const defaultSettings = {
   }
 };
 
+const icaos = Object.keys(icaodataSrc);
 
-Object.keys(icaodataSrc).forEach(icao => icaodataSrc[icao].icao = icao);
 
 const filter = createFilterOptions({limit: 5});
 const PopperMy = function (props) {
@@ -100,9 +99,20 @@ const PopperMy = function (props) {
 }
 
 function wrap(num, center) {
-  if (num < center-180) { return num+360; }
-  if (num >= center+180) { return num-360; }
-  return num;
+  if (num < center-180) { return 360; }
+  if (num >= center+180) { return -360; }
+  return 0;
+}
+function wrapZone(zone, pointLon, wrap, center) {
+  for (var i = 0; i < zone.length; i++) {
+    zone[i][1] += wrap;
+    if (Math.abs(zone[i][1] - pointLon) > Math.abs(zone[i][1] - 360 - pointLon)) {
+      zone[i][1] -= 360;
+    }
+    else if (Math.abs(zone[i][1] - pointLon) > Math.abs(zone[i][1] + 360 - pointLon)) {
+      zone[i][1] += 360;
+    }
+  }
 }
 
 const useStyles = makeStyles(theme => ({
@@ -319,8 +329,10 @@ function App() {
 
   React.useEffect(() => {
     const obj = _clone(icaodataSrc);
-    Object.keys(obj).forEach((icao) => {
-      obj[icao].lon = wrap(obj[icao].lon, settings.display.map.center);
+    icaos.forEach((icao) => {
+      const nb = wrap(obj[icao].lon, settings.display.map.center);
+      obj[icao].lon += nb;
+      wrapZone(obj[icao].zone, obj[icao].lon, nb, settings.display.map.center);
     });
     setIcaodata(obj);
   }, [settings.display.map.center]);
@@ -605,6 +617,7 @@ function App() {
       <FSEMap
         options={options}
         search={search}
+        icaos={icaos}
       />
       <UpdatePopup
         open={updatePopup}
