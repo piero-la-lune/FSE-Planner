@@ -65,14 +65,15 @@ function cargo(cargo, pay, direction) {
 
 // Generate tooltip
 function tooltip({leg, type, rleg}) {
-  let t = `
-    <p class="MuiTypography-root MuiTypography-body1">
-      <b>${leg.distance}NM</b>
-    </p>
-    ${cargo({[type]: leg.amount}, leg.pay, leg.direction)}
-  `;
-  if (rleg) {
-    t += cargo({[type]: rleg.amount}, rleg.pay, rleg.direction);
+  let t = '';
+  if (leg.amount || (rleg && rleg.amount)) {
+    t += `
+      <p class="MuiTypography-root MuiTypography-body1">
+        <b>${leg.distance}NM</b>
+      </p>
+    `;
+    if (leg.amount) { t += cargo({[type]: leg.amount}, leg.pay, leg.direction); }
+    if (rleg && rleg.amount) { t += cargo({[type]: rleg.amount}, rleg.pay, rleg.direction); }
   }
   if (leg.flight || (rleg && rleg.flight )) {
     t += `
