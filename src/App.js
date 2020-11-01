@@ -107,12 +107,6 @@ function wrap(num, center) {
 function wrapZone(zone, pointLon, wrap, center) {
   for (var i = 0; i < zone.length; i++) {
     zone[i][1] += wrap;
-    if (Math.abs(zone[i][1] - pointLon) > Math.abs(zone[i][1] - 360 - pointLon)) {
-      zone[i][1] -= 360;
-    }
-    else if (Math.abs(zone[i][1] - pointLon) > Math.abs(zone[i][1] + 360 - pointLon)) {
-      zone[i][1] += 360;
-    }
   }
 }
 
