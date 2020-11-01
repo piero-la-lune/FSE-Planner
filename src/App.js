@@ -626,6 +626,7 @@ function App() {
         setPlanes={(planes) => setPlanes(rentable(planes))}
         setFlight={setFlight}
         icaodata={icaodata}
+        icaos={icaos}
         settings={settings}
       />
       <SettingsPopup
