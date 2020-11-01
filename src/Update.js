@@ -22,6 +22,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { readString } from 'react-papaparse';
 import { isPointInPolygon } from "geolib";
 import L from "leaflet";
+import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 
 import CustomAreaPopup from './CustomArea.js';
 import Storage from './Storage.js';
@@ -91,6 +92,62 @@ function getIcaoList(countries, bounds, icaodata, icaos) {
 }
 
 
+function cleanPlanes(list) {
+  const planes = {};
+  for (const obj of list) {
+    // Exclude broken airplanes
+    if (obj.NeedsRepair === 1) { continue; }
+    // Ensure plane can be rented
+    if (obj.Location === 'In Flight') { continue; }
+    if (obj.RentedBy !== 'Not rented.') { continue; }
+    if (!obj.RentalDry && !obj.RentalWet) { continue; }
+
+    // Ensure location exist in planes object
+    if (!planes.hasOwnProperty(obj.MakeModel)) { planes[obj.MakeModel] = {}; }
+    if (!planes[obj.MakeModel].hasOwnProperty(obj.Location)) { planes[obj.MakeModel][obj.Location] = []; }
+
+    planes[obj.MakeModel][obj.Location].push({
+      id: obj.SerialNumber,
+      reg: obj.Registration,
+      home: obj.Home,
+      wet: obj.RentalWet,
+      dry: obj.RentalDry,
+      bonus: obj.Bonus
+    });
+  }
+  return planes;
+}
+
+function cleanJobs(list, icaodata) {
+  const jobs = {};
+  for (const job of list) {
+    // Do not keep non paying jobs
+    if (!job.Pay) { continue; }
+
+    const key = job.Location+"-"+job.ToIcao;
+
+    // Ensure leg exist in jobs object
+    if (!jobs.hasOwnProperty(key)) {
+      const fr = { latitude: icaodata[job.Location].lat, longitude: icaodata[job.Location].lon };
+      const to = { latitude: icaodata[job.ToIcao].lat, longitude: icaodata[job.ToIcao].lon };
+      jobs[key] = {
+        passengers: [],
+        kg: [],
+        direction: Math.round(getRhumbLineBearing(fr, to)),
+        distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
+      };
+    }
+
+    jobs[key][job.UnitType].push({
+      type: job.Type,
+      nb: job.Amount,
+      pay: job.Pay
+    });
+  }
+  return jobs;
+}
+
+
 const useStyles = makeStyles(theme => ({
   closeButton: {
     position: 'absolute',
@@ -143,8 +200,9 @@ function UpdatePopup(props) {
   });
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
   const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos).length);
-  const [planeModel, setPlaneModel] = React.useState(storage.get('planeModel', ''));
+  const [planeModel, setPlaneModel] = React.useState(storage.get('planeModel', []));
   const [planesTime, setPlanesTime] = React.useState(storage.get('planesTime'));
+  const [planesRequests, setPlanesRequests] = React.useState(planeModel.length);
   const [flightTime, setFlightTime] = React.useState(storage.get('flightTime'));
   const [loading, setLoading] = React.useState(false);
   const [openCustom, setOpenCustom] = React.useState(false);
@@ -173,12 +231,7 @@ function UpdatePopup(props) {
       if (parse.errors.length > 0) {
         throw new Error("Parsing error");
       }
-      // Convert array to object
-      const newJobs = parse.data.reduce((obj, item) => {
-        obj[item.Id] = item;
-        return obj;
-      }, {});
-      updateJobsRequest(icaosList, {...jobs, ...newJobs}, callback);
+      updateJobsRequest(icaosList, [...jobs, ...parse.data], callback);
     })
     .catch(function(error) {
       console.log(error);
@@ -191,7 +244,8 @@ function UpdatePopup(props) {
     setLoading(true);
     // Compute ICAO list
     const icaosList = getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos);
-    updateJobsRequest(icaosList, {}, (jobs) => {
+    updateJobsRequest(icaosList, [], (list) => {
+      const jobs = cleanJobs(list, props.icaodata);
       // Update jobs
       storage.set('jobs', jobs);
       props.setJobs(jobs);
@@ -205,7 +259,7 @@ function UpdatePopup(props) {
       // Close popup
       setLoading(false);
       props.handleClose();
-    })
+    });
   }
 
   const clearJobs = (evt) => {
@@ -221,12 +275,13 @@ function UpdatePopup(props) {
     props.handleClose();
   }
 
-  const updatePlanes = (evt) => {
-    evt.stopPropagation();
-    setLoading(true);
-    // Build URL
-    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURI(planeModel);
-    // Fetch planes list
+  const updatePlanesRequest = (models, planes, callback) => {
+    if (!models.length) {
+      callback(planes);
+      return;
+    }
+    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURI(models.pop());
+    // Fetch plane list
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
       if (!response.ok) {
@@ -241,10 +296,20 @@ function UpdatePopup(props) {
         throw new Error("Parsing error");
       }
       // Convert array to object
-      let planes = parse.data.reduce((obj, item) => {
-        obj[item.SerialNumber] = item;
-        return obj;
-      }, {});
+      updatePlanesRequest(models, [...planes, ...parse.data], callback);
+    })
+    .catch(function(error) {
+      console.log(error);
+      alert('Could not get data. Check your read access key and ensure you have not reached your quota limit.');
+      setLoading(false);
+    });
+  }
+  const updatePlanes = (evt) => {
+    evt.stopPropagation();
+    setLoading(true);
+    updatePlanesRequest(planeModel, [], (list) => {
+      // Transform to object
+      const planes = cleanPlanes(list);
       // Update planes
       storage.set('planes', planes);
       props.setPlanes(planes);
@@ -257,10 +322,6 @@ function UpdatePopup(props) {
       // Close popup
       setLoading(false);
       props.handleClose();
-    })
-    .catch(function(error) {
-      alert('Could not get data. Check your read access key.');
-      setLoading(false);
     });
   }
 
@@ -441,7 +502,7 @@ function UpdatePopup(props) {
             &nbsp;
             <Tooltip title={<span>Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key || !planeModel}>
+                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key || !planeModel.length || planesRequests > 10}>
                   Update
                   {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
@@ -450,12 +511,18 @@ function UpdatePopup(props) {
           </AccordionSummary>
           <AccordionDetails className={classes.accDetails}>
             <Autocomplete
+              multiple
+              limitTags={2}
               options={Object.keys(aircrafts)}
               renderInput={(params) => (
-                <TextField {...params} label="Aircraft model" variant='outlined' />
+                planesRequests > 1 ?
+                  <TextField {...params} label='Aircraft model' variant='outlined' error helperText={planesRequests+' models selected, it will require '+planesRequests+' requests (10 max)'} />
+                :
+                  <TextField {...params} label='Aircraft model' variant='outlined' />
               )}
               onChange={(evt, value) => {
                 setPlaneModel(value);
+                setPlanesRequests(value.length);
               }}
               value={planeModel}
             />

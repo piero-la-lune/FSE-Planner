@@ -2,10 +2,22 @@ class Storage {
 
   constructor() {
     const version = process.env.REACT_APP_VERSION;
-    this.updated = version !== localStorage.getItem('version');
+    const oldVersion = localStorage.getItem('version');
     // Update older version of storage
-    if (this.updated) {
-      localStorage.setItem('version', version)
+    if (version !== oldVersion) {
+      if (oldVersion < '0.5.001') {
+        const planeModel = this.get('planeModel', '');
+        if (planeModel) {
+          this.set('planeModel', [planeModel]);
+        }
+      }
+      if (oldVersion < '0.5.002') {
+        this.remove('planes');
+      }
+      if (oldVersion < '0.5.003') {
+        this.remove('jobs');
+      }
+      localStorage.setItem('version', version);
     }
   }
 

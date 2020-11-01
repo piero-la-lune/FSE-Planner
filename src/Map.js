@@ -52,9 +52,9 @@ const FSEMap = React.memo(function FSEMap(props) {
 
   // Auto zoom map on jobs
   React.useEffect(() => {
-    let points = {};
-    Object.values(props.options.jobs).forEach((elm) => points[elm.Location] = props.options.icaodata[elm.Location]);
-    points = Object.values(points);
+    const icaos = new Set();
+    Object.keys(props.options.jobs).forEach(key => icaos.add(key.split('-')[0]));
+    const points = [...icaos].map(elm => props.options.icaodata[elm]);
     if (points.length > 4) {
       const b = getBounds(points);
       mapRef.current.leafletElement.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]], {animate:false});

@@ -257,20 +257,18 @@ const TooltipToggleButton = ({ children, title, tclasses, ...props }) => (
 )
 
 
-function rentable(planes) {
-  const rentable = {};
-  for (const obj of Object.values(planes)) {
-    // Exclude broken airplanes
-    if (obj.NeedsRepair === 1) { continue; }
-    // Ensure plane can be rented
-    if (obj.Location === 'In Flight') { continue; }
-    if (obj.RentedBy !== 'Not rented.') { continue; }
-    if (!obj.RentalDry && !obj.RentalWet) { continue; }
-    // Add to rentable list
-    if (!rentable.hasOwnProperty(obj.Location)) { rentable[obj.Location] = []; }
-    rentable[obj.Location].push(obj);
+function transformPlanes(p) {
+  const planes = {};
+  for (const model of Object.keys(p)) {
+    for (const icao of Object.keys(p[model])) {
+      if (!planes[icao]) { planes[icao] = []; }
+      for (const plane of p[model][icao]) {
+        plane.model = model
+        planes[icao].push(plane);
+      }
+    }
   }
-  return rentable;
+  return planes;
 }
 
 const storage = new Storage();
@@ -294,7 +292,7 @@ function App() {
   const [creditsPopop, setCreditsPopup] = React.useState(false);
   const [jobs, setJobs] = React.useState(storage.get('jobs', {}));
   const [planes, setPlanes] = React.useState(() => {
-    return rentable(storage.get('planes', {}));
+    return transformPlanes(storage.get('planes', {}));
   });
   const [flight, setFlight] = React.useState(storage.get('flight', {}));
   const [settings, setSettings] = React.useState(() => {
@@ -304,7 +302,7 @@ function App() {
   const [searchInput, setSearchInput] = React.useState('');
   const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
-  const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') !== 'done');
+  const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
@@ -335,8 +333,10 @@ function App() {
   }, [settings.display.map.center]);
 
   React.useEffect(() => {
-    if (storage.updated && storage.get('tutorial') === 'done') {
+    const last = storage.get('tutorial');
+    if (last && last !== process.env.REACT_APP_VERSION) {
       setCreditsPopup(true);
+      storage.set('tutorial', process.env.REACT_APP_VERSION);
     }
   }, []);
 
@@ -395,7 +395,7 @@ function App() {
           end={() => {
             goTo(0);
             setIsTourOpen(false);
-            storage.set('tutorial', 'done');
+            storage.set('tutorial', process.env.REACT_APP_VERSION);
           }}
         />
     },
@@ -617,7 +617,7 @@ function App() {
         open={updatePopup}
         handleClose={() => setUpdatePopup(false)}
         setJobs={setJobs}
-        setPlanes={(planes) => setPlanes(rentable(planes))}
+        setPlanes={(planes) => setPlanes(transformPlanes(planes))}
         setFlight={setFlight}
         icaodata={icaodata}
         icaos={icaos}
