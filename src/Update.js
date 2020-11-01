@@ -18,17 +18,20 @@ import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { makeStyles } from '@material-ui/core/styles';
+
 import { readString } from 'react-papaparse';
 import { isPointInPolygon } from "geolib";
 import L from "leaflet";
 
 import CustomAreaPopup from './CustomArea.js';
+import Storage from './Storage.js';
 
 import aircrafts from "./data/aircraft.json";
 
+const storage = new Storage();
 
 
-
+// Generate country list
 function getAreas(icaodata, icaos) {
   let a = new Set();
   for (var i = icaos.length - 1; i >= 0; i--) {
@@ -38,10 +41,10 @@ function getAreas(icaodata, icaos) {
     }
     a.add(country);
   }
-  return [...a].sort();
+  return ["Custom area", ...[...a].sort()];
 }
 
-
+// Get the list of all airports within the selected countries and custom area
 function getIcaoList(countries, bounds, icaodata, icaos) {
   let points = null;
   // If custom area, compute polygon points
@@ -131,24 +134,24 @@ const filter = createFilterOptions();
 
 function UpdatePopup(props) {
 
-  const [key, setKey] = React.useState(localStorage.getItem("key") || '');
-  const [jobsAreas, setJobsAreas] = React.useState(JSON.parse(localStorage.getItem("jobsAreas")) || []);
+  const [key, setKey] = React.useState(storage.get('key', ''));
+  const [jobsAreas, setJobsAreas] = React.useState(storage.get('jobsAreas', []));
   const [jobsCustom, setJobsCustom] = React.useState(() => {
-    const b = JSON.parse(localStorage.getItem("jobsCustom"))
-    if (b) { return L.latLngBounds(b._southWest, b._northEast); }
+    const b = storage.get('jobsCustom', {});
+    if (b && b._southWest) { return L.latLngBounds(b._southWest, b._northEast); }
     return null;
   });
-  const [jobsTime, setJobsTime] = React.useState(localStorage.getItem("jobsTime") || null);
+  const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
   const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos).length);
-  const [planeModel, setPlaneModel] = React.useState(localStorage.getItem("planeModel") || '');
-  const [planesTime, setPlanesTime] = React.useState(localStorage.getItem("planesTime") || null);
-  const [flightTime, setFlightTime] = React.useState(localStorage.getItem("flightTime") || null);
+  const [planeModel, setPlaneModel] = React.useState(storage.get('planeModel', ''));
+  const [planesTime, setPlanesTime] = React.useState(storage.get('planesTime'));
+  const [flightTime, setFlightTime] = React.useState(storage.get('flightTime'));
   const [loading, setLoading] = React.useState(false);
   const [openCustom, setOpenCustom] = React.useState(false);
-  const [expanded, setExpanded] = React.useState(localStorage.getItem("key") ? false : 'panel1');
+  const [expanded, setExpanded] = React.useState(storage.get('key') ? false : 'panel1');
   const classes = useStyles();
 
-  const areas = React.useState(() => ["Custom area", ...getAreas(props.icaodata, props.icaos)])[0];
+  const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
   const updateJobsRequest = (icaosList, jobs, callback) => {
     if (!icaosList.length) {
@@ -190,15 +193,15 @@ function UpdatePopup(props) {
     const icaosList = getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos);
     updateJobsRequest(icaosList, {}, (jobs) => {
       // Update jobs
+      storage.set('jobs', jobs);
       props.setJobs(jobs);
-      localStorage.setItem('jobs', JSON.stringify(jobs));
       // Update date
       let date = new Date();
-      localStorage.setItem('jobsTime', date);
-      setJobsTime(localStorage.getItem("jobsTime"));
+      storage.set('jobsTime', date);
+      setJobsTime(storage.get('jobsTime'));
       // Update area
-      localStorage.setItem("jobsAreas", JSON.stringify(jobsAreas));
-      localStorage.setItem("jobsCustom", JSON.stringify(jobsCustom));
+      storage.set('jobsAreas', jobsAreas);
+      storage.set('jobsCustom', jobsCustom);
       // Close popup
       setLoading(false);
       props.handleClose();
@@ -210,8 +213,8 @@ function UpdatePopup(props) {
     setLoading(true);
     // Update planes
     props.setJobs({});
-    localStorage.removeItem('jobs');
-    localStorage.removeItem('jobsTime');
+    storage.remove('jobs');
+    storage.remove('jobsTime');
     setJobsTime(null);
     // Close popup
     setLoading(false);
@@ -243,14 +246,14 @@ function UpdatePopup(props) {
         return obj;
       }, {});
       // Update planes
+      storage.set('planes', planes);
       props.setPlanes(planes);
-      localStorage.setItem('planes', JSON.stringify(planes));
       // Update date
       let date = new Date();
-      localStorage.setItem('planesTime', date);
-      setPlanesTime(localStorage.getItem("planesTime"));
+      storage.set('planesTime', date);
+      setPlanesTime(storage.get('planesTime'));
       // Update model
-      localStorage.setItem("planeModel", planeModel);
+      storage.set('planeModel', planeModel);
       // Close popup
       setLoading(false);
       props.handleClose();
@@ -266,8 +269,8 @@ function UpdatePopup(props) {
     setLoading(true);
     // Update planes
     props.setPlanes({});
-    localStorage.removeItem('planes');
-    localStorage.removeItem('planesTime');
+    storage.remove('planes');
+    storage.remove('planesTime');
     setPlanesTime(null);
     // Close popup
     setLoading(false);
@@ -299,12 +302,12 @@ function UpdatePopup(props) {
         return obj;
       }, {});
       // Update flight
+      storage.set('flight', jobs);
       props.setFlight(jobs);
-      localStorage.setItem('flight', JSON.stringify(jobs));
       // Update date
       let date = new Date();
-      localStorage.setItem('flightTime', date);
-      setFlightTime(localStorage.getItem("flightTime"));
+      storage.set('flightTime', date);
+      setFlightTime(storage.get('flightTime'));
       // Close popup
       setLoading(false);
       props.handleClose();
@@ -320,8 +323,8 @@ function UpdatePopup(props) {
     setLoading(true);
     // Update planes
     props.setFlight({});
-    localStorage.removeItem('flight');
-    localStorage.removeItem('flightTime');
+    storage.remove('flight');
+    storage.remove('flightTime');
     setFlightTime(null);
     // Close popup
     setLoading(false);
@@ -355,7 +358,7 @@ function UpdatePopup(props) {
               onChange={(evt) => {
                 let k = evt.target.value;
                 setKey(k);
-                localStorage.setItem("key", k);
+                storage.set('key', k);
               }}
               value={key}
               helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}

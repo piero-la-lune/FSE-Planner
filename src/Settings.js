@@ -20,9 +20,14 @@ import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import Grid from '@material-ui/core/Grid';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import { makeStyles } from '@material-ui/core/styles';
+
 import {default as _set} from 'lodash/set';
 import {default as _clone} from 'lodash/cloneDeep';
-import { makeStyles } from '@material-ui/core/styles';
+
+import Storage from './Storage.js';
+
+const storage = new Storage();
 
 
 const useStyles = makeStyles(theme => ({
@@ -223,7 +228,7 @@ function SettingsPopup(props) {
               props.setSettings(props.defaultSettings);
               setS(props.defaultSettings);
               // Save settings to local storage
-              localStorage.setItem('settings', JSON.stringify(props.defaultSettings));
+              storage.set('settings', props.defaultSettings);
               // Close popup
               setExpanded(false);
               props.handleClose();
@@ -238,7 +243,7 @@ function SettingsPopup(props) {
             // Propagate change
             props.setSettings(s);
             // Save settings to local storage
-            localStorage.setItem('settings', JSON.stringify(s));
+            storage.set('settings', s);
             // Close popup
             setExpanded(false);
             props.handleClose();

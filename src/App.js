@@ -33,6 +33,7 @@ import UpdatePopup from './Update.js';
 import SettingsPopup from './Settings.js';
 import CreditsPopup from './Credits.js';
 import TourStep from './TourStep.js';
+import Storage from './Storage.js';
 
 import './App.css';
 import icaodataSrc from "./data/icaodata-with-zones.json";
@@ -272,6 +273,8 @@ function rentable(planes) {
   return rentable;
 }
 
+const storage = new Storage();
+
 
 function App() {
 
@@ -289,25 +292,19 @@ function App() {
   const [updatePopup, setUpdatePopup] = React.useState(false);
   const [settingsPopop, setSettingsPopup] = React.useState(false);
   const [creditsPopop, setCreditsPopup] = React.useState(false);
-  const [jobs, setJobs] = React.useState(JSON.parse(localStorage.getItem("jobs")) || {});
+  const [jobs, setJobs] = React.useState(storage.get('jobs', {}));
   const [planes, setPlanes] = React.useState(() => {
-    const p = JSON.parse(localStorage.getItem("planes"));
-    if (p) { return rentable(p); }
-    return {};
+    return rentable(storage.get('planes', {}));
   });
-  const [flight, setFlight] = React.useState(JSON.parse(localStorage.getItem("flight")) || {});
+  const [flight, setFlight] = React.useState(storage.get('flight', {}));
   const [settings, setSettings] = React.useState(() => {
-    const s = JSON.parse(localStorage.getItem("settings"));
-    if (s) {
-      return _defaultsDeep(s, defaultSettings);
-    }
-    return defaultSettings;
+    return _defaultsDeep(storage.get('settings', {}), defaultSettings);
   });
   const [search, setSearch] = React.useState('');
   const [searchInput, setSearchInput] = React.useState('');
-  const [searchHistory, setSearchHistory] = React.useState(JSON.parse(localStorage.getItem("searchHistory")) || []);
+  const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
-  const [isTourOpen, setIsTourOpen] = React.useState(localStorage.getItem("tutorial") !== 'done');
+  const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') !== 'done');
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
@@ -338,11 +335,8 @@ function App() {
   }, [settings.display.map.center]);
 
   React.useEffect(() => {
-    if (localStorage.getItem('version') !== process.env.REACT_APP_VERSION) {
-      if (localStorage.getItem('tutorial') === 'done') {
-        setCreditsPopup(true);
-      }
-      localStorage.setItem('version', process.env.REACT_APP_VERSION);
+    if (storage.updated && storage.get('tutorial') === 'done') {
+      setCreditsPopup(true);
     }
   }, []);
 
@@ -401,7 +395,7 @@ function App() {
           end={() => {
             goTo(0);
             setIsTourOpen(false);
-            localStorage.setItem("tutorial", 'done');
+            storage.set('tutorial', 'done');
           }}
         />
     },
@@ -469,7 +463,7 @@ function App() {
                   if (value) {
                     const list = [...(new Set([value.icao, ...searchHistory]))].slice(0, 5);
                     setSearchHistory(list);
-                    localStorage.setItem('searchHistory', JSON.stringify(list));
+                    storage.set('searchHistory', list);
                   }
                 }}
                 value={search || null}
