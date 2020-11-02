@@ -35,7 +35,6 @@ import CreditsPopup from './Credits.js';
 import TourStep from './TourStep.js';
 import Storage from './Storage.js';
 
-import './App.css';
 import icaodataSrc from "./data/icaodata-with-zones.json";
 
 
