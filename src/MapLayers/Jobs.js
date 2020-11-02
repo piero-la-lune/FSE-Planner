@@ -20,6 +20,13 @@ function cleanLegs(jobs, opts) {
     const fr = { latitude: opts.icaodata[frIcao].lat, longitude: opts.icaodata[frIcao].lon };
     const to = { latitude: opts.icaodata[toIcao].lat, longitude: opts.icaodata[toIcao].lon };
 
+    // Filter out jobs based on distance
+    if (opts.minDist && leg.distance < opts.minDist) { continue; }
+    if (opts.maxDist && leg.distance > opts.maxDist) { continue; }
+
+    // Filter out wrong types of jobs
+    if (!leg.hasOwnProperty(opts.cargo) || !leg[opts.cargo].hasOwnProperty(opts.type)) { continue; }
+
     // Filter out jobs with wrong direction
     if (opts.fromIcao) {
       const fromIcao = { latitude: opts.icaodata[opts.fromIcao].lat, longitude: opts.icaodata[opts.fromIcao].lon };
@@ -49,15 +56,9 @@ function cleanLegs(jobs, opts) {
       if (180 - Math.abs(Math.abs(leg.direction - opts.direction) - 180) > parseInt(opts.settings.direction.angle)) { continue; }
     }
 
-    // Filter out jobs based on distance
-    if (opts.minDist && leg.distance < opts.minDist) { continue; }
-    if (opts.maxDist && leg.distance > opts.maxDist) { continue; }
-
-    const filteredJobs = leg[opts.cargo].filter(job => {
+    const filteredJobs = leg[opts.cargo][opts.type].filter(job => {
       // Filter out bad payed jobs
       if (opts.settings.pay.min_job && job.pay < opts.settings.pay.min_job) { return false; }
-      // Filter out jobs of wrong type
-      if (opts.type !== job.type) { return false; }
       // Filter out jobs too big for plane
       if (opts.max && job.nb > opts.max) { return false; }
       return true;

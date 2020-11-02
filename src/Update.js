@@ -131,15 +131,18 @@ function cleanJobs(list, icaodata) {
       const fr = { latitude: icaodata[job.Location].lat, longitude: icaodata[job.Location].lon };
       const to = { latitude: icaodata[job.ToIcao].lat, longitude: icaodata[job.ToIcao].lon };
       jobs[key] = {
-        passengers: [],
-        kg: [],
         direction: Math.round(getRhumbLineBearing(fr, to)),
         distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
       };
     }
+    if (!jobs[key].hasOwnProperty(job.UnitType)) {
+      jobs[key][job.UnitType] = {};
+    }
+    if (!jobs[key][job.UnitType][job.Type]) {
+      jobs[key][job.UnitType][job.Type] = [];
+    }
 
-    jobs[key][job.UnitType].push({
-      type: job.Type,
+    jobs[key][job.UnitType][job.Type].push({
       nb: job.Amount,
       pay: job.Pay
     });

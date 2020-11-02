@@ -14,7 +14,7 @@ class Storage {
       if (oldVersion < '0.5.002') {
         this.remove('planes');
       }
-      if (oldVersion < '0.5.003') {
+      if (oldVersion < '0.5.004') {
         this.remove('jobs');
       }
       localStorage.setItem('version', version);
