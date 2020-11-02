@@ -4,6 +4,22 @@ import L from "leaflet";
 import { useLeaflet } from "react-leaflet";
 
 
+function genPopup(icao, link = true) {
+  if (link) {
+    return `
+      <h6 class="MuiTypography-root MuiTypography-h6">
+        <a class="MuiTypography-root MuiLink-root MuiLink-underlineHover MuiTypography-colorPrimary" href="https://server.fseconomy.net/airport.jsp?icao=${icao}" target="_blank">${icao}</a>
+      </h6>
+    `;
+  }
+  return `
+    <h6 class="MuiTypography-root MuiTypography-h6">
+      ${icao}
+    </h6>
+  `;
+}
+
+
 const AirportsLayer = React.memo(function AirportsLayer(props) {
 
   const groupRef = React.useRef(L.featureGroup());
@@ -32,7 +48,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
           renderer: rendererRef.current
       })
         .addTo(groupRef.current)
-        .bindPopup('<h6 class="MuiTypography-root MuiTypography-h6"><a class="MuiTypography-root MuiLink-root MuiLink-underlineHover MuiTypography-colorPrimary" href="https://server.fseconomy.net/airport.jsp?icao='+icao+'" target="_blank">'+icao+'</a></h6>')
+        .bindPopup(genPopup(icao, props.link !== false))
     );
 
     // Add layer to map
@@ -41,7 +57,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
       added.current = true;
     }
 
-  }, [props.color, props.icaos, props.icaodata]);
+  }, [props.color, props.icaos, props.icaodata, props.link]);
 
   // Resize circles
   React.useEffect(() => {

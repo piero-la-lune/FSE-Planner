@@ -4,12 +4,14 @@ import { Map, TileLayer, LayersControl } from "react-leaflet";
 import { getBounds } from "geolib";
 import L from "leaflet";
 
-
 import JobsLayer from "./MapLayers/Jobs.js";
 import ZonesLayer from "./MapLayers/Zones.js";
 import AirportsLayer from "./MapLayers/Airports.js";
 import Marker from "./MapLayers/Components/Marker.js";
 import AirportIcons from "./MapLayers/Components/Icons.js";
+
+import msfs from "./data/msfs.json";
+const msfsIcaos = Object.keys(msfs);
 
 const FSEMap = React.memo(function FSEMap(props) {
 
@@ -82,7 +84,10 @@ const FSEMap = React.memo(function FSEMap(props) {
       />
       <LayersControl position="topleft">
         <LayersControl.Overlay name="FSE airports" checked={true}>
-          <AirportsLayer icaos={props.icaos} icaodata={props.options.icaodata} renderer={canvasRendererRef.current} color={s.display.markers.colors.base} radius={aRadius} />
+          <AirportsLayer icaos={props.icaos} fseicaos={props.icaos}  icaodata={props.options.icaodata} renderer={canvasRendererRef.current} color={s.display.markers.colors.base} radius={aRadius} />
+        </LayersControl.Overlay>
+        <LayersControl.Overlay name="MSFS airports" checked={false}>
+          <AirportsLayer icaos={msfsIcaos} fseicaos={props.icaos} icaodata={msfs} renderer={canvasRendererRef.current} color={s.display.markers.colors.rentable} radius={aRadius} link={false} />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="FSE airports landing area" checked={false}>
           <ZonesLayer icaos={props.icaos} icaodata={props.options.icaodata} renderer={canvasRendererRef.current} color={s.display.markers.colors.base} />
