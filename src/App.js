@@ -431,7 +431,7 @@ function App() {
                 filterOptions={(options, params) => {
                   // If input is empty and search history is not, display search history
                   if (!searchInput && searchHistory.length > 0) {
-                    return options.filter(elm => searchHistory.includes(elm.icao));
+                    return searchHistory.map(icao => icaodata[icao]);
                   }
                   // Search for ICAO
                   let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
