@@ -253,9 +253,9 @@ function UpdatePopup(props) {
       storage.set('jobs', jobs);
       props.setJobs(jobs);
       // Update date
-      let date = new Date();
+      let date = new Date().toString();
       storage.set('jobsTime', date);
-      setJobsTime(storage.get('jobsTime'));
+      setJobsTime(date);
       // Update area
       storage.set('jobsAreas', jobsAreas);
       storage.set('jobsCustom', jobsCustom);
@@ -310,16 +310,16 @@ function UpdatePopup(props) {
   const updatePlanes = (evt) => {
     evt.stopPropagation();
     setLoading(true);
-    updatePlanesRequest(planeModel, [], (list) => {
+    updatePlanesRequest(planeModel.slice(), [], (list) => {
       // Transform to object
       const planes = cleanPlanes(list);
       // Update planes
       storage.set('planes', planes);
       props.setPlanes(planes);
       // Update date
-      let date = new Date();
+      let date = new Date().toString();
       storage.set('planesTime', date);
-      setPlanesTime(storage.get('planesTime'));
+      setPlanesTime(date);
       // Update model
       storage.set('planeModel', planeModel);
       // Close popup
@@ -369,9 +369,9 @@ function UpdatePopup(props) {
       storage.set('flight', jobs);
       props.setFlight(jobs);
       // Update date
-      let date = new Date();
+      let date = new Date().toString();
       storage.set('flightTime', date);
-      setFlightTime(storage.get('flightTime'));
+      setFlightTime(date);
       // Close popup
       setLoading(false);
       props.handleClose();
