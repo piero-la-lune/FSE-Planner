@@ -41,7 +41,8 @@ const FSEMap = React.memo(function FSEMap(props) {
         icaodata: props.options.icaodata,
         siminfo: s.display.sim
       })
-        .addTo(mapRef.current.leafletElement);
+        .addTo(mapRef.current.leafletElement)
+        .openPopup();
     }
   }, [props.search, props.options.icaodata, props.options.planes, s]);
 
