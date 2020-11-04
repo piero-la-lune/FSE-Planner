@@ -184,7 +184,8 @@ const Jobs = React.memo(function Jobs(props) {
         icon: icons[color].get(props.options.icaodata[marker].type, props.options.icaodata[marker].size),
         icao: marker,
         planes: props.options.planes[marker],
-        icaodata: props.options.icaodata
+        icaodata: props.options.icaodata,
+        siminfo: s.display.sim
       })
         .addTo(groupRef.current)
 

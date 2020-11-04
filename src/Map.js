@@ -38,7 +38,8 @@ const FSEMap = React.memo(function FSEMap(props) {
         icon: icons.get(props.options.icaodata[marker].type, props.options.icaodata[marker].size),
         icao: marker,
         planes: props.options.planes[marker],
-        icaodata: props.options.icaodata
+        icaodata: props.options.icaodata,
+        siminfo: s.display.sim
       })
         .addTo(mapRef.current.leafletElement);
     }
@@ -84,10 +85,27 @@ const FSEMap = React.memo(function FSEMap(props) {
       />
       <LayersControl position="topleft">
         <LayersControl.Overlay name="FSE airports" checked={true}>
-          <AirportsLayer icaos={props.icaos} fseicaos={props.icaos}  icaodata={props.options.icaodata} renderer={canvasRendererRef.current} color={s.display.markers.colors.base} radius={aRadius} />
+          <AirportsLayer
+            icaos={props.icaos}
+            icaodata={props.options.icaodata}
+            fseicaodata={props.options.icaodata}
+            renderer={canvasRendererRef.current}
+            color={s.display.markers.colors.base}
+            radius={aRadius}
+            siminfo={s.display.sim}
+          />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="MSFS airports" checked={false}>
-          <AirportsLayer icaos={msfsIcaos} fseicaos={props.icaos} icaodata={msfs} renderer={canvasRendererRef.current} color={s.display.markers.colors.rentable} radius={aRadius} link={false} />
+          <AirportsLayer
+            icaos={msfsIcaos}
+            icaodata={msfs}
+            fseicaodata={props.options.icaodata}
+            renderer={canvasRendererRef.current}
+            color={s.display.markers.colors.rentable}
+            radius={aRadius}
+            siminfo={s.display.sim}
+            sim="msfs"
+          />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="FSE airports landing area" checked={false}>
           <ZonesLayer icaos={props.icaos} icaodata={props.options.icaodata} renderer={canvasRendererRef.current} color={s.display.markers.colors.base} />

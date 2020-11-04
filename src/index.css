@@ -15,10 +15,54 @@ code {
   flex: 1 1 auto;
 }
 
+.leaflet-popup-content {
+	margin: 13px 13px;
+}
+
 .leaflet-popup-content p {
 	margin: 6px 0;
 }
 
 .leaflet-popup-content-wrapper {
 	border-radius: 3px;
+}
+
+.leaflet-popup-content .icao {
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	background: #3f51b5;
+	color: #fff;
+	padding: 3px 12px;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+	margin: -14px -14px 8px -14px;
+	padding-right: 32px;
+}
+.leaflet-popup-content .icao a {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+}
+.leaflet-popup-content .icao svg {
+	fill: rgba(255, 255, 255, 0.5);
+	width: 0.8em;
+	height: 0.8em;
+}
+.leaflet-popup-content .icao a:hover svg {
+	fill: #fff;
+}
+.leaflet-popup-content .striked {
+	text-decoration: line-through;
+	text-decoration-style: double;
+	font-weight: 300;
+}
+.leaflet-popup-content .sim {
+	background: #3f51b5;
+	padding: 8px 8px;
+	color: rgba(255, 255, 255, 0.5);
+	margin: -18px -14px 8px -14px;
+}
+.leaflet-popup-content .sim span {
+	font-size: 0.7em;
 }

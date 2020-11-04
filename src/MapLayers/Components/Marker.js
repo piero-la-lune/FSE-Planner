@@ -31,20 +31,42 @@ function genPlanes(planes, icao, icaodata) {
   return p;
 }
 
+export function genPopup(icao, icaodata, planes = {}, siminfo = 'msfs', sim = null) {
+  return () => {
+    if (sim) {
+      return `<div class="MuiTypography-root MuiTypography-h6">${icao}</div>`;
+    }
+    let icaoTxt = icao;
+    let simTxt = '';
+    if (icaodata[icao][siminfo][0] !== icao) {
+      icaoTxt = '<span class="striked">'+icao+'</span>';
+      if (icaodata[icao][siminfo][0] !== null) {
+        icaoTxt += '&nbsp;'+icaodata[icao][siminfo][0]
+      }
+    }
+    if (icaodata[icao][siminfo].length > 1) {
+      simTxt = '<div class="MuiTypography-body2 sim"><span>Other possible landing spots:</span><br />'+icaodata[icao][siminfo].slice(1).join('&nbsp;&nbsp;')+'</div>';
+    }
+    return `
+      <div class="MuiTypography-root MuiTypography-h5 icao">
+        ${icaoTxt}
+        <a href="https://server.fseconomy.net/airport.jsp?icao=${icao}" target="fse" title="Go to FSE">
+          <svg class="MuiSvgIcon-root" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"></path></svg>
+        </a>
+      </div>
+      ${simTxt}
+      ${genPlanes(planes, icao, icaodata)}
+    `;
+  }
+}
+
 function Marker({position, icon, icao, planes, icaodata}) {
   return L.marker(
     position,
     {
       icon: icon
     }
-  ).bindPopup(`
-    <h6 class="MuiTypography-root MuiTypography-h6">
-      <a class="MuiTypography-root MuiLink-root MuiLink-underlineHover MuiTypography-colorPrimary" href="https://server.fseconomy.net/airport.jsp?icao=${icao}" target="_blank">
-        ${icao}
-      </a>
-    </h6>
-    ${genPlanes(planes, icao, icaodata)}
-  `);
+  ).bindPopup(genPopup(icao, icaodata, planes));
 }
 
 export default Marker;

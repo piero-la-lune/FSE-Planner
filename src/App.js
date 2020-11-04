@@ -68,7 +68,8 @@ const defaultSettings = {
     },
     map: {
       center: 0
-    }
+    },
+    sim: 'msfs'
   },
   from: {
     distCoef: '1.5',

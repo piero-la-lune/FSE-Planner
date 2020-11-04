@@ -3,21 +3,7 @@ import React from 'react';
 import L from "leaflet";
 import { useLeaflet } from "react-leaflet";
 
-
-function genPopup(icao, link = true) {
-  if (link) {
-    return `
-      <h6 class="MuiTypography-root MuiTypography-h6">
-        <a class="MuiTypography-root MuiLink-root MuiLink-underlineHover MuiTypography-colorPrimary" href="https://server.fseconomy.net/airport.jsp?icao=${icao}" target="_blank">${icao}</a>
-      </h6>
-    `;
-  }
-  return `
-    <h6 class="MuiTypography-root MuiTypography-h6">
-      ${icao}
-    </h6>
-  `;
-}
+import { genPopup } from "./Components/Marker.js";
 
 
 const AirportsLayer = React.memo(function AirportsLayer(props) {
@@ -48,7 +34,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
           renderer: rendererRef.current
       })
         .addTo(groupRef.current)
-        .bindPopup(genPopup(icao, props.link !== false))
+        .bindPopup(genPopup(icao, props.fseicaodata, {}, props.siminfo, props.sim))
     );
 
     // Add layer to map
@@ -57,7 +43,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
       added.current = true;
     }
 
-  }, [props.color, props.icaos, props.icaodata, props.link]);
+  }, [props.color, props.icaos, props.icaodata, props.link, props.siminfo, props.sim, props.fseicaodata]);
 
   // Resize circles
   React.useEffect(() => {
