@@ -81,6 +81,37 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.0.0 (2020-11-06)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>New map layer with all FSE airports</ListItem>
+              <ListItem>New map layer with all MSFS airports</ListItem>
+              <ListItem>New map layer with all FSE airport landing areas</ListItem>
+              <ListItem>Show/hide layers on map</ListItem>
+              <ListItem>Tutorial for first time users</ListItem>
+              <ListItem>FSE airport popup now indicates if the airport exists in MSFS, if the ICAO is different, and other potential MSFS landing spots within the FSE airport landing area</ListItem>
+              <ListItem>No more restriction on the size of the zone for loading jobs from FSE</ListItem>
+              <ListItem>You can now select multiple plane models when loading rentable planes from FSE</ListItem>
+              <ListItem>New changelog and credits popup (changelog opens automatically when a new version is released)</ListItem>
+              <ListItem>3 different airport icons depending on airport size</ListItem>
+              <ListItem>New pay filter : minimum job pay, minimum leg pay, and top X% job pay per NM</ListItem>
+              <ListItem>Loading screen and app icon</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Load Data popup now opens automatically for first time users</ListItem>
+              <ListItem>Airports popup remodeled</ListItem>
+              <ListItem>Improved performance</ListItem>
+              <ListItem>Better proxy for FSE requests</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Search history is now correctly ordered</ListItem>
+              <ListItem>Leg tooltips now show correct information when only My Flight is displayed on map</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v0.5.0 (2020-10-20)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>

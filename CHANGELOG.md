@@ -6,11 +6,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
-## [Unreleased]
+## [1.0.0] - 2020-11-06
 
-### Backlog
-- Show current user assignments on map
-- (allow for bigger area data requests, and multi-planes data requests) => not sure if it will be implemented 
+### Added
+- New map layer with all FSE airports
+- New map layer with all MSFS airports
+- New map layer with all FSE airport landing areas
+- Show/hide layers on map
+- Tutorial for first time users
+- FSE airport popup now indicates if the airport exists in MSFS, if the ICAO is different, and other potential MSFS landing spots within the FSE airport landing area
+- No more restriction on the size of the zone for loading jobs from FSE
+- You can now select multiple plane models when loading rentable planes from FSE
+- New changelog and credits popup (changelog opens automatically when a new version is released)
+- 3 different airport icons depending on airport size
+- New pay filter : minimum job pay, minimum leg pay, and top X% job pay per NM
+- Loading screen and app icon
+
+### Changed
+- Load Data popup now opens automatically for first time users
+- Airports popup remodeled
+- Improved performance
+- Better proxy for FSE requests
+
+### Fixed
+- Search history is now correctly ordered
+- Leg tooltips now show correct information when only My Flight is displayed on map
 
 
 
