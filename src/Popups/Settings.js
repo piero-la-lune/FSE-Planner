@@ -83,6 +83,7 @@ function SettingSlider({xs, setting, s, setS, label, ...props}) {
     </Grid>
   );
 }
+// eslint-disable-next-line
 function SettingSwitch({xs, setting, s, setS, label, ...props}) {
   return (
     <Grid item xs={xs || 6}>
