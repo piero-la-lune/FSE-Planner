@@ -26,13 +26,12 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import { default as _clone } from 'lodash/cloneDeep';
 import { default as _defaultsDeep } from 'lodash/defaultsDeep';
-import Tour from 'reactour';
 
 import FSEMap from './Map.js';
 import UpdatePopup from './Update.js';
 import SettingsPopup from './Settings.js';
 import CreditsPopup from './Credits.js';
-import TourStep from './TourStep.js';
+import Tour from './Tour.js';
 import Storage from './Storage.js';
 
 import icaodataSrc from "./data/icaodata-with-zones.json";
@@ -335,67 +334,6 @@ function App() {
   }, []);
 
 
-  const steps = React.useRef([
-    {
-      content: ({goTo}) => <TourStep step={1} title="Welcome aboard FSE Planner!" text="This quick tour will show you the main features of this application." goTo={goTo} skip={() => goTo(8)} />
-    },
-    {
-      selector: '[data-tour="Step2"]',
-      content: ({goTo}) => <TourStep step={2} title="Step 1: Loading jobs" text="First, you have to load jobs from FSE. Click here to open the data update popup." goTo={goTo} onNext={() => setUpdatePopup(true)} />
-    },
-    {
-      content: ({goTo}) => <TourStep step={3} text="This popup allows you to load and update different type of data from FSE." goTo={goTo} onPrev={() => setUpdatePopup(false)} />
-    },
-    {
-      selector: '[data-tour="Step4"]',
-      content: ({goTo}) => <TourStep step={4} text="You have to first enter your FSE Read Access Key." goTo={goTo} />
-    },
-    {
-      selector: '[data-tour="Step5"]',
-      content: ({goTo}) => <TourStep step={5} text="You can now select an area to load jobs from. Click on Update to start the loading process." goTo={goTo} />
-    },
-    {
-      selector: '[data-tour="Step6"]',
-      content: ({goTo}) => <TourStep step={6} text="You can also display airports where a plane is available for rental." goTo={goTo} onNext={() => setUpdatePopup(false)} />
-    },
-    {
-      selector: '[data-tour="Step7"]',
-      content: ({goTo}) => 
-        <TourStep
-          step={7}
-          title="Step 2: Filtering jobs"
-          text={
-            <React.Fragment>
-              <Typography variant="body2">Jobs are now loaded and displayed on the map, but it is often a mess since there are so many jobs available. Use the filters in the top bar to reduce the number of jobs displayed on the map.</Typography>
-              <Typography variant="body2" style={{marginTop: '6px'}}>For instance, this filter allows you to show only jobs radiating from this airport.</Typography>
-            </React.Fragment>
-          }
-          goTo={goTo}
-          onPrev={() => setUpdatePopup(true)}
-        />
-    },
-    {
-      selector: '[data-tour="Step8"]',
-      content: ({goTo}) => <TourStep step={8} text="More filtering and display options are available here." goTo={goTo} />
-    },
-    {
-      selector: '[data-tour="Step9"]',
-      content: ({goTo}) =>
-        <TourStep
-          step={9}
-          title="Your turn!"
-          text="You can launch again this tutorial or review the changelog and credits here."
-          goTo={goTo}
-          end={() => {
-            goTo(0);
-            setIsTourOpen(false);
-            storage.set('tutorial', process.env.REACT_APP_VERSION);
-          }}
-        />
-    },
-  ]);
-
-
   return (
     <div style={{
       display: "flex",
@@ -630,14 +568,9 @@ function App() {
         openTutorial={() => setIsTourOpen(true)}
       />
       <Tour
-        steps={steps.current}
-        isOpen={isTourOpen}
-        onRequestClose={() => setIsTourOpen(false)}
-        showNavigation={false}
-        disableInteraction={true}
-        showButtons={false}
-        closeWithMask={false}
-        showCloseButton={false}
+        isTourOpen={isTourOpen}
+        setIsTourOpen={setIsTourOpen}
+        setUpdatePopup={setUpdatePopup}
       />
     </div>
   );
