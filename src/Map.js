@@ -44,7 +44,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         .addTo(mapRef.current.leafletElement)
         .openPopup();
     }
-  }, [props.search, props.options.icaodata, props.options.planes, s]);
+  }, [props.search, props.options.icaodata, props.options.planes, s.display.sim, s.display.markers.colors.selected, s.display.markers.sizes.selected]);
 
   // Set search marker on top at each render
   React.useEffect(() => {
