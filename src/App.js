@@ -28,9 +28,9 @@ import { default as _clone } from 'lodash/cloneDeep';
 import { default as _defaultsDeep } from 'lodash/defaultsDeep';
 
 import FSEMap from './Map.js';
-import UpdatePopup from './Update.js';
-import SettingsPopup from './Settings.js';
-import CreditsPopup from './Credits.js';
+import UpdatePopup from './Popups/Update.js';
+import SettingsPopup from './Popups/Settings.js';
+import CreditsPopup from './Popups/Credits.js';
 import Tour from './Tour.js';
 import Storage from './Storage.js';
 
@@ -533,7 +533,7 @@ function App() {
               </Tooltip>
             </IconButton>
             <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setUpdatePopup(true)} data-tour="Step2">
-              <Tooltip title="Update data">
+              <Tooltip title="Load data from FSE">
                 <UpdateIcon />
               </Tooltip>
             </IconButton>
@@ -547,7 +547,7 @@ function App() {
       />
       <UpdatePopup
         open={updatePopup}
-        handleClose={() => setUpdatePopup(false)}
+        setUpdatePopup={setUpdatePopup}
         setJobs={setJobs}
         setPlanes={(planes) => setPlanes(transformPlanes(planes))}
         setFlight={setFlight}
@@ -570,6 +570,7 @@ function App() {
       <Tour
         isTourOpen={isTourOpen}
         setIsTourOpen={setIsTourOpen}
+        updatePopup={updatePopup}
         setUpdatePopup={setUpdatePopup}
       />
     </div>

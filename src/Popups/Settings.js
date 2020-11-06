@@ -25,7 +25,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import {default as _set} from 'lodash/set';
 import {default as _clone} from 'lodash/cloneDeep';
 
-import Storage from './Storage.js';
+import Storage from '../Storage.js';
 
 const storage = new Storage();
 

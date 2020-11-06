@@ -68,7 +68,24 @@ function TourStep(props) {
 
 
 
-function Tour(props) {
+function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
+
+  const isUpdatePopupOpen = React.useRef(false);
+  const wasUpdatePopupOpen = React.useRef(false);
+  const wasTourOpen = React.useRef(false);
+  React.useEffect(() => {
+    isUpdatePopupOpen.current = updatePopup;
+  }, [updatePopup]);
+  React.useEffect(() => {
+    if (isTourOpen) {
+      wasUpdatePopupOpen.current = isUpdatePopupOpen.current;
+      wasTourOpen.current = true;
+      setUpdatePopup(false);
+    }
+    else if (wasTourOpen.current) {
+      setUpdatePopup(wasUpdatePopupOpen.current);
+    }
+  }, [isTourOpen, setUpdatePopup]);
 
   const steps =[
     {
@@ -89,7 +106,7 @@ function Tour(props) {
           title="Step 1: Loading jobs"
           text="First, you have to load jobs from FSE. Click here to open the data update popup."
           goTo={goTo}
-          onNext={() => props.setUpdatePopup(true)}
+          onNext={() => setUpdatePopup(true)}
         />
     },
     {
@@ -98,7 +115,7 @@ function Tour(props) {
           step={3}
           text="This popup allows you to load and update different type of data from FSE."
           goTo={goTo}
-          onPrev={() => props.setUpdatePopup(false)}
+          onPrev={() => setUpdatePopup(false)}
         />
     },
     {
@@ -126,7 +143,7 @@ function Tour(props) {
           step={6}
           text="You can also display airports where a plane is available for rental."
           goTo={goTo}
-          onNext={() => props.setUpdatePopup(false)}
+          onNext={() => setUpdatePopup(false)}
         />
     },
     {
@@ -140,7 +157,7 @@ function Tour(props) {
             "For instance, this filter allows you to show only jobs radiating from this airport."
           ]}
           goTo={goTo}
-          onPrev={() => props.setUpdatePopup(true)}
+          onPrev={() => setUpdatePopup(true)}
         />
     },
     {
@@ -172,7 +189,7 @@ function Tour(props) {
           goTo={goTo}
           end={() => {
             goTo(0);
-            props.setIsTourOpen(false);
+            setIsTourOpen(false);
             storage.set('tutorial', process.env.REACT_APP_VERSION);
           }}
         />
@@ -182,8 +199,8 @@ function Tour(props) {
   return (
     <ReactTour
       steps={steps}
-      isOpen={props.isTourOpen}
-      onRequestClose={() => props.setIsTourOpen(false)}
+      isOpen={isTourOpen}
+      onRequestClose={() => setIsTourOpen(false)}
       showNavigation={false}
       disableInteraction={true}
       showButtons={false}

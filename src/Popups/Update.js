@@ -24,10 +24,10 @@ import { isPointInPolygon } from "geolib";
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 
-import CustomAreaPopup from './CustomArea.js';
-import Storage from './Storage.js';
+import CustomAreaPopup from './Components/CustomArea.js';
+import Storage from '../Storage.js';
 
-import aircrafts from "./data/aircraft.json";
+import aircrafts from "../data/aircraft.json";
 
 const storage = new Storage();
 
@@ -209,11 +209,25 @@ function UpdatePopup(props) {
   const [flightTime, setFlightTime] = React.useState(storage.get('flightTime'));
   const [loading, setLoading] = React.useState(false);
   const [openCustom, setOpenCustom] = React.useState(false);
-  const [expanded, setExpanded] = React.useState(storage.get('key') ? false : 'panel1');
+  const [expanded, setExpanded] = React.useState(key ? false : 'panel1');
   const classes = useStyles();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
+  // Close popup
+  const handleClose = () => {
+    props.setUpdatePopup(false);
+  }
+
+  // Open popup on loading if no FSE key
+  const setUpdatePopupRef = React.useRef(props.setUpdatePopup);
+  React.useEffect(() => {
+    if (!storage.get('key')) {
+      setUpdatePopupRef.current(true);
+    }
+  }, []);
+
+  // Loop function to get jobs from FSE
   const updateJobsRequest = (icaosList, jobs, callback) => {
     if (!icaosList.length) {
       callback(jobs);
@@ -242,6 +256,7 @@ function UpdatePopup(props) {
       setLoading(false);
     });
   }
+  // Jobs Update button clicked
   const updateJobs = (evt) => {
     evt.stopPropagation();
     setLoading(true);
@@ -261,10 +276,10 @@ function UpdatePopup(props) {
       storage.set('jobsCustom', jobsCustom);
       // Close popup
       setLoading(false);
-      props.handleClose();
+      handleClose();
     });
   }
-
+  // Jobs Clicked button clicked
   const clearJobs = (evt) => {
     evt.stopPropagation();
     setLoading(true);
@@ -275,9 +290,10 @@ function UpdatePopup(props) {
     setJobsTime(null);
     // Close popup
     setLoading(false);
-    props.handleClose();
+    handleClose();
   }
 
+  // Loop function to get planes from FSE
   const updatePlanesRequest = (models, planes, callback) => {
     if (!models.length) {
       callback(planes);
@@ -307,6 +323,7 @@ function UpdatePopup(props) {
       setLoading(false);
     });
   }
+  // Planes Update button clicked
   const updatePlanes = (evt) => {
     evt.stopPropagation();
     setLoading(true);
@@ -324,10 +341,10 @@ function UpdatePopup(props) {
       storage.set('planeModel', planeModel);
       // Close popup
       setLoading(false);
-      props.handleClose();
+      handleClose();
     });
   }
-
+  // Planes Clear button clicked
   const clearPlanes = (evt) => {
     evt.stopPropagation();
     setLoading(true);
@@ -338,9 +355,10 @@ function UpdatePopup(props) {
     setPlanesTime(null);
     // Close popup
     setLoading(false);
-    props.handleClose();
+    handleClose();
   }
 
+  // My Flight Update button clicked
   const updateFlight = (evt) => {
     evt.stopPropagation();
     setLoading(true);
@@ -374,14 +392,14 @@ function UpdatePopup(props) {
       setFlightTime(date);
       // Close popup
       setLoading(false);
-      props.handleClose();
+      handleClose();
     })
     .catch(function(error) {
       alert('Could not get data. Check your read access key.');
       setLoading(false);
     });
   }
-
+  // My Flight Clear button clicked
   const clearFlight = (evt) => {
     evt.stopPropagation();
     setLoading(true);
@@ -392,7 +410,7 @@ function UpdatePopup(props) {
     setFlightTime(null);
     // Close popup
     setLoading(false);
-    props.handleClose();
+    handleClose();
   }
 
   const panelChange = (panel) => (event, isExpanded) => {
@@ -400,20 +418,20 @@ function UpdatePopup(props) {
   };
 
   return (
-    <Dialog onClose={props.handleClose} open={props.open} fullWidth={true} maxWidth="sm">
+    <Dialog onClose={handleClose} open={props.open} fullWidth={true} maxWidth="sm">
       <DialogTitle>
-        Update data
-        <IconButton className={classes.closeButton} onClick={props.handleClose}>
+        Load data from FSE
+        <IconButton className={classes.closeButton} onClick={handleClose}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
       <DialogContent dividers className={classes.dialog}>
 
-        <Alert severity="warning" className={classes.alert}>Each update below is 1 request to the FSE servers. You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
+        <Alert severity="warning" className={classes.alert}>You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
 
         <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')} data-tour="Step4">
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Read access key</Typography>
+            <Typography>FSE read access key</Typography>
           </AccordionSummary>
           <AccordionDetails className={classes.accDetails}>
             <TextField
