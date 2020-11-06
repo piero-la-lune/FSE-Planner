@@ -1,6 +1,6 @@
 # FSE Planner
 
-FSE Planner is a map visualization app that allows you to display all kind of information from [FSE Economy](https://www.fseconomy.net) onto map :
+FSE Planner is a map visualization app that allows you to display all kind of information from [FSE Economy](https://www.fseconomy.net) onto a world map:
 
 * available jobs with tons of filtering options
 * available rentable planes
@@ -13,11 +13,11 @@ FSE Planner is a map visualization app that allows you to display all kind of in
 
 A public instance of FSE Planner is available at [https://piero-la-lune.fr/fseplanner/](https://piero-la-lune.fr/fseplanner/).
 
-If you prefer, you can instead install your own instance on your computer :
+If you prefer, you can instead install your own instance on your computer:
 
 1. Download the [latest release](https://github.com/piero-la-lune/FSE-Planner/releases) from GitHub (you can also build the application from scratch, see "Developer instructions" bellow)
 2. Unzip the release on your computer
-3. Open `index.html` file in your favorite web browser
+3. Open `index.html` in your favorite web browser
 
 
 ## Developer instructions
@@ -41,4 +41,7 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.<br />
 Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+## License
+
+FSE Planner is open source software licensed as [MIT](https://github.com/piero-la-lune/FSE-Planner/blob/master/LICENSE).
