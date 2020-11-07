@@ -9,9 +9,26 @@ FSE Planner is a map visualization app that allows you to display all kind of in
 * ...
 
 <p align="center">
-	<a href="https://www.youtube.com/watch?v=MDB7AFYSqMI" target="_blank"><img width="300" height="169" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/video_small.png?raw=true" alt="Overview video"></a>
+	<a href="https://www.youtube.com/watch?v=MDB7AFYSqMI"><img width="300" height="169" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/video_small.png?raw=true" alt="Overview video"></a>
 </p>
 
+## Features
+
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature1.png?raw=true" alt="Display available jobs on map & apply search filters on location, length, amount, pay, direction, etc.">
+</p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature2.png?raw=true" alt="Display airports with rentable planes & get detailed information about the available planes">
+</p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature3.png?raw=true" alt="Search for specific ICAO and airport name & get a link to the corresponding FSE website page">
+</p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature4.png?raw=true" alt="Display all FSE airports on the map & view the correspoding landing areas">
+</p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature5.png?raw=true" alt="Display all MSFS airports on the map & warn about non-existent or renamed airports">
+</p>
 
 
 
