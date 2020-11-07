@@ -1,7 +1,51 @@
+# FSE Planner
+
+FSE Planner is a map visualization app that allows you to display all kind of information from [FSE Economy](https://www.fseconomy.net) onto a world map:
+
+* available jobs with tons of filtering options
+* available rentable planes
+* all FSE airports, with their landing area and corresponding MSFS airports
+* all MFSF airports
+* ...
+
+<p align="center">
+	<a href="https://www.youtube.com/watch?v=MDB7AFYSqMI"><img width="300" height="169" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/video_small.png?raw=true" alt="Overview video"></a>
+</p>
+
+## Features
+
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature1.png?raw=true" alt="Display available jobs on map & apply search filters on location, length, amount, pay, direction, etc.">
+</p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature2.png?raw=true" alt="Display airports with rentable planes & get detailed information about the available planes">
+</p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature3.png?raw=true" alt="Search for specific ICAO and airport name & get a link to the corresponding FSE website page">
+</p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature4.png?raw=true" alt="Display all FSE airports on the map & view the correspoding landing areas">
+</p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/feature5.png?raw=true" alt="Display all MSFS airports on the map & warn about non-existent or renamed airports">
+</p>
+
+
+
+## Installation
+
+A public instance of FSE Planner is available at [https://piero-la-lune.fr/fseplanner/](https://piero-la-lune.fr/fseplanner/).
+
+If you prefer, you can instead install your own instance on your computer:
+
+1. Download the [latest release](https://github.com/piero-la-lune/FSE-Planner/releases) from GitHub (you can also build the application from scratch, see "Developer instructions" bellow)
+2. Unzip the release on your computer
+3. Open `index.html` in your favorite web browser
+
+
+## Developer instructions
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
-## Available Scripts
-
 In the project directory, you can run:
 
 ### `npm start`
@@ -12,11 +56,6 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.<br />
 You will also see any lint errors in the console.
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
 ### `npm run build`
 
 Builds the app for production to the `build` folder.<br />
@@ -25,44 +64,7 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.<br />
 Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
+## License
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+FSE Planner is open source software licensed as [MIT](https://github.com/piero-la-lune/FSE-Planner/blob/readme/LICENSE).
