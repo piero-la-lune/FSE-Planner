@@ -5,16 +5,12 @@ class Storage {
     const oldVersion = localStorage.getItem('version');
     // Update older version of storage
     if (oldVersion && version !== oldVersion) {
-      if (oldVersion < '0.5.001') {
+      if (oldVersion < '1.0.0') {
         const planeModel = this.get('planeModel', '');
         if (planeModel) {
           this.set('planeModel', [planeModel]);
         }
-      }
-      if (oldVersion < '0.5.002') {
         this.remove('planes');
-      }
-      if (oldVersion < '0.5.004') {
         this.remove('jobs');
       }
       localStorage.setItem('version', version);
