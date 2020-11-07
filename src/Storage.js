@@ -4,8 +4,8 @@ class Storage {
     const version = process.env.REACT_APP_VERSION;
     const oldVersion = localStorage.getItem('version');
     // Update older version of storage
-    if (oldVersion && version !== oldVersion) {
-      if (oldVersion < '1.0.0') {
+    if (version !== oldVersion) {
+      if (!oldVersion || oldVersion < '1.0.0') {
         const planeModel = this.get('planeModel', '');
         if (planeModel) {
           this.set('planeModel', [planeModel]);
