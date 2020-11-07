@@ -8,6 +8,10 @@ FSE Planner is a map visualization app that allows you to display all kind of in
 * all MFSF airports
 * ...
 
+[![Overview video](https://github.com/piero-la-lune/FSE-Planner/blob/readme/visual_assets/video_small.png?raw=true)](https://www.youtube.com/watch?v=MDB7AFYSqMI&feature=youtu.be)
+
+
+
 
 ## Installation
 
@@ -44,4 +48,4 @@ Your app is ready to be deployed!
 
 ## License
 
-FSE Planner is open source software licensed as [MIT](https://github.com/piero-la-lune/FSE-Planner/blob/master/LICENSE).
+FSE Planner is open source software licensed as [MIT](https://github.com/piero-la-lune/FSE-Planner/blob/readme/LICENSE).
