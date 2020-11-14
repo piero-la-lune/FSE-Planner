@@ -20,6 +20,7 @@ const FSEMap = React.memo(function FSEMap(props) {
 
   // Display search marker
   const searchRef = React.useRef(null);
+  const prevSearchRef = React.useRef(null);
   React.useEffect(() => {
 
     // If marker already exists remove it
@@ -30,7 +31,6 @@ const FSEMap = React.memo(function FSEMap(props) {
 
     // Only draw marker if search is not empty
     if (props.search) {
-      mapRef.current.leafletElement.flyTo([props.search.lat, props.search.lon], 8);
       const marker = props.search.icao;
       const icons = new AirportIcons(s.display.markers.colors.selected, s.display.markers.sizes.selected);
       searchRef.current = Marker({
@@ -41,8 +41,13 @@ const FSEMap = React.memo(function FSEMap(props) {
         icaodata: props.options.icaodata,
         siminfo: s.display.sim
       })
-        .addTo(mapRef.current.leafletElement)
-        .openPopup();
+        .addTo(mapRef.current.leafletElement);
+      // Only zoom to marker if search ICAO has changed
+      if (prevSearchRef.current !== props.search) {
+        mapRef.current.leafletElement.flyTo([props.search.lat, props.search.lon], 8);
+        searchRef.current.openPopup();
+      }
+      prevSearchRef.current = props.search;
     }
   }, [props.search, props.options.icaodata, props.options.planes, s.display.sim, s.display.markers.colors.selected, s.display.markers.sizes.selected]);
 
