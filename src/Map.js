@@ -31,25 +31,33 @@ const FSEMap = React.memo(function FSEMap(props) {
 
     // Only draw marker if search is not empty
     if (props.search) {
-      const marker = props.search.icao;
       const icons = new AirportIcons(s.display.markers.colors.selected, s.display.markers.sizes.selected);
       searchRef.current = Marker({
-        position: [props.options.icaodata[marker].lat, props.options.icaodata[marker].lon],
-        icon: icons.get(props.options.icaodata[marker].type, props.options.icaodata[marker].size),
-        icao: marker,
-        planes: props.options.planes[marker],
+        position: [props.options.icaodata[props.search].lat, props.options.icaodata[props.search].lon],
+        icon: icons.get(props.options.icaodata[props.search].type, props.options.icaodata[props.search].size),
+        icao: props.search,
+        planes: props.options.planes[props.search],
         icaodata: props.options.icaodata,
-        siminfo: s.display.sim
+        siminfo: s.display.sim,
+        goTo: props.goTo
       })
         .addTo(mapRef.current.leafletElement);
-      // Only zoom to marker if search ICAO has changed
+      // Only open popup if search ICAO has changed
       if (prevSearchRef.current !== props.search) {
-        mapRef.current.leafletElement.flyTo([props.search.lat, props.search.lon], 8);
-        searchRef.current.openPopup();
+        setTimeout(() => { searchRef.current.openPopup() }, 10);
       }
-      prevSearchRef.current = props.search;
     }
-  }, [props.search, props.options.icaodata, props.options.planes, s.display.sim, s.display.markers.colors.selected, s.display.markers.sizes.selected]);
+
+    prevSearchRef.current = props.search;
+  }, [
+    props.search,
+    props.options.icaodata,
+    props.options.planes,
+    s.display.sim,
+    s.display.markers.colors.selected,
+    s.display.markers.sizes.selected,
+    props.goTo
+  ]);
 
   // Set search marker on top at each render
   React.useEffect(() => {
@@ -99,6 +107,7 @@ const FSEMap = React.memo(function FSEMap(props) {
             color={s.display.markers.colors.base}
             radius={aRadius}
             siminfo={s.display.sim}
+            goTo={props.goTo}
           />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="MSFS airports" checked={false}>
@@ -111,13 +120,23 @@ const FSEMap = React.memo(function FSEMap(props) {
             radius={aRadius}
             siminfo={s.display.sim}
             sim="msfs"
+            goTo={props.goTo}
           />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="FSE airports landing area" checked={false}>
-          <ZonesLayer icaos={props.icaos} icaodata={props.options.icaodata} renderer={canvasRendererRef.current} color={s.display.markers.colors.base} />
+          <ZonesLayer
+            icaos={props.icaos}
+            icaodata={props.options.icaodata}
+            renderer={canvasRendererRef.current}
+            color={s.display.markers.colors.base}
+          />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="Job & plane search" checked={true}>
-          <JobsLayer options={props.options} renderer={canvasRendererRef.current} />
+          <JobsLayer
+            options={props.options}
+            renderer={canvasRendererRef.current}
+            goTo={props.goTo}
+          />
         </LayersControl.Overlay>
       </LayersControl>
     </Map>

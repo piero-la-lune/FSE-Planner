@@ -1,72 +1,199 @@
+import React from 'react';
+import Typography from '@material-ui/core/Typography';
+import Link from '@material-ui/core/Link';
+import Tooltip from '@material-ui/core/Tooltip';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+import NavigationIcon from '@material-ui/icons/Navigation';
+import CenterFocusStrongIcon from '@material-ui/icons/CenterFocusStrong';
+import { makeStyles } from '@material-ui/core/styles';
+
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
+import ReactDOM from "react-dom";
 
 
-function arrow(plane, icao, icaodata) {
-  if (icao === plane.home) { return ')'; }
+const useStyles = makeStyles(theme => ({
+  striked: {
+    display: 'inline-block',
+    marginRight: theme.spacing(1),
+    textDecoration: 'line-through',
+    textDecorationStyle: 'double',
+    fontWeight: 300
+  },
+  icao: {
+    display: 'flex',
+    alignItems: 'center',
+    background: theme.palette.primary.main,
+    color: '#fff',
+    padding: '3px 12px',
+    paddingRight: '32px',
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+    margin: '-14px -14px 8px -14px'
+  },
+  toFSE: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    marginLeft: theme.spacing(1),
+    color: 'rgba(255, 255, 255, 0.5) !important',
+    fontSize: '0.8em',
+    '&:hover': {
+      color: '#fff !important'
+    }
+  },
+  sim: {
+    background: theme.palette.primary.main,
+    padding: '8px 8px',
+    color: 'rgba(255, 255, 255, 0.5)',
+    margin: '-12px -14px 8px -14px !important',
+    lineHeight: '1'
+  },
+  simLabel: {
+    fontSize: '0.7em',
+    display: 'block',
+    marginBottom: theme.spacing(0.5)
+  },
+  simIcao: {
+    display: 'inline-block',
+    marginRight: theme.spacing(0.5)
+  },
+  plane: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  planeHome: {
+    marginTop: '-10px !important',
+    marginLeft: theme.spacing(2)+'px !important',
+    fontSize: '0.7rem',
+    color: '#aaa',
+    display: 'flex',
+    alignItems: 'center'
+  },
+  planeSearch: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    marginLeft: theme.spacing(0.5),
+    marginRight: theme.spacing(0.5),
+    '&:hover': {
+      textDecoration: 'none'
+    }
+  }
+}));
+
+
+function PlaneHome({plane, icaodata, icao, goTo}) {
+  const classes = useStyles();
+  const [tooltip, setTooltip] = React.useState(false);
+
+  if (plane.home === icao) {
+    return (
+      <Typography variant="body2" className={classes.plane}>
+        {plane.reg} : ${plane.dry}/${plane.wet} (${plane.bonus})
+      </Typography>
+    );
+  }
+
   const fr = { latitude: icaodata[icao].lat, longitude: icaodata[icao].lon };
   const to = { latitude: icaodata[plane.home].lat, longitude: icaodata[plane.home].lon };
   const dir = Math.round(getRhumbLineBearing(fr, to));
   const dist = Math.round(convertDistance(getDistance(fr, to), 'sm'));
-  return `
-    <svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeInherit" style="margin-left: 3px; transform: rotate(${dir}deg)" focusable="false" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
-    </svg>)
-    </p><p class="MuiTypography-root MuiTypography-body2" style="margin-top: -10px; margin-left: 18px; font-size: 0.7rem; color: #aaa">Home : ${plane.home} (${dir}° ${dist}NM)
-  `;
-}
 
-function genPlanes(planes, icao, icaodata) {
-  if (!planes) { return ''; }
-  let p = '';
-  for (var i = 0; i < planes.length; i++) {
-    const plane = planes[i];
-    p += `
-      <p class="MuiTypography-root MuiTypography-body2" style="display: flex; align-items: center">
-        ${plane.reg} : $${plane.dry}/$${plane.wet}
-        ($${plane.bonus}${arrow(plane, icao, icaodata)}
-      </p>
-    `
+  const handleClick = (evt) => {
+    evt.preventDefault();
+    setTooltip(false);
+    goTo(plane.home);
   }
-  return p;
+
+  return (
+    <React.Fragment>
+      <Typography variant="body2" className={classes.plane}>
+        {plane.reg} : ${plane.dry}/${plane.wet} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
+      </Typography>
+      <Typography variant="body2" className={classes.planeHome}>
+        Home:
+        <Tooltip title="Go to home location" open={tooltip} onOpen={() => setTooltip(true)} onClose={() => setTooltip(false)}>
+          <Link href="#" onClick={handleClick} className={classes.planeSearch}>
+            <CenterFocusStrongIcon fontSize="inherit" />
+            {plane.home}
+          </Link>
+        </Tooltip>
+        ({dir}° {dist}NM)
+      </Typography>
+    </React.Fragment>
+  );
 }
 
-export function genPopup(icao, icaodata, planes = {}, siminfo = 'msfs', sim = null) {
-  return () => {
-    if (sim) {
-      return `<div class="MuiTypography-root MuiTypography-h6">${icao}</div>`;
-    }
-    let icaoTxt = icao;
-    let simTxt = '';
-    if (icaodata[icao][siminfo][0] !== icao) {
-      icaoTxt = '<span class="striked">'+icao+'</span>';
-      if (icaodata[icao][siminfo][0] !== null) {
-        icaoTxt += '&nbsp;'+icaodata[icao][siminfo][0]
+function Popup(props) {
+  const {icao, icaodata, planes, siminfo} = props;
+  const classes = useStyles();
+
+  if (props.sim) {
+    return (<Typography variant="h5">{icao}</Typography>);
+  }
+
+  return (
+    <React.Fragment>
+      <Typography variant="h5" className={classes.icao}>
+        {
+          icaodata[icao][siminfo][0] === icao ?
+            icao
+          :
+            <React.Fragment>
+              <span className={classes.striked}>{icao}</span>{icaodata[icao][siminfo][0]}
+            </React.Fragment>
+        }
+        <Tooltip title="Go to FSE">
+          <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE}>
+            <OpenInNewIcon fontSize="inherit" />
+          </Link>
+        </Tooltip>
+      </Typography>
+      {
+        icaodata[icao][siminfo].length > 1 &&
+          <Typography variant="body2" className={classes.sim}>
+            <span className={classes.simLabel}>Other possible landing spots:</span>
+            {icaodata[icao][siminfo].slice(1).map(elm => <span key={elm} className={classes.simIcao}>{elm}</span>)}
+          </Typography>
       }
-    }
-    if (icaodata[icao][siminfo].length > 1) {
-      simTxt = '<div class="MuiTypography-body2 sim"><span class="label">Other possible landing spots:</span><span>'+icaodata[icao][siminfo].slice(1).join('</span><span>')+'</span></div>';
-    }
-    return `
-      <div class="MuiTypography-root MuiTypography-h5 icao">
-        ${icaoTxt}
-        <a href="https://server.fseconomy.net/airport.jsp?icao=${icao}" target="fse" title="Go to FSE">
-          <svg class="MuiSvgIcon-root" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"></path></svg>
-        </a>
-      </div>
-      ${simTxt}
-      ${genPlanes(planes, icao, icaodata)}
-    `;
-  }
+      {
+        planes && planes.map(plane => <PlaneHome key={plane.reg} plane={plane} {...props} />)
+      }
+    </React.Fragment>
+  );
 }
 
-function Marker({position, icon, icao, planes, icaodata}) {
+export function Marker({position, icon, ...popupProps}) {
   return L.marker(
     position,
     {
       icon: icon
     }
-  ).bindPopup(genPopup(icao, icaodata, planes));
+  )
+    .bindPopup(() => {
+      var div = document.createElement('div');
+      ReactDOM.render(<Popup {...popupProps} />, div);
+      return div;
+    });
 }
+
+export function CircleMarker({position, radius, color, renderer, ...popupProps}) {
+  return L.circleMarker(
+    position,
+    {
+      radius: radius,
+      opacity: 0,
+      weight: 10,
+      fillOpacity: 1,
+      fillColor: color,
+      renderer: renderer
+    }
+  )
+    .bindPopup(() => {
+      var div = document.createElement('div');
+      ReactDOM.render(<Popup {...popupProps} />, div);
+      return div;
+    });
+}
+
 
 export default Marker;

@@ -3,7 +3,7 @@ import React from 'react';
 import L from "leaflet";
 import { useLeaflet } from "react-leaflet";
 
-import { genPopup } from "./Components/Marker.js";
+import { CircleMarker } from "./Components/Marker.js";
 
 
 const AirportsLayer = React.memo(function AirportsLayer(props) {
@@ -21,20 +21,19 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
     groupRef.current.clearLayers();
   
     props.icaos.forEach(icao =>
-
       // Create marker
-      L.circleMarker(
-        [props.icaodata[icao].lat, props.icaodata[icao].lon],
-        {
-          radius: radiusRef.current,
-          opacity: 0,
-          weight: 10,
-          fillOpacity: 1,
-          fillColor: props.color,
-          renderer: rendererRef.current
+      CircleMarker({
+        position: [props.icaodata[icao].lat, props.icaodata[icao].lon],
+        radius: radiusRef.current,
+        color: props.color,
+        renderer: rendererRef.current,
+        icao: icao,
+        icaodata: props.fseicaodata,
+        goTo: props.goTo,
+        siminfo: props.siminfo,
+        sim: props.sim
       })
         .addTo(groupRef.current)
-        .bindPopup(genPopup(icao, props.fseicaodata, {}, props.siminfo, props.sim))
     );
 
     // Add layer to map
@@ -43,7 +42,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
       added.current = true;
     }
 
-  }, [props.color, props.icaos, props.icaodata, props.link, props.siminfo, props.sim, props.fseicaodata]);
+  }, [props.color, props.icaos, props.icaodata, props.link, props.siminfo, props.sim, props.fseicaodata, props.goTo]);
 
   // Resize circles
   React.useEffect(() => {
