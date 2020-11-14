@@ -297,6 +297,7 @@ function App() {
   const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
+  const [customIcaos, setCustomIcaos] = React.useState(storage.get('customIcaos', []));
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
@@ -571,6 +572,8 @@ function App() {
         icaodata={icaodata}
         icaos={icaos}
         settings={settings}
+        customIcaos={customIcaos}
+        setCustomIcaos={setCustomIcaos}
       />
       <SettingsPopup
         open={settingsPopop}
