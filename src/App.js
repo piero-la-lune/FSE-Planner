@@ -35,6 +35,7 @@ import Tour from './Tour.js';
 import Storage from './Storage.js';
 
 import icaodataSrc from "./data/icaodata-with-zones.json";
+const icaodataSrcArr = Object.values(icaodataSrc);
 
 
 const defaultSettings = {
@@ -291,7 +292,7 @@ function App() {
   const [settings, setSettings] = React.useState(() => {
     return _defaultsDeep(storage.get('settings', {}), defaultSettings);
   });
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = React.useState(null);
   const [searchInput, setSearchInput] = React.useState('');
   const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
@@ -333,6 +334,21 @@ function App() {
     }
   }, []);
 
+  // Create goTo function, to allow panning to given ICAO
+  // Cannot just use setSearch, because need to pan even if the ICAO was already in search var
+  const goToRef = React.useRef(null);
+  const goTo = React.useCallback((icao) => {
+    setSearch(prevIcao => prevIcao ? null : icao);
+    goToRef.current = icao;
+  }, []);
+  React.useEffect(() => {
+    if (goToRef.current && goToRef.current !== search) {
+      const icao = goToRef.current;
+      goToRef.current = null;
+      setSearch(icao);
+    }
+  }, [search]);
+
 
   return (
     <div style={{
@@ -355,7 +371,7 @@ function App() {
           <div className={classes.filters}>
             <div className={classes.search}>
               <Autocomplete
-                options={Object.values(icaodata)}
+                options={icaodataSrcArr}
                 getOptionLabel={(a) => a.icao ? a.icao : ''}
                 renderOption={(a) =>
                   <span className={classes.searchOption}>
@@ -386,19 +402,19 @@ function App() {
                     className={classes.inputSearch}
                     ref={params.InputProps.ref}
                     inputProps={params.inputProps}
-                    endAdornment={params.inputProps.value ? <IconButton size="small" onClick={() => {setSearch(''); setSearchInput('');}}><CloseIcon /></IconButton> : null}
+                    endAdornment={params.inputProps.value ? <IconButton size="small" onClick={() => {setSearch(null); setSearchInput('');}}><CloseIcon /></IconButton> : null}
                   />
                 }
                 PopperComponent={PopperMy}
                 onChange={(evt, value) => {
-                  setSearch(value);
+                  setSearch(value.icao);
                   if (value) {
                     const list = [...(new Set([value.icao, ...searchHistory]))].slice(0, 5);
                     setSearchHistory(list);
                     storage.set('searchHistory', list);
                   }
                 }}
-                value={search || null}
+                value={search ? icaodataSrc[search] : null}
                 inputValue={searchInput}
                 onInputChange={(evt, value) => setSearchInput(value)}
                 autoHighlight={true}
@@ -543,6 +559,7 @@ function App() {
       <FSEMap
         options={options}
         search={search}
+        goTo={goTo}
         icaos={icaos}
       />
       <UpdatePopup

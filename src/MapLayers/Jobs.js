@@ -133,7 +133,6 @@ function getMarkers(legs, opts) {
   // Add markers in filtering options
   if (opts.fromIcao) { markers.add(opts.fromIcao); }
   if (opts.toIcao) { markers.add(opts.toIcao); }
-  if (opts.search) { markers.add(opts.search.icao); }
   // Add markers in legs
   Object.keys(legs).forEach((key) => {
     let arr = key.split('-');
@@ -150,9 +149,9 @@ const Jobs = React.memo(function Jobs(props) {
   const s = props.options.settings;
 
   const icons = [
-    new AirportIcons(s.display.markers.colors.base, s.display.markers.sizes.base),
-    new AirportIcons(s.display.markers.colors.rentable, s.display.markers.sizes.rentable),
-    new AirportIcons(s.display.markers.colors.selected, s.display.markers.sizes.selected)
+    new AirportIcons(s.display.markers.colors.base, '#fff', s.display.markers.sizes.base),
+    new AirportIcons(s.display.markers.colors.rentable, '#fff', s.display.markers.sizes.rentable),
+    new AirportIcons(s.display.markers.colors.selected, '#fff', s.display.markers.sizes.selected)
   ];
 
   const groupRef = React.useRef(L.layerGroup());
@@ -185,7 +184,8 @@ const Jobs = React.memo(function Jobs(props) {
         icao: marker,
         planes: props.options.planes[marker],
         icaodata: props.options.icaodata,
-        siminfo: s.display.sim
+        siminfo: s.display.sim,
+        goTo: props.goTo
       })
         .addTo(groupRef.current)
 
