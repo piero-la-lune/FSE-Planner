@@ -62,7 +62,14 @@ code {
 	padding: 8px 8px;
 	color: rgba(255, 255, 255, 0.5);
 	margin: -18px -14px 8px -14px;
+	line-height: 1
+}
+.leaflet-popup-content .sim .label {
+	font-size: 0.7em;
+	display: block;
+	margin-bottom: 3px;
 }
 .leaflet-popup-content .sim span {
-	font-size: 0.7em;
+	display: inline-block;
+	margin-right: 4px;
 }

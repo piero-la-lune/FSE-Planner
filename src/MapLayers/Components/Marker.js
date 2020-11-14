@@ -45,7 +45,7 @@ export function genPopup(icao, icaodata, planes = {}, siminfo = 'msfs', sim = nu
       }
     }
     if (icaodata[icao][siminfo].length > 1) {
-      simTxt = '<div class="MuiTypography-body2 sim"><span>Other possible landing spots:</span><br />'+icaodata[icao][siminfo].slice(1).join('&nbsp;&nbsp;')+'</div>';
+      simTxt = '<div class="MuiTypography-body2 sim"><span class="label">Other possible landing spots:</span><span>'+icaodata[icao][siminfo].slice(1).join('</span><span>')+'</span></div>';
     }
     return `
       <div class="MuiTypography-root MuiTypography-h5 icao">
