@@ -11,6 +11,7 @@ import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import ReactDOM from "react-dom";
 
+import { AirportSVG } from "./Icons.js";
 
 const useStyles = makeStyles(theme => ({
   striked: {
@@ -25,11 +26,14 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     background: theme.palette.primary.main,
     color: '#fff',
-    padding: '3px 12px',
-    paddingRight: '32px',
+    padding: '3px 32px 3px 8px',
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
     margin: '-14px -14px 8px -14px'
+  },
+  icon: {
+    display: 'inline-flex',
+    marginRight: theme.spacing(1)
   },
   toFSE: {
     display: 'inline-flex',
@@ -80,6 +84,8 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+const SVGs = new AirportSVG('#fff', '#3f51b5', 20);
+
 
 function PlaneHome({plane, icaodata, icao, goTo}) {
   const classes = useStyles();
@@ -127,13 +133,15 @@ function Popup(props) {
   const {icao, icaodata, planes, siminfo} = props;
   const classes = useStyles();
 
-  if (props.sim) {
-    return (<Typography variant="h5">{icao}</Typography>);
-  }
+  const iconRef = React.useRef(null);
+  React.useEffect(() => {
+    iconRef.current.innerHTML = SVGs.get(icaodata[icao].type, icaodata[icao].size);
+  }, [icaodata, icao]);
 
   return (
     <React.Fragment>
       <Typography variant="h5" className={classes.icao}>
+        <span ref={iconRef} className={classes.icon}></span>
         {
           icaodata[icao][siminfo][0] === icao ?
             icao
@@ -176,7 +184,7 @@ export function Marker({position, icon, ...popupProps}) {
     });
 }
 
-export function CircleMarker({position, radius, color, renderer, ...popupProps}) {
+export function CircleMarker({position, radius, color, renderer, sim, ...popupProps}) {
   return L.circleMarker(
     position,
     {
@@ -190,7 +198,12 @@ export function CircleMarker({position, radius, color, renderer, ...popupProps})
   )
     .bindPopup(() => {
       var div = document.createElement('div');
-      ReactDOM.render(<Popup {...popupProps} />, div);
+      if (sim) {
+        ReactDOM.render(<Typography variant="h5">{popupProps.icao}</Typography>, div);
+      }
+      else {
+        ReactDOM.render(<Popup {...popupProps} />, div);
+      }
       return div;
     });
 }

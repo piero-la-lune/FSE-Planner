@@ -149,9 +149,9 @@ const Jobs = React.memo(function Jobs(props) {
   const s = props.options.settings;
 
   const icons = [
-    new AirportIcons(s.display.markers.colors.base, s.display.markers.sizes.base),
-    new AirportIcons(s.display.markers.colors.rentable, s.display.markers.sizes.rentable),
-    new AirportIcons(s.display.markers.colors.selected, s.display.markers.sizes.selected)
+    new AirportIcons(s.display.markers.colors.base, '#fff', s.display.markers.sizes.base),
+    new AirportIcons(s.display.markers.colors.rentable, '#fff', s.display.markers.sizes.rentable),
+    new AirportIcons(s.display.markers.colors.selected, '#fff', s.display.markers.sizes.selected)
   ];
 
   const groupRef = React.useRef(L.layerGroup());

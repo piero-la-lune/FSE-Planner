@@ -31,7 +31,7 @@ const FSEMap = React.memo(function FSEMap(props) {
 
     // Only draw marker if search is not empty
     if (props.search) {
-      const icons = new AirportIcons(s.display.markers.colors.selected, s.display.markers.sizes.selected);
+      const icons = new AirportIcons(s.display.markers.colors.selected, '#fff', s.display.markers.sizes.selected);
       searchRef.current = Marker({
         position: [props.options.icaodata[props.search].lat, props.options.icaodata[props.search].lon],
         icon: icons.get(props.options.icaodata[props.search].type, props.options.icaodata[props.search].size),
