@@ -55,7 +55,7 @@ const defaultSettings = {
         selected: '25',
         fse: '3',
         msfs: '3',
-        custom: '17'
+        custom: '20'
       }
     },
     legs: {
@@ -568,6 +568,7 @@ function App() {
         search={search}
         goTo={goTo}
         icaos={icaos}
+        customIcaos={customIcaos}
       />
       <UpdatePopup
         open={updatePopup}

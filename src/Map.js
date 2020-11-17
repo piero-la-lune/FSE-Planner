@@ -64,7 +64,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   // Set search marker on top at each render
   React.useEffect(() => {
     if (searchRef.current) {
-      searchRef.current.setZIndexOffset(100000);
+      searchRef.current.bringToFront();
     }
   }, [props.options]);
 
@@ -110,6 +110,7 @@ const FSEMap = React.memo(function FSEMap(props) {
             size={s.display.markers.sizes.fse}
             siminfo={s.display.sim}
             goTo={props.goTo}
+            id="fse"
           />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="MSFS airports" checked={false}>
@@ -122,6 +123,7 @@ const FSEMap = React.memo(function FSEMap(props) {
             siminfo={s.display.sim}
             sim="msfs"
             goTo={props.goTo}
+            id="msfs"
           />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="FSE airports landing area" checked={false}>
@@ -130,6 +132,18 @@ const FSEMap = React.memo(function FSEMap(props) {
             icaodata={props.options.icaodata}
             renderer={canvasRendererRef.current}
             color={s.display.markers.colors.base}
+          />
+        </LayersControl.Overlay>
+        <LayersControl.Overlay name="Custom markers" checked={false}>
+          <AirportsLayer
+            icaos={props.customIcaos}
+            icaodata={props.options.icaodata}
+            fseicaodata={props.options.icaodata}
+            color={s.display.markers.colors.custom}
+            size={s.display.markers.sizes.custom}
+            siminfo={s.display.sim}
+            goTo={props.goTo}
+            id="custom"
           />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="Job & plane search" checked={true}>

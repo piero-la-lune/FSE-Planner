@@ -29,7 +29,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
         goTo: props.goTo,
         siminfo: props.siminfo,
         sim: props.sim,
-        id: 'sim'+props.sim
+        id: 'sim'+props.id
       })
         .addTo(groupRef.current)
     );
@@ -40,7 +40,18 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
       added.current = true;
     }
 
-  }, [props.color, props.size, props.icaos, props.icaodata, props.link, props.siminfo, props.sim, props.fseicaodata, props.goTo]);
+  }, [
+    props.color,
+    props.size,
+    props.icaos,
+    props.icaodata,
+    props.link,
+    props.siminfo,
+    props.sim,
+    props.fseicaodata,
+    props.goTo,
+    props.id
+  ]);
 
   return null;
 
