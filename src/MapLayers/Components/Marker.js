@@ -7,11 +7,11 @@ import NavigationIcon from '@material-ui/icons/Navigation';
 import CenterFocusStrongIcon from '@material-ui/icons/CenterFocusStrong';
 import { makeStyles } from '@material-ui/core/styles';
 
-import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import ReactDOM from "react-dom";
 
 import { AirportSVG } from "./Icons.js";
+import AirportIcon from "./AirportIcon.js";
 
 const useStyles = makeStyles(theme => ({
   striked: {
@@ -170,39 +170,29 @@ function Popup(props) {
   );
 }
 
-export function Marker({position, icon, ...popupProps}) {
-  return L.marker(
+function Marker({position, size, color, sim, id, ...props}) {
+  let type = 'default';
+  if (!sim || (props.icaodata[props.icao] && props.icaodata[props.icao][sim][0] === props.icao)) {
+    const a = props.icaodata[props.icao];
+    type = a.type + (a.size >= 3500 ? 3 : a.size >= 1000 ? 2 : 1);
+  }
+  return new AirportIcon(
     position,
     {
-      icon: icon
-    }
-  )
-    .bindPopup(() => {
-      var div = document.createElement('div');
-      ReactDOM.render(<Popup {...popupProps} />, div);
-      return div;
-    });
-}
-
-export function CircleMarker({position, radius, color, renderer, sim, ...popupProps}) {
-  return L.circleMarker(
-    position,
-    {
-      radius: radius,
-      opacity: 0,
-      weight: 10,
-      fillOpacity: 1,
+      radius: parseInt(size)/2,
+      color: '#fff',
       fillColor: color,
-      renderer: renderer
+      type: type,
+      id: id
     }
   )
     .bindPopup(() => {
       var div = document.createElement('div');
       if (sim) {
-        ReactDOM.render(<Typography variant="h5">{popupProps.icao}</Typography>, div);
+        ReactDOM.render(<Typography variant="h5">{props.icao}</Typography>, div);
       }
       else {
-        ReactDOM.render(<Popup {...popupProps} />, div);
+        ReactDOM.render(<Popup {...props} />, div);
       }
       return div;
     });

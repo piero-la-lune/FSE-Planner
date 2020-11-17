@@ -1,126 +1,71 @@
-import L from "leaflet";
-import "leaflet-polylinedecorator";
+import React from 'react';
+import JobSegment from "./JobSegment.js";
+import Typography from '@material-ui/core/Typography';
+import NavigationIcon from '@material-ui/icons/Navigation';
+import { makeStyles } from '@material-ui/core/styles';
+
+import ReactDOM from "react-dom";
 
 
-// Generate arrows
-function Arrow(polyline, {color, weight, rleg, renderer}) {
-  const patterns = [{
-    offset: '10%',
-    endOffset: '10%',
-    repeat: 800,
-    symbol: L.Symbol.arrowHead({
-      pixelSize: 15,
-      polygon: false,
-      pathOptions: {
-        interactive: false,
-        stroke: true,
-        color: color,
-        weight: weight,
-        renderer: renderer
-      }
-    })
-  }];
-
-  // If both way leg, add return arrow
-  if (rleg) {
-    patterns.push({
-      offset: '10%',
-      endOffset: '10%',
-      repeat: 800,
-      symbol: L.Symbol.arrowHead({
-        headAngle: 300,
-        pixelSize: 15,
-        polygon: false,
-        pathOptions: {
-          interactive: false,
-          stroke: true,
-          color: color,
-          weight: weight,
-          renderer: renderer
-        }
-      })
-    });
+const useStyles = makeStyles(theme => ({
+  myflight: {
+    marginTop: theme.spacing(1)
+  },
+  icon: {
+    display: 'flex',
+    alignItems: 'center'
   }
+}));
 
-  return L.polylineDecorator(polyline, {
-      patterns: patterns
-  });
-}
-
-
-// Generate cargo text
-function cargo(cargo, pay, direction) {
-  const c = [];
-  if (cargo.passengers) { c.push(`${cargo.passengers} passengers`); }
-  if (cargo.kg) { c.push(`${cargo.kg} kg`); }
-  return `
-    <p class="MuiTypography-root MuiTypography-body2" style="display: flex; align-items: center">
-      <svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeInherit" focusable="false" viewBox="0 0 24 24" aria-hidden="true" style="transform: rotate(${direction}deg);">
-        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
-      </svg>
-      <span>&nbsp;${c.join(', ')}&nbsp;($${pay})</span>
-    </p>
-  `;
+// Generate amount p
+function Cargo({cargo, pay, dir}) {
+  const classes = useStyles();
+  return (
+    <Typography variant="body2" className={classes.icon}>
+      <NavigationIcon fontSize="inherit" style={{transform: 'rotate('+dir+'deg'}} />
+      {cargo.passengers > 0 && <span>&nbsp;{cargo.passengers} passengers</span>}
+      {cargo.kg > 0 && <span>&nbsp;{cargo.kg} kg</span>}
+      &nbsp;(${pay})
+    </Typography>
+  );
 }
 
 // Generate tooltip
-function tooltip({leg, type, rleg}) {
-  let t = '';
-  if (leg.amount || (rleg && rleg.amount)) {
-    t += `
-      <p class="MuiTypography-root MuiTypography-body1">
-        <b>${leg.distance}NM</b>
-      </p>
-    `;
-    if (leg.amount) { t += cargo({[type]: leg.amount}, leg.pay, leg.direction); }
-    if (rleg && rleg.amount) { t += cargo({[type]: rleg.amount}, rleg.pay, rleg.direction); }
-  }
-  if (leg.flight || (rleg && rleg.flight )) {
-    t += `
-      <p class="MuiTypography-root MuiTypography-body1" style="margin-top: 8px">
-        <b>My flight</b>
-      </p>
-    `;
-    if (leg.flight) { t += cargo(leg.flight, leg.flight.pay, leg.direction); }
-    if (rleg && rleg.flight) { t += cargo(rleg.flight, rleg.flight.pay, rleg.direction); }
-  }
-  return t;
+function Tooltip({leg, type, rleg}) {
+  const classes = useStyles();
+  return (
+    <div>
+      <Typography variant="body1"><b>{leg.distance}NM</b></Typography>
+      { leg.amount > 0 && <Cargo cargo={{[type]: leg.amount}} pay={leg.pay} dir={leg.direction} /> }
+      { rleg && rleg.amount > 0 && <Cargo cargo={{[type]: rleg.amount}} pay={rleg.pay} dir={rleg.direction} /> }
+      { (leg.flight || (rleg && rleg.flight)) &&
+        <div>
+          <Typography variant="body1" className={classes.myflight}><b>My flight</b></Typography>
+          {leg.flight && <Cargo cargo={leg.flight} pay={leg.flight.pay} dir={leg.direction} />}
+          {rleg && rleg.flight && <Cargo cargo={rleg.flight} pay={rleg.flight.pay} dir={rleg.direction} />}
+        </div>
+      }
+    </div>
+  );
 }
 
 
 // Generate all components to render leg
 function Job(props) {
-  const layer = L.layerGroup();
 
   // Add line
-  const polyline = L.polyline(props.positions, {
+  return new JobSegment(props.positions, {
     weight: props.weight,
     color: props.color,
-    renderer: props.renderer
-  }).addTo(layer);
-
-  // Add line arrow
-  const arrow = Arrow(polyline, props).addTo(layer);
-
-  // Add line used for mouse focus
-  L.polyline(props.positions, {
-    weight: Math.max(props.weight, 20),
-    color: props.color,
-    opacity: 0,
-    renderer: props.renderer
+    highlight: props.highlight,
+    bothWays: props.rleg
   })
-    .bindTooltip(tooltip(props), {sticky: true})
-    .addTo(layer)
-    .on('mouseover', () => {
-      polyline.setStyle({ color: props.highlight });
-      arrow.setStyle({ color: props.highlight });
-    })
-    .on('mouseout', () => {
-      polyline.setStyle({ color: props.color });
-      arrow.setStyle({ color: props.color });
-    });
+    .bindTooltip(() => {
+      var div = document.createElement('div');
+      ReactDOM.render(<Tooltip {...props} />, div);
+      return div;
+    }, {sticky: true});
 
-  return layer
 }
 
 

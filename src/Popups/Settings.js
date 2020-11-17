@@ -144,6 +144,12 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Airport with rentable plane size" setting='display.markers.sizes.rentable' />
               <Setting s={s} setS={setS} label="Highlighted airport color" setting='display.markers.colors.selected' />
               <Setting s={s} setS={setS} label="Highlighted airport size" setting='display.markers.sizes.selected' />
+              <Setting s={s} setS={setS} label="FSE airport color" setting='display.markers.colors.fse' />
+              <Setting s={s} setS={setS} label="FSE airport size" setting='display.markers.sizes.fse' />
+              <Setting s={s} setS={setS} label="MSFS airport color" setting='display.markers.colors.msfs' />
+              <Setting s={s} setS={setS} label="MSFS airport size" setting='display.markers.sizes.msfs' />
+              <Setting s={s} setS={setS} label="Custom marker airport color" setting='display.markers.colors.custom' />
+              <Setting s={s} setS={setS} label="Custom marker airport size" setting='display.markers.sizes.custom' />
               <Setting s={s} setS={setS} label="Passenger leg color" setting='display.legs.colors.passengers' xs={4} />
               <Setting s={s} setS={setS} label="Cargo leg color" setting='display.legs.colors.cargo' xs={4} />
               <Setting s={s} setS={setS} label="My Flight leg color" setting='display.legs.colors.flight' xs={4} />

@@ -44,12 +44,18 @@ const defaultSettings = {
       colors: {
         base: 'black',
         rentable: 'red',
-        selected: 'green'   
+        selected: 'green',
+        fse: 'black',
+        msfs: 'darkred',
+        custom: 'darkcyan'
       },
       sizes: {
         base: '17',
         rentable: '20',
-        selected: '25'
+        selected: '25',
+        fse: '3',
+        msfs: '3',
+        custom: '17'
       }
     },
     legs: {
