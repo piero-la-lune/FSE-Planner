@@ -4,7 +4,6 @@ import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import L from "leaflet";
 import { useLeaflet } from "react-leaflet";
 
-import AirportIcons from "./Components/Icons.js";
 import Marker from "./Components/Marker.js";
 import Job from "./Components/Job.js";
 
@@ -147,16 +146,8 @@ function getMarkers(legs, opts) {
 const Jobs = React.memo(function Jobs(props) {
 
   const s = props.options.settings;
-
-  const icons = [
-    new AirportIcons(s.display.markers.colors.base, '#fff', s.display.markers.sizes.base),
-    new AirportIcons(s.display.markers.colors.rentable, '#fff', s.display.markers.sizes.rentable),
-    new AirportIcons(s.display.markers.colors.selected, '#fff', s.display.markers.sizes.selected)
-  ];
-
   const groupRef = React.useRef(L.layerGroup());
   const leaflet = React.useRef(useLeaflet());
-  const rendererRef = React.useRef(props.renderer);
   const added = React.useRef(false);
 
   React.useEffect(() => {
@@ -168,32 +159,9 @@ const Jobs = React.memo(function Jobs(props) {
     // Clear previous markers and legs
     groupRef.current.clearLayers();
     
-    // Add Markers
-    for (var i = 0; i < markers.length; i++) {
-      const marker = markers[i];
-
-      // Compute marker color
-      let color = 0;
-      if (props.options.planes[marker]) { color = 1; }
-      if (marker === props.options.fromIcao || marker === props.options.toIcao) { color = 2; }
-
-      // Create marker
-      Marker({
-        position: [props.options.icaodata[marker].lat, props.options.icaodata[marker].lon],
-        icon: icons[color].get(props.options.icaodata[marker].type, props.options.icaodata[marker].size),
-        icao: marker,
-        planes: props.options.planes[marker],
-        icaodata: props.options.icaodata,
-        siminfo: s.display.sim,
-        goTo: props.goTo
-      })
-        .addTo(groupRef.current)
-
-    }
-
     // Add Jobs
     const legsKeys = Object.keys(legs);
-    for (i = 0; i < legsKeys.length; i++) {
+    for (var i = 0; i < legsKeys.length; i++) {
       const [fr, to] = legsKeys[i].split('-');
       const leg = legs[legsKeys[i]];
       const rleg = legs[to+'-'+fr]
@@ -226,10 +194,40 @@ const Jobs = React.memo(function Jobs(props) {
         weight: weight,
         leg: leg,
         rleg: rleg,
-        type: props.options.cargo,
-        renderer: rendererRef.current
+        type: props.options.cargo
       })
         .addTo(groupRef.current);
+    }
+
+    // Add Markers
+    for (i = 0; i < markers.length; i++) {
+      const marker = markers[i];
+
+      // Compute marker color
+      let color = s.display.markers.colors.base;
+      let size = s.display.markers.sizes.base;
+      if (props.options.planes[marker]) {
+        color = s.display.markers.colors.rentable;
+        size = s.display.markers.sizes.rentable;
+      }
+      if (marker === props.options.fromIcao || marker === props.options.toIcao) {
+        color = s.display.markers.colors.selected;
+        size = s.display.markers.sizes.selected;
+      }
+
+      // Create marker
+      Marker({
+        position: [props.options.icaodata[marker].lat, props.options.icaodata[marker].lon],
+        size: size,
+        color: color,
+        icao: marker,
+        icaodata: props.options.icaodata,
+        planes: props.options.planes[marker],
+        siminfo: s.display.sim,
+        goTo: props.goTo,
+        id: 'jobs'+color
+      })
+        .addTo(groupRef.current)
     }
 
     // Add layer to map
@@ -237,7 +235,7 @@ const Jobs = React.memo(function Jobs(props) {
       leaflet.current.layerContainer.addLayer(groupRef.current);
       added.current = true;
     }
-  }, [props, s, icons]);
+  }, [props, s]);
 
   return null;
 

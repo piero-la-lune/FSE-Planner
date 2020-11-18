@@ -8,7 +8,6 @@ const ZonesLayer = React.memo(function ZonesLayer(props) {
 
   const groupRef = React.useRef(L.layerGroup());
   const leaflet = React.useRef(useLeaflet());
-  const rendererRef = React.useRef(props.renderer);
   const added = React.useRef(false);
 
   // Display all airports on map
@@ -23,11 +22,10 @@ const ZonesLayer = React.memo(function ZonesLayer(props) {
       L.polyline(
         props.icaodata[icao].zone,
         {
-          opacity: 0.5,
           weight: 1,
-          color: props.color,
+          color: '#888',
           interactive: false,
-          renderer: rendererRef.current
+          fill: false
       })
         .addTo(groupRef.current)
     );

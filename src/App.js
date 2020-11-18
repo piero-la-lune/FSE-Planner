@@ -44,12 +44,18 @@ const defaultSettings = {
       colors: {
         base: 'black',
         rentable: 'red',
-        selected: 'green'   
+        selected: 'green',
+        fse: 'black',
+        msfs: 'darkred',
+        custom: 'darkcyan'
       },
       sizes: {
         base: '17',
         rentable: '20',
-        selected: '25'
+        selected: '25',
+        fse: '3',
+        msfs: '3',
+        custom: '20'
       }
     },
     legs: {
@@ -297,6 +303,7 @@ function App() {
   const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
+  const [customIcaos, setCustomIcaos] = React.useState(storage.get('customIcaos', []));
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
@@ -561,6 +568,7 @@ function App() {
         search={search}
         goTo={goTo}
         icaos={icaos}
+        customIcaos={customIcaos}
       />
       <UpdatePopup
         open={updatePopup}
@@ -571,6 +579,8 @@ function App() {
         icaodata={icaodata}
         icaos={icaos}
         settings={settings}
+        customIcaos={customIcaos}
+        setCustomIcaos={setCustomIcaos}
       />
       <SettingsPopup
         open={settingsPopop}

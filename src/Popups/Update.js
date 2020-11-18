@@ -210,6 +210,7 @@ function UpdatePopup(props) {
   const [loading, setLoading] = React.useState(false);
   const [openCustom, setOpenCustom] = React.useState(false);
   const [expanded, setExpanded] = React.useState(key ? false : 'panel1');
+  const [customIcaosVal, setCustomIcaosVal] = React.useState(props.customIcaos.join(' '));
   const classes = useStyles();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
@@ -413,6 +414,35 @@ function UpdatePopup(props) {
     handleClose();
   }
 
+  // Custom markers button clicked
+  const updateCustom = (evt) => {
+    evt.stopPropagation();
+    setLoading(true);
+    const elms = customIcaosVal.split(/[ ,\n]+/);
+    const icaos = [];
+    // Keep only existing ICAO
+    for (const elm of elms) {
+      if (props.icaodata[elm]) {
+        icaos.push(elm);
+      }
+    }
+    // Update var and storage
+    setCustomIcaosVal(icaos.join(' '));
+    props.setCustomIcaos(icaos);
+    storage.set('customIcaos', icaos);
+    // Close popup
+    setLoading(false);
+    handleClose();
+  }
+  const clearCustom = (evt) => {
+    evt.stopPropagation();
+    setLoading(true);
+    setCustomIcaosVal('');
+    props.setCustomIcaos([]);
+    storage.remove('customIcaos');
+    setLoading(false);
+  }
+
   const panelChange = (panel) => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
   };
@@ -566,6 +596,36 @@ function UpdatePopup(props) {
               </span>
             </Tooltip>
           </AccordionSummary>
+        </Accordion>
+
+        <Accordion expanded={expanded === 'panel5'} onChange={panelChange('panel5')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
+            <Typography className={classes.title}>Custom markers</Typography>
+            <Button color="secondary" onClick={clearCustom}>
+              Clear
+            </Button>
+            &nbsp;
+            <span>
+              <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading}>
+                Update
+                {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+              </Button>
+            </span>
+          </AccordionSummary>
+          <AccordionDetails className={classes.accDetails}>
+            <TextField
+              label="List of FSE ICAOs"
+              multiline
+              rows={4}
+              variant="outlined"
+              placeholder="LFLY EGLL LFPO [...]"
+              helperText="ICAOs can be seperated by a white space, a new line or a coma."
+              value={customIcaosVal}
+              onChange={(evt) => {
+                setCustomIcaosVal(evt.target.value);
+              }}
+            />
+          </AccordionDetails>
         </Accordion>
 
       </DialogContent>
