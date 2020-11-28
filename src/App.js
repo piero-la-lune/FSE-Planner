@@ -46,13 +46,13 @@ const defaultSettings = {
       colors: {
         base: 'black',
         rentable: 'red',
-        selected: 'green',
+        selected: 'darkred',
         fse: 'black',
-        msfs: 'darkred',
+        msfs: 'darkslateblue',
         custom: 'darkcyan'
       },
       sizes: {
-        base: '17',
+        base: '13',
         rentable: '20',
         selected: '25',
         fse: '3',
@@ -65,13 +65,13 @@ const defaultSettings = {
         passengers: '#3f51b5',
         cargo: '#3f51b5',
         highlight: 'yellow',
-        flight: '#3087A8'
+        flight: 'darkred'
       },
       weights: {
         base: '1.2',
-        passengers: '10',
-        cargo: '10',
-        flight: '10'
+        passengers: '8',
+        cargo: '8',
+        flight: '5'
       }
     },
     map: {
@@ -80,13 +80,13 @@ const defaultSettings = {
     sim: 'msfs'
   },
   from: {
-    distCoef: '1.5',
-    angle: '',
+    distCoef: '',
+    angle: '30',
     maxDist: ''
   },
   to: {
-    distCoef: '1.5',
-    angle: '',
+    distCoef: '',
+    angle: '30',
     maxDist: ''
   },
   direction: {
