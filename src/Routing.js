@@ -28,6 +28,8 @@ import TimelineContent from '@material-ui/lab/TimelineContent';
 import TimelineDot from '@material-ui/lab/TimelineDot';
 import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
 import Popover from '@material-ui/core/Popover';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
@@ -54,7 +56,8 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(3),
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
-    fontWeight: 300
+    fontWeight: 300,
+    position: "relative"
   },
   pMore: {
     textAlign: "center",
@@ -158,10 +161,14 @@ const useStyles = makeStyles(theme => ({
     display: 'inline-flex'
   },
   topResults: {
-    borderBottom: "1px solid #eee",
     background: "#fff",
     display: "flex",
     alignItems: "center"
+  },
+  nbResults: {
+    background: "#fff",
+    borderBottom: "1px solid #eee",
+    padding: theme.spacing(1)
   },
   backSearch: {
     cursor: "pointer",
@@ -201,8 +208,11 @@ const useStyles = makeStyles(theme => ({
   filtersApply: {
     marginTop: theme.spacing(1)
   },
-  noResult: {
-    margin: theme.spacing(2)
+  closeButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    color: theme.palette.grey[500],
   }
 }));
 
@@ -486,47 +496,44 @@ function textTotalCargo(cargos) {
 
 const Results = React.memo(({results, classes, showDetail, goTo, setRoute, nbDisplay}) => {
   return (
-    results.length > 0 ?
-        results.slice(0, nbDisplay).map(result =>
-          <div
-            className={classes.result}
-            key={result.id}
-            onClick={() => showDetail(result)}
-            onMouseEnter={() => setRoute(result)}
-          >
-            <Breadcrumbs
-              separator={<NavigateNextIcon fontSize="small" />}
-              classes={{separator:classes.separator}}
-              maxItems={5}
-              itemsBeforeCollapse={3}
-            >
-              {result.icaos.map((icao, i) =>
-                <Link
-                  href="#"
-                  onClick={evt => {
-                    evt.stopPropagation();
-                    evt.preventDefault();
-                    goTo(icao)
-                  }}
-                  key={i}
-                >{icao}</Link>
-              )}
-            </Breadcrumbs>
-            <Grid container spacing={1} className={classes.grid}>
-              <Grid item xs={4}>
-                <Typography variant="body2" className={classes.gridText}><MonetizationOnIcon className={classes.icon} />${result.pay}</Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="body2" className={classes.gridText}><SettingsEthernetIcon className={classes.icon} />{result.distance}NM</Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="body2" className={classes.gridText}><TimerIcon className={classes.icon} />{result.time}</Typography>
-              </Grid>
-            </Grid>
-          </div>
-        )
-      :
-        <Typography variant="body1" className={classes.noResult}>No route found</Typography>
+    results.slice(0, nbDisplay).map(result =>
+      <div
+        className={classes.result}
+        key={result.id}
+        onClick={() => showDetail(result)}
+        onMouseEnter={() => setRoute(result)}
+      >
+        <Breadcrumbs
+          separator={<NavigateNextIcon fontSize="small" />}
+          classes={{separator:classes.separator}}
+          maxItems={5}
+          itemsBeforeCollapse={3}
+        >
+          {result.icaos.map((icao, i) =>
+            <Link
+              href="#"
+              onClick={evt => {
+                evt.stopPropagation();
+                evt.preventDefault();
+                goTo(icao)
+              }}
+              key={i}
+            >{icao}</Link>
+          )}
+        </Breadcrumbs>
+        <Grid container spacing={1} className={classes.grid}>
+          <Grid item xs={4}>
+            <Typography variant="body2" className={classes.gridText}><MonetizationOnIcon className={classes.icon} />${result.pay}</Typography>
+          </Grid>
+          <Grid item xs={4}>
+            <Typography variant="body2" className={classes.gridText}><SettingsEthernetIcon className={classes.icon} />{result.distance}NM</Typography>
+          </Grid>
+          <Grid item xs={4}>
+            <Typography variant="body2" className={classes.gridText}><TimerIcon className={classes.icon} />{result.time}</Typography>
+          </Grid>
+        </Grid>
+      </div>
+    )
   );
 });
 
@@ -770,7 +777,12 @@ const Routing = React.memo((props) => {
 
   return (
     <div className={classes.routing}>
-      <Typography variant="h4" className={classes.title}>Route finder</Typography>
+      <Typography variant="h4" className={classes.title}>
+        Route finder
+        <IconButton className={classes.closeButton} onClick={props.close}>
+          <CloseIcon />
+        </IconButton>
+      </Typography>
 
       {filteredResults ?
 
@@ -1007,6 +1019,14 @@ const Routing = React.memo((props) => {
                   {type === "rent" && <MenuItem value="bonus">Plane bonus</MenuItem>}
                 </TextField>
               </div>
+            </div>
+            <div className={classes.nbResults}>
+              {
+                filteredResults.length > 0 ?
+                  <Typography variant="body2">{filteredResults.length} routes found.</Typography>
+                :
+                  <Typography variant="body2">No route found.</Typography>
+              }
             </div>
             <div
               ref={resultsDiv}

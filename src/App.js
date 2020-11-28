@@ -591,6 +591,7 @@ function App() {
           setRoute={setRoute}
           hidden={!routeFinder}
           mapRef={mapRef}
+          close={() => setRouteFinder(false)}
         />
         <FSEMap
           options={options}
