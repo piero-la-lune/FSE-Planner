@@ -22,12 +22,14 @@ import UpdateIcon from '@material-ui/icons/Update';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import CloseIcon from '@material-ui/icons/Close';
 import TuneIcon from '@material-ui/icons/Tune';
+import DirectionsIcon from '@material-ui/icons/Directions';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { default as _clone } from 'lodash/cloneDeep';
 import { default as _defaultsDeep } from 'lodash/defaultsDeep';
 
 import FSEMap from './Map.js';
+import Routing from './Routing.js';
 import UpdatePopup from './Popups/Update.js';
 import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';
@@ -247,6 +249,12 @@ const useStyles = makeStyles(theme => ({
   searchIcao: {
     minWidth: 40,
     textAlign: 'center'
+  },
+  body: {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    flexGrow: '1',
+    overflow: 'hidden'
   }
 }));
 
@@ -304,6 +312,9 @@ function App() {
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
   const [customIcaos, setCustomIcaos] = React.useState(storage.get('customIcaos', []));
+  const [routeFinder, setRouteFinder] = React.useState(false);
+  const [route, setRoute] = React.useState(null);
+  const mapRef = React.useRef();
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
@@ -345,16 +356,21 @@ function App() {
   // Cannot just use setSearch, because need to pan even if the ICAO was already in search var
   const goToRef = React.useRef(null);
   const goTo = React.useCallback((icao) => {
-    setSearch(prevIcao => prevIcao ? null : icao);
+    setSearch(prevIcao => prevIcao === icao ? null : icao);
     goToRef.current = icao;
   }, []);
   React.useEffect(() => {
-    if (goToRef.current && goToRef.current !== search) {
+    if (goToRef.current) {
       const icao = goToRef.current;
       goToRef.current = null;
       setSearch(icao);
     }
   }, [search]);
+
+  // Invalidate map size when routing toogled
+  React.useEffect(() => {
+    mapRef.current.leafletElement.invalidateSize({pan:false});
+  });
 
 
   return (
@@ -555,6 +571,11 @@ function App() {
                 <TuneIcon />
               </Tooltip>
             </IconButton>
+            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setRouteFinder(!routeFinder)}>
+              <Tooltip title="Route finder">
+                <DirectionsIcon />
+              </Tooltip>
+            </IconButton>
             <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setUpdatePopup(true)} data-tour="Step2">
               <Tooltip title="Load data from FSE">
                 <UpdateIcon />
@@ -563,13 +584,24 @@ function App() {
           </div>
         </Toolbar>
       </AppBar>
-      <FSEMap
-        options={options}
-        search={search}
-        goTo={goTo}
-        icaos={icaos}
-        customIcaos={customIcaos}
-      />
+      <div className={classes.body}>
+        <Routing
+          options={options}
+          goTo={goTo}
+          setRoute={setRoute}
+          hidden={!routeFinder}
+          mapRef={mapRef}
+        />
+        <FSEMap
+          options={options}
+          search={search}
+          goTo={goTo}
+          icaos={icaos}
+          customIcaos={customIcaos}
+          route={route}
+          mapRef={mapRef}
+        />
+      </div>
       <UpdatePopup
         open={updatePopup}
         setUpdatePopup={setUpdatePopup}

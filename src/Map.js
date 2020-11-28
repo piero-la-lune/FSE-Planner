@@ -2,9 +2,11 @@ import React from 'react';
 
 import { Map, TileLayer, LayersControl } from "react-leaflet";
 import { getBounds } from "geolib";
+import L from "leaflet";
 
 import Canvas from "./MapLayers/Components/Canvas.js";
 import JobsLayer from "./MapLayers/Jobs.js";
+import RouteLayer from "./MapLayers/Route.js";
 import ZonesLayer from "./MapLayers/Zones.js";
 import AirportsLayer from "./MapLayers/Airports.js";
 import Marker from "./MapLayers/Components/Marker.js";
@@ -15,7 +17,7 @@ const msfsIcaos = Object.keys(msfs);
 const FSEMap = React.memo(function FSEMap(props) {
 
   const s = props.options.settings;
-  const mapRef = React.useRef();
+  const mapRef = props.mapRef;
   const canvasRendererRef = React.useRef(new Canvas({ padding: 0.5 }));
   const maxBounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
 
@@ -58,7 +60,8 @@ const FSEMap = React.memo(function FSEMap(props) {
     s.display.sim,
     s.display.markers.colors.selected,
     s.display.markers.sizes.selected,
-    props.goTo
+    props.goTo,
+    mapRef
   ]);
 
   // Set search marker on top at each render
@@ -83,7 +86,19 @@ const FSEMap = React.memo(function FSEMap(props) {
       const b = getBounds(points);
       mapRef.current.leafletElement.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]], {animate:false});
     }
-  }, [props.options.jobs, props.options.icaodata]);
+  }, [props.options.jobs, props.options.icaodata, mapRef]);
+
+  // Auto zoom on route
+  React.useEffect(() => {
+    if (props.route) {
+      const b = getBounds(props.route.icaos.map(elm => props.options.icaodata[elm]));
+      const bounds = L.latLngBounds([b.minLat, b.minLng], [b.maxLat, b.maxLng]);
+      const mapBounds = mapRef.current.leafletElement.getBounds();
+      if (!mapBounds.contains(bounds)) {
+        mapRef.current.leafletElement.fitBounds(mapBounds.extend(bounds));
+      }
+    }
+  }, [props.route, props.options.icaodata, mapRef]);
 
 
   return (
@@ -151,6 +166,14 @@ const FSEMap = React.memo(function FSEMap(props) {
             options={props.options}
             renderer={canvasRendererRef.current}
             goTo={props.goTo}
+          />
+        </LayersControl.Overlay>
+        <LayersControl.Overlay name="Route finder" checked={true}>
+          <RouteLayer
+            options={props.options}
+            renderer={canvasRendererRef.current}
+            goTo={props.goTo}
+            route={props.route}
           />
         </LayersControl.Overlay>
       </LayersControl>
