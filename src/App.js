@@ -72,6 +72,9 @@ const defaultSettings = {
         passengers: '8',
         cargo: '8',
         flight: '5'
+      },
+      display: {
+        custom: true
       }
     },
     map: {

@@ -83,7 +83,6 @@ function SettingSlider({xs, setting, s, setS, label, ...props}) {
     </Grid>
   );
 }
-// eslint-disable-next-line
 function SettingSwitch({xs, setting, s, setS, label, ...props}) {
   return (
     <Grid item xs={xs || 6}>
@@ -159,6 +158,7 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Highlighted leg color" setting='display.legs.colors.highlight' />
               <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" />
               <SettingSlider s={s} setS={setS} label="Map center" setting='display.map.center' xs={12} />
+              <SettingSwitch s={s} setS={setS} label="Join Custom markers with a line to form a route" setting="display.legs.display.custom" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>
