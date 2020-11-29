@@ -152,6 +152,8 @@ const useStyles = makeStyles(theme => ({
     color: "#fff",
     borderRadius: theme.shape.borderRadius,
     paddingLeft: theme.spacing(1),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
     width: "120px"
   },
   boxBorder: {
@@ -350,6 +352,13 @@ function App() {
       setCreditsPopup(true);
       storage.set('tutorial', process.env.REACT_APP_VERSION);
     }
+
+    // Set search if query string in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const icao = urlParams.get('icao');
+    if (icao) {
+      setSearch(icao);
+    }
   }, []);
 
   // Create goTo function, to allow panning to given ICAO
@@ -358,6 +367,7 @@ function App() {
   const goTo = React.useCallback((icao) => {
     setSearch(prevIcao => prevIcao === icao ? null : icao);
     goToRef.current = icao;
+    window.history.replaceState({icao:icao}, '', '?icao='+icao);
   }, []);
   React.useEffect(() => {
     if (goToRef.current) {
@@ -370,7 +380,7 @@ function App() {
   // Invalidate map size when routing toogled
   React.useEffect(() => {
     mapRef.current.leafletElement.invalidateSize({pan:false});
-  });
+  }, [routeFinder]);
 
 
   return (
@@ -425,16 +435,34 @@ function App() {
                     className={classes.inputSearch}
                     ref={params.InputProps.ref}
                     inputProps={params.inputProps}
-                    endAdornment={params.inputProps.value ? <IconButton size="small" onClick={() => {setSearch(null); setSearchInput('');}}><CloseIcon /></IconButton> : null}
+                    endAdornment={params.inputProps.value ?
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSearch(null);
+                            setSearchInput('');
+                            window.history.replaceState(null, '', '?');
+                          }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      :
+                        null
+                    }
                   />
                 }
                 PopperComponent={PopperMy}
                 onChange={(evt, value) => {
-                  setSearch(value.icao);
                   if (value) {
+                    setSearch(value.icao);
                     const list = [...(new Set([value.icao, ...searchHistory]))].slice(0, 5);
                     setSearchHistory(list);
                     storage.set('searchHistory', list);
+                    window.history.replaceState({icao:value.icao}, '', '?icao='+value.icao);
+                  }
+                  else {
+                    setSearch(null);
+                    window.history.replaceState(null, '', '?');
                   }
                 }}
                 value={search ? icaodataSrc[search] : null}
