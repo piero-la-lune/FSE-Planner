@@ -70,7 +70,10 @@ const Route = React.memo(function Route(props) {
         highlight: s.display.legs.colors.highlight,
         weight: parseFloat(s.display.legs.weights.flight),
         leg: leg,
-        rleg: rleg
+        rleg: rleg,
+        actions: props.actions,
+        fromIcao: fr,
+        toIcao: to
       })
         .addTo(groupRef.current);
     }
@@ -86,7 +89,7 @@ const Route = React.memo(function Route(props) {
         icaodata: props.options.icaodata,
         planes: props.options.planes[icao],
         siminfo: s.display.sim,
-        goTo: props.goTo,
+        actions: props.actions,
         id: 'route'
       })
         .addTo(groupRef.current);

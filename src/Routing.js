@@ -681,7 +681,7 @@ const Routing = React.memo((props) => {
                       <TimelineConnector />
                     </TimelineSeparator>
                     <TimelineContent className={classes.tlCt}>
-                      <Link href="#" onClick={evt => {evt.preventDefault(); props.goTo(icao) }}>{icao}</Link>
+                      <Link href="#" onClick={evt => {evt.preventDefault(); props.actions.current.goTo(icao) }}>{icao}</Link>
                     </TimelineContent>
                   </TimelineItem>
                 )}
@@ -857,7 +857,7 @@ const Routing = React.memo((props) => {
                 results={filteredResults}
                 classes={classes}
                 showDetail={showDetail}
-                goTo={props.goTo}
+                goTo={props.actions.current.goTo}
                 setRoute={props.setRoute}
                 nbDisplay={nbDisplay}
               />

@@ -9,6 +9,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import ReactDOM from "react-dom";
+import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
@@ -93,7 +94,7 @@ const useStyles = makeStyles(theme => ({
 const SVGs = new AirportSVG('#fff', '#3f51b5', 20);
 
 
-function PlaneHome({plane, icaodata, icao, goTo}) {
+function PlaneHome({plane, icaodata, icao, actions}) {
   const classes = useStyles();
   const [tooltip, setTooltip] = React.useState(false);
 
@@ -121,7 +122,7 @@ function PlaneHome({plane, icaodata, icao, goTo}) {
   const handleClick = (evt) => {
     evt.preventDefault();
     setTooltip(false);
-    goTo(plane.home);
+    actions.current.goTo(plane.home);
   }
 
   return (
@@ -215,6 +216,73 @@ function Marker({position, size, color, sim, id, ...props}) {
         ReactDOM.render(<Popup {...props} />, div);
       }
       return div;
+    })
+    .on('contextmenu', (evt) => {
+      L.DomEvent.stopPropagation(evt);
+      const actions = [];
+      if (!sim) {
+        actions.push({
+          name: 'Open in FSE',
+          onClick: () => {
+            let w = window.open('https://server.fseconomy.net/airport.jsp?icao='+props.icao, 'fse');
+            w.focus();
+          }
+        });
+        const isFromIcao = props.actions.current.isFromIcao(props.icao);
+        const isToIcao = props.actions.current.isToIcao(props.icao);
+        if (isFromIcao) {
+          actions.push({
+            name: 'Cancel jobs radiating FROM',
+            onClick: () => props.actions.current.fromIcao('')
+          });
+        }
+        else {
+          actions.push({
+            name: 'Jobs radiating FROM',
+            onClick: () => {
+              if (isToIcao) {
+                props.actions.current.toIcao('');
+              }
+              props.actions.current.fromIcao(props.icao);
+            }
+          });
+        }
+        if (isToIcao) {
+          actions.push({
+            name: 'Cancel jobs radiating To',
+            onClick: () => props.actions.current.toIcao('')
+          });
+        }
+        else {
+          actions.push({
+            name: 'Jobs radiating To',
+            onClick: () => {
+              if (isFromIcao) {
+                props.actions.current.fromIcao('');
+              }
+              props.actions.current.toIcao(props.icao);
+            }
+          });
+        }
+        if (props.actions.current.isInCustom(props.icao)) {
+          actions.push({
+            name: 'Remove from Customs Markers',
+            onClick: () => props.actions.current.removeCustom(props.icao)
+          });
+        }
+        else {
+          actions.push({
+            name: 'Add to Customs Markers',
+            onClick: () => props.actions.current.addCustom(props.icao)
+          });
+        }
+      }
+      props.actions.current.contextMenu({
+        mouseX: evt.originalEvent.clientX,
+        mouseY: evt.originalEvent.clientY,
+        title: props.icao,
+        actions: actions
+      });
     });
 }
 

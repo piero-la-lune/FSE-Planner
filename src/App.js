@@ -382,6 +382,53 @@ function App() {
     mapRef.current.leafletElement.invalidateSize({pan:false});
   }, [routeFinder]);
 
+  const setFrom = React.useCallback((icao) => {
+    icao = icao.toUpperCase();
+    setFromIcaoInput(icao);
+    if (icaodata.hasOwnProperty(icao)) {
+      setFromIcao(icao);
+    }
+    else {
+      setFromIcao(null)
+    }
+  }, [icaodata]);
+  const isFromIcao = React.useCallback((icao) => fromIcao === icao, [fromIcao]);
+  const setTo = React.useCallback((icao) => {
+    icao = icao.toUpperCase();
+    setToIcaoInput(icao);
+    if (icaodata.hasOwnProperty(icao)) {
+      setToIcao(icao);
+    }
+    else {
+      setToIcao(null)
+    }
+  }, [icaodata]);
+  const isToIcao = React.useCallback((icao) => toIcao === icao, [toIcao]);
+  const addCustom = (icao) => setCustomIcaos(prev => [...prev, icao]);
+  const removeCustom = (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao));
+  const isInCustom = React.useCallback((icao) => customIcaos.includes(icao), [customIcaos]);
+  React.useEffect(() => {
+    storage.set('customIcaos', customIcaos);
+  }, [customIcaos]);
+
+  // Actions
+  const actions = React.useRef(null);
+  const setActions = () => {
+    actions.current = {
+      goTo: goTo,
+      fromIcao: setFrom,
+      isFromIcao: isFromIcao,
+      isToIcao: isToIcao,
+      toIcao: setTo,
+      addCustom: addCustom,
+      removeCustom: removeCustom,
+      isInCustom: isInCustom,
+      contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined
+    };
+  }
+  if (!actions.current) { setActions(); }
+  React.useEffect(setActions, [goTo, setFrom, isFromIcao, setTo, isToIcao, addCustom, removeCustom, isInCustom]);
+
 
   return (
     <div style={{
@@ -481,16 +528,7 @@ function App() {
                   className={classes.input}
                   inputProps={{maxLength:4}}
                   value={fromIcaoInput}
-                  onChange={evt => {
-                    let val = evt.target.value.toUpperCase();
-                    setFromIcaoInput(val);
-                    if (icaodata.hasOwnProperty(val)) {
-                      setFromIcao(val);
-                    }
-                    else {
-                      setFromIcao(null)
-                    }
-                  }}
+                  onChange={evt => setFrom(evt.target.value)}
                 />
               </div>
             </Tooltip>
@@ -503,16 +541,7 @@ function App() {
                   className={classes.input}
                   inputProps={{maxLength:4}}
                   value={toIcaoInput}
-                  onChange={evt => {
-                    let val = evt.target.value.toUpperCase();
-                    setToIcaoInput(val);
-                    if (icaodata.hasOwnProperty(val)) {
-                      setToIcao(val);
-                    }
-                    else {
-                      setToIcao(null)
-                    }
-                  }}
+                  onChange={evt => setTo(evt.target.value)}
                 />
               </div>
             </Tooltip>
@@ -615,20 +644,20 @@ function App() {
       <div className={classes.body}>
         <Routing
           options={options}
-          goTo={goTo}
           setRoute={setRoute}
           hidden={!routeFinder}
           mapRef={mapRef}
           close={() => setRouteFinder(false)}
+          actions={actions}
         />
         <FSEMap
           options={options}
           search={search}
-          goTo={goTo}
           icaos={icaos}
           customIcaos={customIcaos}
           route={route}
           mapRef={mapRef}
+          actions={actions}
         />
       </div>
       <UpdatePopup

@@ -228,6 +228,11 @@ function UpdatePopup(props) {
     }
   }, []);
 
+  // Update Custom markers input
+  React.useEffect(() => {
+    setCustomIcaosVal(props.customIcaos.join(' '));
+  }, [props.customIcaos]);
+
   // Loop function to get jobs from FSE
   const updateJobsRequest = (icaosList, jobs, callback) => {
     if (!icaosList.length) {
@@ -429,7 +434,7 @@ function UpdatePopup(props) {
     // Update var and storage
     setCustomIcaosVal(icaos.join(' '));
     props.setCustomIcaos(icaos);
-    storage.set('customIcaos', icaos);
+    // Do not update storage, it is done in App.js
     // Close popup
     setLoading(false);
     handleClose();

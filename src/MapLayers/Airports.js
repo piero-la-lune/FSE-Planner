@@ -26,7 +26,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
         color: props.color,
         icao: icao,
         icaodata: props.fseicaodata,
-        goTo: props.goTo,
+        actions: props.actions,
         siminfo: props.siminfo,
         sim: props.sim,
         id: 'sim'+props.id
@@ -49,7 +49,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
     props.siminfo,
     props.sim,
     props.fseicaodata,
-    props.goTo,
+    props.actions,
     props.id
   ]);
 

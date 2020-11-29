@@ -194,7 +194,10 @@ const Jobs = React.memo(function Jobs(props) {
         weight: weight,
         leg: leg,
         rleg: rleg,
-        type: props.options.cargo
+        type: props.options.cargo,
+        actions: props.actions,
+        fromIcao: fr,
+        toIcao: to
       })
         .addTo(groupRef.current);
     }
@@ -224,7 +227,7 @@ const Jobs = React.memo(function Jobs(props) {
         icaodata: props.options.icaodata,
         planes: props.options.planes[marker],
         siminfo: s.display.sim,
-        goTo: props.goTo,
+        actions: props.actions,
         id: 'jobs'+color
       })
         .addTo(groupRef.current)
