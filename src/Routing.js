@@ -30,9 +30,12 @@ import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
 import Popover from '@material-ui/core/Popover';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
+
+import RoutingWorker from './routing.worker.js';
 
 const useStyles = makeStyles(theme => ({
   routing: {
@@ -213,263 +216,13 @@ const useStyles = makeStyles(theme => ({
     right: 0,
     top: 0,
     color: theme.palette.grey[500],
+  },
+  progressBar: {
+    marginTop: theme.spacing(2)
   }
 }));
 
-function closeIcaos(icao, icaos, icaodata, maxDist = 20) {
-  const cIcaos = [];
-  for (let i of icaos) {
-    const distance = Math.round(convertDistance(getDistance(icaodata[icao], icaodata[i]), 'sm'));
-    if (distance < maxDist && i !== icao) {
-      cIcaos.push([i, distance]);
-    }
-  }
-  return cIcaos;
-}
-// cargo: {pax, kg, pay}
-function maximizeTripOnly(cargos, maxPax, maxKg) {
-  if (cargos.length === 0) {
-    // Total pay, list of cargos, remain
-    return [0, 0, 0, [], []];
-  }
-  const elm = cargos[0];
-  const newCargos = cargos.slice(1);
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(newCargos, maxPax, maxKg);
-  if (maxPax-elm.pax >= 0 && maxKg-elm.kg >= 0)  {
-    let [pay2, pax2, kg2, cargos2, remain2] = maximizeTripOnly(newCargos, maxPax-elm.pax, maxKg-elm.kg);
-    pay2 += elm.pay;
-    if (pay2 > pay1) {
-      cargos2.push(elm);
-      return [pay2, pax2+elm.pax, kg2+elm.kg, cargos2, remain2];
-    }
-  }
-  remain1.push(elm);
-  return [pay1, pax1, kg1, cargos1, remain1];
-}
-function maximizeVIP(cargos) {
-  if (cargos.length === 0) {
-    return [0, 0, 0, [], []];
-  }
-  const elm = cargos[0];
-  const newCargos = cargos.slice(1);
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeVIP(newCargos);
-  const [pay2, pax2, kg2, cargos2, remain2] = [elm.pay, elm.pax, elm.kg, [elm], newCargos];
-  if (pay1 > pay2) {
-    remain1.push(elm);
-    return [pay1, pax1, kg1, cargos1, remain1];
-  }
-  return [pay2, pax2, kg2, cargos2, remain2];
-}
-function maximizeCargo(cargos, maxPax, maxKg) {
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(cargos.TripOnly, maxPax, maxKg);
-  const [pay2, pax2, kg2, cargos2, remain2] = maximizeVIP(cargos.VIP);
-  const remain = {TripOnly: remain1, VIP: remain2};
-  if (pay1 >= pay2) {
-    if (cargos2.length > 0) { remain.VIP = remain.VIP.concat(cargos2); }
-    return [pay1, pax1, kg1, {TripOnly: cargos1, VIP: []}, remain];
-  }
-  if (cargos1.length > 0) { remain.TripOnly = remain.TripOnly.concat(cargos1); }
-  return [pay2, pax2, kg2, {TripOnly: [], VIP: cargos2}, remain];
-}
 
-function bestLegStop(jobs, maxPax, maxKg, exclude) {
-  let bestRoute = {payNM: 0, icao: null};
-  for (const [i, totalDistance, j] of jobs) {
-    if (exclude.includes(i)) { continue; }
-
-    // Compute best load
-    const bestLoad = maximizeTripOnly(j.cargos.TripOnly, maxPax, maxKg);
-    const pay = bestLoad[0];
-    if (pay <= 0) { continue; }
-
-    // Save if better than previous loads
-    if (pay/totalDistance > bestRoute.payNM) {
-      bestRoute = {payNM: pay/totalDistance, icao: i, load: bestLoad, distance: j.distance};
-    }
-  }
-  return bestRoute;
-}
-function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
-  const maxDist = jobs.get(to).distance;
-
-  // Keep only legs going to the same direction
-  const jobsFiltered = [];
-  for (const [i, j] of jobs) {
-    if (i === to) { continue; }
-    
-    // Discard farther legs
-    if (j.distance > maxDist) { continue; }
-
-    // Compute total distance, and discard legs that stray too far away from source leg
-    const totalDistance = (j.distance + convertDistance(getDistance(icaodata[i], icaodata[to]), 'sm'));
-    const ratio = maxDist / totalDistance;
-    if (ratio < 0.7) { continue; }
-
-    jobsFiltered.push([i, totalDistance, j]);
-  }
-
-  const routes = [{
-    icaos: [],
-    cargos: [],
-    pay: 0,
-    distance: 0
-  }];
-  const exclude = [];
-  for (var i = 0; i < maxStops; i++) {
-    const bestRoute = bestLegStop(jobsFiltered, maxPax, maxKg, exclude);
-
-    // Stop if no leg found
-    if (!bestRoute.icao) { break; }
-
-    const [pay, pax, kg, loadCargo] = bestRoute.load;
-
-    // Find correct position for new airport
-    let pos = 0;
-    for (var k = 0; k < i; k++) {
-      if (bestRoute.distance >= jobs.get(routes[i].icaos[k]).distance) {
-        pos = k;
-        break;
-      }
-    }
-
-    const icaos = [...routes[i].icaos];
-    const cargos = [...routes[i].cargos];
-    icaos.splice(pos, 0, bestRoute.icao);
-    cargos.splice(pos, 0, {TripOnly: loadCargo, VIP: []})
-
-    // Compute legs distance
-    let distance = jobs.get(icaos[0]).distance;
-    for (k = 1; k < icaos.length; k++) {
-      distance += Math.round(convertDistance(getDistance(icaodata[icaos[k-1]], icaodata[icaos[k]]), 'sm'));
-    }
-
-    routes.push({
-      icaos: icaos,
-      cargos: cargos,
-      pay: routes[i].pay + pay,
-      distance: distance
-    });
-
-    exclude.push(bestRoute.icao);
-    maxPax -= pax;
-    maxKg -= kg;
-  }
-
-  return routes;
-}
-
-// options: {maxPax, maxKg, icaos, icaodata}
-function route(icao, jobs, options, hop, legHistory, includeLocalArea, badLegsCount, closeIcaosCache) {
-  // Stop when reached max iterations
-  if (hop === 0) {
-    return [];
-  }
-  hop -= 1;
-
-  // Do not loop over same airport twice, except for the same outbound leg
-  let restrictNextHop = null;
-  const indexInHistory = legHistory.indexOf(icao);
-  if (indexInHistory >= 0) {
-    restrictNextHop = legHistory[indexInHistory+1];
-  }
-
-  // Hold found routes
-  const routes = [];
-
-  // Ensure there are jobs departing from this airport
-  if (jobs[icao]) {
-
-    // Loop over possible destinations
-    for (const [to, j] of jobs[icao]) {
-      // If looping, only consider the same destination as before
-      if (restrictNextHop && restrictNextHop !== to) { continue; }
-
-      // Compute best load
-      const [pay, pax, kg, loadCargo, remainCargo] = maximizeCargo(j.cargos, options.maxPax, options.maxKg);
-      if (pay <= 0) { continue; }
-
-      // Ensure leg is interesting enough considering the number of previous bad legs
-      let newBadLegsCount = badLegsCount;
-      if (pax < options.minPaxLoad && kg < options.minKgLoad) {
-        if (!badLegsCount) { continue; }
-        newBadLegsCount -= 1;
-      }
-
-      let legStops = [];
-      if (pax < options.maxPax && kg < options.maxKg && loadCargo.VIP.length === 0 && indexInHistory < 0) {
-        legStops = getLegStops(to, jobs[icao], options.maxPax-pax, options.maxKg-kg, options.maxStops, options.icaodata);
-        for (const legStop of legStops) {
-          for (const c of legStop.cargos) {
-            c.TripOnly = c.TripOnly.concat(loadCargo.TripOnly);
-          }
-        }
-      }
-      else {
-        legStops.push({icaos:[], cargos:[], pay: 0, distance: 0});
-      }
-      
-      // Save cargos for later use
-      const savedCargos =  j.cargos;
-      jobs[icao].get(to).cargos = remainCargo;
-
-      // Compute routes
-      const newRoutes = route(to, jobs, options, hop, [...legHistory, icao], true, newBadLegsCount, closeIcaosCache);
-      newRoutes.push({icaos:[to], cargos:[], pay: 0, distance: 0});
-
-      // Restore cargos
-      jobs[icao].get(to).cargos = savedCargos;
-
-      // Append routes to result
-      for (const newRoute of newRoutes) {
-        for (const legStop of legStops) {
-          let remainDist = j.distance;
-          if (legStop.icaos.length) {
-            remainDist = Math.round(convertDistance(getDistance(options.icaodata[legStop.icaos[legStop.icaos.length-1]], options.icaodata[to]), 'sm'));
-          }
-          routes.push({
-            icaos: [icao, ...legStop.icaos, ...newRoute.icaos],
-            cargos: [...legStop.cargos, loadCargo, ...newRoute.cargos],
-            pay: pay + legStop.pay + newRoute.pay,
-            distance: legStop.distance + remainDist + newRoute.distance
-          });
-        }
-      }
-    }
-
-  }
-
-  // If include local area, and last leg had enough load
-  if (includeLocalArea && badLegsCount) {
-
-    // Get close-by airports
-    if (!closeIcaosCache[icao]) {
-      closeIcaosCache[icao] = closeIcaos(icao, options.icaos, options.icaodata);
-    }
-
-    for (const [i, distance] of closeIcaosCache[icao]) {
-      // If looping, only consider the same destination as before
-      if (restrictNextHop && restrictNextHop !== i) { continue; }
-
-      // If there are jobs between the two airports, abort because it was already done
-      if (jobs[icao] && jobs[icao].get(i)) { continue; }
-
-      // Compute routes
-      const newRoutes = route(i, jobs, options, hop+1, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
-
-      // Append routes to result
-      for (const newRoute of newRoutes) {
-        routes.push({
-          icaos: [icao, ...newRoute.icaos],
-          cargos: [{TripOnly: [], VIP: []}, ...newRoute.cargos],
-          pay: newRoute.pay,
-          distance: distance+newRoute.distance
-        });
-      }
-    }
-  }
-
-  return routes;
-}
 
 function textTotalCargo(cargos) {
   const text = [];
@@ -567,6 +320,7 @@ const Routing = React.memo((props) => {
   const [minTime, setMinTime] = React.useState('');
   const [maxTime, setMaxTime] = React.useState('');
   const [nbDisplay, setNbDisplay] = React.useState(20);
+  const [progress, setProgress] = React.useState(0);
   const classes = useStyles();
 
   const sortFunctions = {
@@ -636,9 +390,58 @@ const Routing = React.memo((props) => {
       resultsDiv.current.scrollTo(0 ,0);
       setNbDisplay(20);
     }
-  }, [filteredResults])
+  }, [filteredResults]);
+
+  const prepResults = (allResults, options) => {
+    const approachSpeedRatio = 0.4;
+    for (var i = 0; i < allResults.length; i++) {
+      const totalDistance = allResults[i].distance + approachLength*(allResults[i].icaos.length-1);
+      const time = allResults[i].distance/speed + approachLength*(allResults[i].icaos.length-1)/(speed*approachSpeedRatio) + 0.09*(allResults[i].icaos.length-2);
+      const h = Math.floor(time);
+      const min = Math.round((time-h)*60);
+      let pay = allResults[i].pay;
+
+      // If rented airplane, find plane with minimum bonus, and deduce bonus from route pay
+      if (type === 'rent') {
+        let minBonus = 0;
+        let minPlane = null;
+        const startIcao = allResults[i].icaos[0];
+        const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
+        for (const plane of props.options.planes[startIcao]) {
+          const bonus = Math.round(
+            (
+                convertDistance(getDistance(props.options.icaodata[endIcao], options.icaodata[plane.home]), 'sm')
+              -
+                convertDistance(getDistance(props.options.icaodata[startIcao], options.icaodata[plane.home]), 'sm')
+            )
+            * plane.bonus / 100);
+          if (!minPlane || bonus < minBonus) {
+            minPlane = plane;
+            minBonus = bonus;
+          }
+        }
+        allResults[i].plane = minPlane;
+        allResults[i].b = -minBonus;
+        pay -= minBonus;
+      }
+      allResults[i].payNM = pay/totalDistance;
+      allResults[i].payLeg = pay/allResults[i].icaos.length;
+      allResults[i].payTime = pay/time;
+      allResults[i].time = h+'H'+(min > 9 ? min : "0"+min);
+      allResults[i].timeNb = time;
+      allResults[i].pay = Math.round(pay);
+      allResults[i].distance = Math.round(totalDistance);
+      allResults[i].id = i;
+    }
+    allResults.sort(sortFunctions[sortBy]);
+
+    results.current = allResults;
+    filterResults();
+    setLoading(false);
+  }
 
   const startSearch = () => {
+    setProgress(0);
     setLoading(true);
     // Check ICAO if free mode
     if (type === 'free') {
@@ -654,7 +457,6 @@ const Routing = React.memo((props) => {
       }
     }
     const jobs = {};
-    const approachSpeedRatio = 0.4;
     for (const [k, v] of Object.entries(props.options.jobs)) {
       const [fr, to] = k.split('-');
       const obj = {
@@ -709,67 +511,81 @@ const Routing = React.memo((props) => {
       icaodata: props.options.icaodata
     }
 
-    let allResults = [];
-
     if (type === "rent") {
-      for (const icao of Object.keys(props.options.planes)) {
-        allResults = allResults.concat(route(icao, jobs, options, maxHops, [], true, maxBadLegs, {}));
-      }
-      if (loop) {
-        allResults = allResults.filter(elm => elm.icaos[elm.icaos.length-1] === elm.icaos[0]);
+      const icaos = Object.keys(props.options.planes);
+      const totalIcaos = icaos.reduce((acc, elm) => acc + (jobs[elm] ? 1 : 0), 0);
+      const maxWorkers = navigator.hardwareConcurrency || 4;
+      const closeIcaosCache = {};
+      let done = 0;
+      let allResults = [];
+      const onmessage = ({data}, worker) => {
+        if (data.status === 'finished') {
+          allResults = allResults.concat(data.results);
+          const icao = icaos.pop();
+          if (icao) {
+            worker.postMessage({
+              fromIcao: icao,
+              jobs: jobs,
+              options: options,
+              maxHops: maxHops,
+              maxBadLegs: maxBadLegs,
+              closeIcaosCache: closeIcaosCache
+            });
+          }
+          else {
+            worker.terminate();
+            done += 1;
+            if (done === maxWorkers) {
+              if (loop) {
+                allResults = allResults.filter(elm => elm.icaos[elm.icaos.length-1] === elm.icaos[0]);
+              }
+              prepResults(allResults, options);
+            }
+          }
+        }
+        else if (data.status === 'progress') {
+          setProgress(prev => prev+(data.progress/totalIcaos));
+        }
+      };
+      for (var i = 0; i < maxWorkers; i++) {
+        const worker = new RoutingWorker();
+        worker.onmessage = (evt) => onmessage(evt, worker);
+        let icao = icaos.pop();
+        if (!icao) { break; }
+        worker.postMessage({
+          fromIcao: icao,
+          jobs: jobs,
+          options: options,
+          maxHops: maxHops,
+          maxBadLegs: maxBadLegs,
+          closeIcaosCache: closeIcaosCache
+        });
       }
     }
     else {
-      allResults = route(fromIcao, jobs, options, maxHops, [], true, maxBadLegs, {});
-      if (toIcao) {
-        allResults = allResults.filter(elm => elm.icaos[elm.icaos.length-1] === toIcao); 
-      }
-    }
-
-    for (var i = 0; i < allResults.length; i++) {
-      const totalDistance = allResults[i].distance + approachLength*(allResults[i].icaos.length-1);
-      const time = allResults[i].distance/speed + approachLength*(allResults[i].icaos.length-1)/(speed*approachSpeedRatio) + 0.09*(allResults[i].icaos.length-2);
-      const h = Math.floor(time);
-      const min = Math.round((time-h)*60);
-      let pay = allResults[i].pay;
-
-      // If rented airplane, find plane with minimum bonus, and deduce bonus from route pay
-      if (type === 'rent') {
-        let minBonus = 0;
-        let minPlane = null;
-        const startIcao = allResults[i].icaos[0];
-        const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
-        for (const plane of props.options.planes[startIcao]) {
-          const bonus = Math.round(
-            (
-                convertDistance(getDistance(props.options.icaodata[endIcao], options.icaodata[plane.home]), 'sm')
-              -
-                convertDistance(getDistance(props.options.icaodata[startIcao], options.icaodata[plane.home]), 'sm')
-            )
-            * plane.bonus / 100);
-          if (!minPlane || bonus < minBonus) {
-            minPlane = plane;
-            minBonus = bonus;
+      const worker = new RoutingWorker();
+      worker.onmessage = ({data}) => {
+        if (data.status === 'finished') {
+          let allResults = data.results;
+          if (toIcao) {
+            allResults = allResults.filter(elm => elm.icaos[elm.icaos.length-1] === toIcao); 
           }
+          prepResults(allResults, options);
+          worker.terminate();
         }
-        allResults[i].plane = minPlane;
-        allResults[i].b = -minBonus;
-        pay -= minBonus;
+        else if (data.status === 'progress') {
+          setProgress(prev => prev+data.progress);
+        }
       }
-      allResults[i].payNM = pay/totalDistance;
-      allResults[i].payLeg = pay/allResults[i].icaos.length;
-      allResults[i].payTime = pay/time;
-      allResults[i].time = h+'H'+(min > 9 ? min : "0"+min);
-      allResults[i].timeNb = time;
-      allResults[i].pay = Math.round(pay);
-      allResults[i].distance = Math.round(totalDistance);
-      allResults[i].id = i;
+      worker.postMessage({
+        fromIcao: fromIcao,
+        jobs: jobs,
+        options: options,
+        maxHops: maxHops,
+        maxBadLegs: maxBadLegs,
+        closeIcaosCache: {}
+      });
     }
-    allResults.sort(sortFunctions[sortBy]);
-
-    results.current = allResults;
-    filterResults();
-    setLoading(false);
 
   };
 
@@ -1239,6 +1055,7 @@ const Routing = React.memo((props) => {
               Find best routes
               {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
             </Button>
+            {loading && <LinearProgress variant="determinate" value={progress} className={classes.progressBar} />}
           </div>
         </div>
       }
