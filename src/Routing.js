@@ -474,7 +474,7 @@ const Routing = React.memo((props) => {
             obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to});
           }
         }
-        if (v.kg.['VIP']) {
+        if (v.kg['VIP']) {
           for (const c of v.kg['VIP']) {
             if (c.nb > maxKg) { continue; }
             obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to});

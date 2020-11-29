@@ -11,24 +11,24 @@ function closeIcaos(icao, icaos, icaodata, maxDist = 20) {
   return cIcaos;
 }
 // cargo: {pax, kg, pay}
-function maximizeTripOnly(cargos, maxPax, maxKg) {
-  if (cargos.length === 0) {
+function maximizeTripOnly(i, cargos, maxPax, maxKg, cache) {
+  if (i === 0) {
     // Total pay, list of cargos, remain
     return [0, 0, 0, [], []];
   }
-  const elm = cargos[0];
-  const newCargos = cargos.slice(1);
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(newCargos, maxPax, maxKg);
+  if (cache[i+'/'+maxPax+'/'+maxKg]) { return cache[i+'/'+maxPax+'/'+maxKg]; }
+  const elm = cargos[i-1];
+  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(i-1, cargos, maxPax, maxKg, cache);
   if (maxPax-elm.pax >= 0 && maxKg-elm.kg >= 0)  {
-    let [pay2, pax2, kg2, cargos2, remain2] = maximizeTripOnly(newCargos, maxPax-elm.pax, maxKg-elm.kg);
+    let [pay2, pax2, kg2, cargos2, remain2] = maximizeTripOnly(i-1, cargos, maxPax-elm.pax, maxKg-elm.kg, cache);
     pay2 += elm.pay;
     if (pay2 > pay1) {
       cargos2.push(elm);
-      return [pay2, pax2+elm.pax, kg2+elm.kg, cargos2, remain2];
+      return cache[i+'/'+maxPax+'/'+maxKg] = [pay2, pax2+elm.pax, kg2+elm.kg, cargos2, remain2];
     }
   }
   remain1.push(elm);
-  return [pay1, pax1, kg1, cargos1, remain1];
+  return cache[i+'/'+maxPax+'/'+maxKg] = [pay1, pax1, kg1, cargos1, remain1];
 }
 function maximizeVIP(cargos) {
   if (cargos.length === 0) {
@@ -45,7 +45,7 @@ function maximizeVIP(cargos) {
   return [pay2, pax2, kg2, cargos2, remain2];
 }
 function maximizeCargo(cargos, maxPax, maxKg) {
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(cargos.TripOnly, maxPax, maxKg);
+  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(cargos.TripOnly.length, cargos.TripOnly, maxPax, maxKg, {});
   const [pay2, pax2, kg2, cargos2, remain2] = maximizeVIP(cargos.VIP);
   const remain = {TripOnly: remain1, VIP: remain2};
   if (pay1 >= pay2) {
@@ -62,7 +62,7 @@ function bestLegStop(jobs, maxPax, maxKg, exclude) {
     if (exclude.includes(i)) { continue; }
 
     // Compute best load
-    const bestLoad = maximizeTripOnly(j.cargos.TripOnly, maxPax, maxKg);
+    const bestLoad = maximizeTripOnly(j.cargos.TripOnly.length, j.cargos.TripOnly, maxPax, maxKg, {});
     const pay = bestLoad[0];
     if (pay <= 0) { continue; }
 
