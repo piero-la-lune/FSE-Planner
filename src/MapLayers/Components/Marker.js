@@ -81,7 +81,13 @@ const useStyles = makeStyles(theme => ({
     '&:hover': {
       textDecoration: 'none'
     }
-  }
+  },
+  toFSEPlane: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    marginRight: theme.spacing(0.2),
+    marginLeft: theme.spacing(0.2)
+  },
 }));
 
 const SVGs = new AirportSVG('#fff', '#3f51b5', 20);
@@ -91,10 +97,18 @@ function PlaneHome({plane, icaodata, icao, goTo}) {
   const classes = useStyles();
   const [tooltip, setTooltip] = React.useState(false);
 
+
+
   if (plane.home === icao) {
     return (
       <Typography variant="body2" className={classes.plane}>
-        {plane.reg} : ${plane.dry}/${plane.wet} (${plane.bonus})
+        {plane.reg}
+        <Tooltip title="Go to FSE">
+          <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane}>
+            <OpenInNewIcon fontSize="inherit" />
+          </Link>
+        </Tooltip>
+        : ${plane.dry}/${plane.wet} (${plane.bonus})
       </Typography>
     );
   }
@@ -113,7 +127,13 @@ function PlaneHome({plane, icaodata, icao, goTo}) {
   return (
     <React.Fragment>
       <Typography variant="body2" className={classes.plane}>
-        {plane.reg} : ${plane.dry}/${plane.wet} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
+        {plane.reg}
+        <Tooltip title="Go to FSE">
+          <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane}>
+            <OpenInNewIcon fontSize="inherit" />
+          </Link>
+        </Tooltip>
+        : ${plane.dry}/${plane.wet} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
       </Typography>
       <Typography variant="body2" className={classes.planeHome}>
         Home:
