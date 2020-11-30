@@ -236,13 +236,13 @@ function Marker({position, size, color, sim, id, ...props}) {
         }
         if (isToIcao) {
           actions.push({
-            name: 'Cancel jobs radiating To',
+            name: 'Cancel jobs radiating TO',
             onClick: () => props.actions.current.toIcao('')
           });
         }
         else {
           actions.push({
-            name: 'Jobs radiating To',
+            name: 'Jobs radiating TO',
             onClick: () => {
               if (isFromIcao) {
                 props.actions.current.fromIcao('');
