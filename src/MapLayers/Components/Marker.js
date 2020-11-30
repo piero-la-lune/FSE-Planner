@@ -1,7 +1,6 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
-import Tooltip from '@material-ui/core/Tooltip';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import NavigationIcon from '@material-ui/icons/Navigation';
 import CenterFocusStrongIcon from '@material-ui/icons/CenterFocusStrong';
@@ -96,19 +95,14 @@ const SVGs = new AirportSVG('#fff', '#3f51b5', 20);
 
 function PlaneHome({plane, icaodata, icao, actions}) {
   const classes = useStyles();
-  const [tooltip, setTooltip] = React.useState(false);
-
-
 
   if (plane.home === icao) {
     return (
       <Typography variant="body2" className={classes.plane}>
         {plane.reg}
-        <Tooltip title="Go to FSE">
-          <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane}>
-            <OpenInNewIcon fontSize="inherit" />
-          </Link>
-        </Tooltip>
+        <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane} title="Go to FSE">
+          <OpenInNewIcon fontSize="inherit" />
+        </Link>
         : ${plane.dry}/${plane.wet} (${plane.bonus})
       </Typography>
     );
@@ -121,7 +115,6 @@ function PlaneHome({plane, icaodata, icao, actions}) {
 
   const handleClick = (evt) => {
     evt.preventDefault();
-    setTooltip(false);
     actions.current.goTo(plane.home);
   }
 
@@ -129,21 +122,17 @@ function PlaneHome({plane, icaodata, icao, actions}) {
     <React.Fragment>
       <Typography variant="body2" className={classes.plane}>
         {plane.reg}
-        <Tooltip title="Go to FSE">
-          <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane}>
-            <OpenInNewIcon fontSize="inherit" />
-          </Link>
-        </Tooltip>
+        <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane} title="Go to FSE">
+          <OpenInNewIcon fontSize="inherit" />
+        </Link>
         : ${plane.dry}/${plane.wet} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
       </Typography>
       <Typography variant="body2" className={classes.planeHome}>
         Home:
-        <Tooltip title="Go to home location" open={tooltip} onOpen={() => setTooltip(true)} onClose={() => setTooltip(false)}>
-          <Link href="#" onClick={handleClick} className={classes.planeSearch}>
-            <CenterFocusStrongIcon fontSize="inherit" />
-            {plane.home}
-          </Link>
-        </Tooltip>
+        <Link href="#" onClick={handleClick} className={classes.planeSearch} title="Go to home location">
+          <CenterFocusStrongIcon fontSize="inherit" />
+          {plane.home}
+        </Link>
         ({dir}° {dist}NM)
       </Typography>
     </React.Fragment>
@@ -171,11 +160,9 @@ function Popup(props) {
               <span className={classes.striked}>{icao}</span>{icaodata[icao][siminfo][0]}
             </React.Fragment>
         }
-        <Tooltip title="Go to FSE">
-          <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE}>
-            <OpenInNewIcon fontSize="inherit" />
-          </Link>
-        </Tooltip>
+        <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE} title="Go to FSE">
+          <OpenInNewIcon fontSize="inherit" />
+        </Link>
       </Typography>
       {
         icaodata[icao][siminfo].length > 1 &&
