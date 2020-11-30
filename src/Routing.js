@@ -344,11 +344,21 @@ const Routing = React.memo((props) => {
       let maxTimeNb = null;
       if (minTime) {
         const t = minTime.split(':');
-        minTimeNb = parseInt(t[0]) + parseInt(t[1])/60;
+        if (t.length === 2) {
+          minTimeNb = parseInt(t[0]) + parseInt(t[1])/60;
+        }
+        else {
+          setMinTime('');
+        }
       }
       if (maxTime) {
         const t = maxTime.split(':');
-        maxTimeNb = parseInt(t[0]) + parseInt(t[1])/60;
+        if (t.length === 2) {
+          maxTimeNb = parseInt(t[0]) + parseInt(t[1])/60;
+        }
+        else {
+          setMaxTime('');
+        }
       }
 
       const r = results.current.filter(elm => {
@@ -757,8 +767,13 @@ const Routing = React.memo((props) => {
                         label="Min duration"
                         variant="outlined"
                         value={minTime}
-                        onChange={(evt) => setMinTime(evt.target.value)}
-                        type="time"
+                        placeholder="1:30"
+                        onChange={(evt) => {
+                          const val = evt.target.value;
+                          if (val.match(/^[0-9:]*$/g)) {
+                            setMinTime(val);
+                          }
+                        }}
                         InputLabelProps={{
                           shrink: true,
                         }}
@@ -771,8 +786,13 @@ const Routing = React.memo((props) => {
                         label="Max duration"
                         variant="outlined"
                         value={maxTime}
-                        onChange={(evt) => setMaxTime(evt.target.value)}
-                        type="time"
+                        placeholder="6:30"
+                        onChange={(evt) => {
+                          const val = evt.target.value;
+                          if (val.match(/^[0-9:]*$/g)) {
+                            setMaxTime(val);
+                          }
+                        }}
                         InputLabelProps={{
                           shrink: true,
                         }}
