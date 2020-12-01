@@ -11,6 +11,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
 
 
@@ -80,6 +81,33 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
+          <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.1.0 (2020-12-01)</Typography>
+            <Alert style={{margin:20}} severity="warning">User settings have been reset</Alert>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Route Finder: find the best paying multi-hop multi-assignment routes</ListItem>
+              <ListItem>Huge performance improvement when displaying lot of objects on map</ListItem>
+              <ListItem>Right click context menu on map, with various actions (open in FSE, set FROM or TO filter, etc.)</ListItem>
+              <ListItem>Display custom markers on map (right click on airport to add/remove, or bulk management in the Data popup)</ListItem>
+              <ListItem>Rentable planes: link to the FSE plane page</ListItem>
+              <ListItem>Rentable planes: link to pan the map to a plane homeNew map layer with all FSE airports</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Default settings for FROM and TO filters</ListItem>
+              <ListItem>Include searched ICAO in URL</ListItem>
+              <ListItem>Default colors</ListItem>
+              <ListItem>Variable airport icon size and path weight, depending on map zoom</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Broken tooltips in airports popups</ListItem>
+              <ListItem>Alternative airport list display, when list was exceeding one line (#6)</ListItem>
+              <ListItem>Broken zoom on search result (#7)</ListItem>
+            </List>
+          </Paper>
+
           <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.0.0 (2020-11-06)</Typography>
             <Typography variant="h6">Added</Typography>

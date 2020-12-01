@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.1.0] - 2020-12-01
+
+### Added
+- Route Finder: find the best paying multi-hop multi-assignment routes
+- Huge performance improvement when displaying lot of objects on map
+- Right click context menu on map, with various actions (open in FSE, set FROM or TO filter, etc.)
+- Display custom markers on map (right click on airport to add/remove, or bulk management in the Data popup)
+- Rentable planes: link to the FSE plane page
+- Rentable planes: link to pan the map to a plane home
+
+### Changed
+- Default settings for FROM and TO filters
+- Include searched ICAO in URL
+- Default colors
+- Variable airport icon size and path weight, depending on map zoom
+
+### Fixed
+- Broken tooltips in airports popups
+- Alternative airport list display, when list was exceeding one line (#6)
+- Broken zoom on search result (#7)
+
+
+
 ## [1.0.0] - 2020-11-06
 
 ### Added
