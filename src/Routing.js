@@ -224,13 +224,15 @@ const useStyles = makeStyles(theme => ({
 
 
 
-function textTotalCargo(cargos) {
+function textTotalCargo(cargos, kgPax = true) {
   const text = [];
   let pax = 0;
   let kg = 0;
   for (const cargo of cargos) {
     pax += cargo.pax;
-    kg += cargo.kg;
+    if (!cargo.pax || kgPax) {
+      kg += cargo.kg;
+    }
   }
   if (pax) {
     if (pax > 1) {
@@ -535,6 +537,7 @@ const Routing = React.memo((props) => {
           if (icao) {
             worker.postMessage({
               fromIcao: icao,
+              toIcao: loop ? icao : null,
               jobs: jobs,
               options: options,
               maxHops: maxHops,
@@ -546,9 +549,6 @@ const Routing = React.memo((props) => {
             worker.terminate();
             done += 1;
             if (done === maxWorkers) {
-              if (loop) {
-                allResults = allResults.filter(elm => elm.icaos[elm.icaos.length-1] === elm.icaos[0]);
-              }
               prepResults(allResults, options);
             }
           }
@@ -564,6 +564,7 @@ const Routing = React.memo((props) => {
         if (!icao) { break; }
         worker.postMessage({
           fromIcao: icao,
+          toIcao: loop ? icao : null,
           jobs: jobs,
           options: options,
           maxHops: maxHops,
@@ -576,11 +577,7 @@ const Routing = React.memo((props) => {
       const worker = new RoutingWorker();
       worker.onmessage = ({data}) => {
         if (data.status === 'finished') {
-          let allResults = data.results;
-          if (toIcao) {
-            allResults = allResults.filter(elm => elm.icaos[elm.icaos.length-1] === toIcao); 
-          }
-          prepResults(allResults, options);
+          prepResults(data.results, options);
           worker.terminate();
         }
         else if (data.status === 'progress') {
@@ -589,6 +586,7 @@ const Routing = React.memo((props) => {
       }
       worker.postMessage({
         fromIcao: fromIcao,
+        toIcao: toIcao ? toIcao : null,
         jobs: jobs,
         options: options,
         maxHops: maxHops,
@@ -632,69 +630,72 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
               <Timeline align="right">
-                {focus.icaos.map((icao, i) => 
-                  <TimelineItem key={i}>
-                    <TimelineOppositeContent className={classes.tlOp}>
-                      { i === 0 && focus.plane &&
-                        <React.Fragment>
-                          <Typography variant="body2">Rent {focus.plane.reg} (${focus.plane.dry}/${focus.plane.wet})</Typography>
-                          <Typography variant="body2" paragraph>Flight total bonus : ${focus.b}</Typography>
-                        </React.Fragment>
-                      }
-                      {i < focus.icaos.length-1 && focus.cargos[i].TripOnly.length > 0 &&
-                        <Paper variant="outlined" className={classes.tlPaper}>
-                          {focus.cargos[i].TripOnly.map((cargo, j) =>
-                          cargo.pax ?
-                              cargo.from === icao ?
-                                  <Typography variant="body2" key={j}>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                                :
-                                  <Typography variant="body2" key={j}><i>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} already onboard</i></Typography>
-                            :
-                              cargo.from === icao ?
-                                  <Typography variant="body2" key={j}>{cargo.kg}kg to {cargo.to} (${cargo.pay})</Typography>
-                                :
-                                  <Typography variant="body2" key={j}><i>{cargo.kg}kg already onboard</i></Typography>
-                          )}
-                          <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
-                        </Paper>
-                      }
-                      {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
-                        <Paper variant="outlined" className={classes.tlPaper}>
-                          {focus.cargos[i].VIP.map((cargo, j) =>
-                          cargo.pax ?
-                              <Typography variant="body2" key={j}>{cargo.pax} VIP passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                            :
-                              <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
-                          )}
-                          <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
-                        </Paper>
-                      }
-                    </TimelineOppositeContent>
-                    <TimelineSeparator>
-                      <TimelineDot
-                        color={
-                          (
-                              i < focus.icaos.length-1
-                            &&
-                              (
-                                  focus.cargos[i].TripOnly.reduce((acc, cargo) => acc || cargo.from !== icao, false)
-                                ||
-                                  (
-                                      !focus.cargos[i].TripOnly.length
-                                    &&
-                                      !focus.cargos[i].VIP.length
-                                  )
-                              )
-                          ) ? 'grey' : 'primary'
+                {focus.icaos.map((icao, i) => {
+                  const onboard = i < focus.icaos.length-1 ? focus.cargos[i].TripOnly.reduce((acc, elm) => elm.from === icao ? acc : [...acc, elm], []) : [];
+                  return (
+                    <TimelineItem key={i}>
+                      <TimelineOppositeContent className={classes.tlOp}>
+                        { i === 0 && focus.plane &&
+                          <React.Fragment>
+                            <Typography variant="body2">Rent {focus.plane.reg} (${focus.plane.dry}/${focus.plane.wet})</Typography>
+                            <Typography variant="body2" paragraph>Flight total bonus : ${focus.b}</Typography>
+                          </React.Fragment>
                         }
-                      />
-                      <TimelineConnector />
-                    </TimelineSeparator>
-                    <TimelineContent className={classes.tlCt}>
-                      <Link href="#" onClick={evt => {evt.preventDefault(); props.actions.current.goTo(icao) }}>{icao}</Link>
-                    </TimelineContent>
-                  </TimelineItem>
-                )}
+                        {i < focus.icaos.length-1 && focus.cargos[i].TripOnly.length > 0 &&
+                          <Paper variant="outlined" className={classes.tlPaper}>
+                            {focus.cargos[i].TripOnly.map((cargo, j) =>
+                            cargo.from === icao
+                              ? cargo.pax
+                                ? <Typography variant="body2" key={j}>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
+                                : <Typography variant="body2" key={j}>{cargo.kg}kg to {cargo.to} (${cargo.pay})</Typography>
+                              : null
+                            )}
+                            { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
+                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
+                          </Paper>
+                        }
+                        {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
+                          <Paper variant="outlined" className={classes.tlPaper}>
+                            {focus.cargos[i].VIP.map((cargo, j) =>
+                            cargo.pax ?
+                                <Typography variant="body2" key={j}>{cargo.pax} VIP passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
+                              :
+                                <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
+                            )}
+                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
+                          </Paper>
+                        }
+                      </TimelineOppositeContent>
+                      <TimelineSeparator>
+                        <TimelineDot
+                          color={
+                            (
+                                i < focus.icaos.length-1
+                              &&
+                                (
+                                    (
+                                        focus.cargos[i].TripOnly.length
+                                      &&
+                                        focus.cargos[i].TripOnly.reduce((acc, cargo) => acc && cargo.from !== icao, true)
+                                    )
+                                  ||
+                                    (
+                                        !focus.cargos[i].TripOnly.length
+                                      &&
+                                        !focus.cargos[i].VIP.length
+                                    )
+                                )
+                            ) ? 'grey' : 'primary'
+                          }
+                        />
+                        <TimelineConnector />
+                      </TimelineSeparator>
+                      <TimelineContent className={classes.tlCt}>
+                        <Link href="#" onClick={evt => {evt.preventDefault(); props.actions.current.goTo(icao) }}>{icao}</Link>
+                      </TimelineContent>
+                    </TimelineItem>
+                  )
+                })}
               </Timeline>
             </div>
           </React.Fragment>

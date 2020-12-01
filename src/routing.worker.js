@@ -1,4 +1,4 @@
-import { getDistance, convertDistance } from "geolib";
+import { getDistance, convertDistance, getRhumbLineBearing } from "geolib";
 
 function closeIcaos(icao, icaos, icaodata, maxDist = 20) {
   const cIcaos = [];
@@ -23,12 +23,10 @@ function maximizeTripOnly(i, cargos, maxPax, maxKg, cache) {
     let [pay2, pax2, kg2, cargos2, remain2] = maximizeTripOnly(i-1, cargos, maxPax-elm.pax, maxKg-elm.kg, cache);
     pay2 += elm.pay;
     if (pay2 > pay1) {
-      cargos2.push(elm);
-      return cache[i+'/'+maxPax+'/'+maxKg] = [pay2, pax2+elm.pax, kg2+elm.kg, cargos2, remain2];
+      return cache[i+'/'+maxPax+'/'+maxKg] = [pay2, pax2+elm.pax, kg2+elm.kg, [...cargos2, elm], remain2];
     }
   }
-  remain1.push(elm);
-  return cache[i+'/'+maxPax+'/'+maxKg] = [pay1, pax1, kg1, cargos1, remain1];
+  return cache[i+'/'+maxPax+'/'+maxKg] = [pay1, pax1, kg1, cargos1, [...remain1, elm]];
 }
 function maximizeVIP(cargos) {
   if (cargos.length === 0) {
@@ -73,6 +71,9 @@ function bestLegStop(jobs, maxPax, maxKg, exclude) {
   }
   return bestRoute;
 }
+
+// For the given destination and jobs, try to find assignments on the same path
+// to complement the cargo
 function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
   const maxDist = jobs.get(to).distance;
 
@@ -108,9 +109,9 @@ function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
     const [pay, pax, kg, loadCargo] = bestRoute.load;
 
     // Find correct position for new airport
-    let pos = 0;
+    let pos = i;
     for (var k = 0; k < i; k++) {
-      if (bestRoute.distance >= jobs.get(routes[i].icaos[k]).distance) {
+      if (bestRoute.distance <= jobs.get(routes[i].icaos[k]).distance) {
         pos = k;
         break;
       }
@@ -119,7 +120,15 @@ function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
     const icaos = [...routes[i].icaos];
     const cargos = [...routes[i].cargos];
     icaos.splice(pos, 0, bestRoute.icao);
-    cargos.splice(pos, 0, {TripOnly: loadCargo, VIP: []})
+    if (pos < i) {
+      cargos.splice(pos, 0, {TripOnly: [...cargos[pos].TripOnly, ...loadCargo], VIP: []});
+    }
+    else {
+      cargos.splice(pos, 0, {TripOnly: loadCargo, VIP: []});
+    }
+    for (k = 0; k < pos; k++) {
+      cargos[k] = {TripOnly: [...cargos[k].TripOnly, ...loadCargo], VIP: []};
+    }
 
     // Compute legs distance
     let distance = jobs.get(icaos[0]).distance;
@@ -143,7 +152,7 @@ function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
 }
 
 // options: {maxPax, maxKg, icaos, icaodata}
-function route(icao, jobs, options, hop, legHistory, includeLocalArea, badLegsCount, closeIcaosCache, progressStep = null) {
+function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, badLegsCount, closeIcaosCache, progressStep = null) {
   // Stop when reached max iterations
   if (hop === 0) {
     return [];
@@ -155,6 +164,12 @@ function route(icao, jobs, options, hop, legHistory, includeLocalArea, badLegsCo
   const indexInHistory = legHistory.indexOf(icao);
   if (indexInHistory >= 0) {
     restrictNextHop = legHistory[indexInHistory+1];
+  }
+
+  // Also, stop on destination airport, except if looping because it is also
+  // the departing airport: in this case, only consider the same outbound leg as before
+  if (icao === dest && !restrictNextHop && legHistory.length) {
+    return [];
   }
 
   // Hold found routes
@@ -180,13 +195,25 @@ function route(icao, jobs, options, hop, legHistory, includeLocalArea, badLegsCo
         if (!badLegsCount) { continue; }
         newBadLegsCount -= 1;
       }
+      else if (dest && !options.loop) {
+        // If a given destination is set (and different from origin), only keep legs going in the right direction
+        const dist = convertDistance(getDistance(options.icaodata[to], options.icaodata[dest]), 'sm');
+        const dir = getRhumbLineBearing(options.icaodata[to], options.icaodata[dest]);
+        if ((180 - Math.abs(Math.abs(j.direction - dir) - 180)) > 30 || j.distance / dist > 1.2) {
+          if (!badLegsCount) { continue; }
+          newBadLegsCount -= 1;
+        }
+      }
 
       let legStops = [];
+      // If there is still room, and no VIP, try to find onroute jobs
+      // Limitation: if looping, do not search onroute jobs, because the previous taken jobs
+      // were not removed from the jobs array.
       if (pax < options.maxPax && kg < options.maxKg && loadCargo.VIP.length === 0 && indexInHistory < 0) {
         legStops = getLegStops(to, jobs[icao], options.maxPax-pax, options.maxKg-kg, options.maxStops, options.icaodata);
         for (const legStop of legStops) {
-          for (const c of legStop.cargos) {
-            c.TripOnly = c.TripOnly.concat(loadCargo.TripOnly);
+          for (var i = 0; i < legStop.cargos.length; i++) {
+            legStop.cargos[i] = {TripOnly: [...legStop.cargos[i].TripOnly, ...loadCargo.TripOnly], VIP:[]};
           }
         }
       }
@@ -199,7 +226,7 @@ function route(icao, jobs, options, hop, legHistory, includeLocalArea, badLegsCo
       jobs[icao].get(to).cargos = remainCargo;
 
       // Compute routes
-      const newRoutes = route(to, jobs, options, hop, [...legHistory, icao], true, newBadLegsCount, closeIcaosCache);
+      const newRoutes = route(to, dest, jobs, options, hop, [...legHistory, icao], true, newBadLegsCount, closeIcaosCache);
       newRoutes.push({icaos:[to], cargos:[], pay: 0, distance: 0});
 
       // Restore cargos
@@ -208,6 +235,8 @@ function route(icao, jobs, options, hop, legHistory, includeLocalArea, badLegsCo
       // Append routes to result
       for (const newRoute of newRoutes) {
         for (const legStop of legStops) {
+          // Do not include a route if it loops over an airport included via a stop
+          if (newRoute.icaos.filter(icao => legStop.icaos.includes(icao)).length) { continue; }
           let remainDist = j.distance;
           if (legStop.icaos.length) {
             remainDist = Math.round(convertDistance(getDistance(options.icaodata[legStop.icaos[legStop.icaos.length-1]], options.icaodata[to]), 'sm'));
@@ -242,7 +271,7 @@ function route(icao, jobs, options, hop, legHistory, includeLocalArea, badLegsCo
       if (jobs[icao] && jobs[icao].get(i)) { continue; }
 
       // Compute routes
-      const newRoutes = route(i, jobs, options, hop+1, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
+      const newRoutes = route(i, dest, jobs, options, hop+1, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
 
       // Append routes to result
       for (const newRoute of newRoutes) {
@@ -259,11 +288,105 @@ function route(icao, jobs, options, hop, legHistory, includeLocalArea, badLegsCo
   return routes;
 }
 
+function computeRemain(cargos, maxPax, maxKg) {
+  if (cargos.VIP.length) { return [0, 0]; }
+  return [
+    maxPax - cargos.TripOnly.reduce((acc, elm) => acc+elm.pax, 0),
+    maxKg - cargos.TripOnly.reduce((acc, elm) => acc+elm.kg, 0)
+  ];
+}
+
 
 onmessage = function({data}) {
   const progressStep = 100 / (closeIcaos(data.fromIcao, data.options.icaos, data.options.icaodata).length + (data.jobs[data.fromIcao] ? data.jobs[data.fromIcao].size : 0) + 1);
 
-  const allResults = route(data.fromIcao, data.jobs, data.options, data.maxHops, [], true, data.maxBadLegs, data.closeIcaosCache, progressStep);
+  const options = {
+    loop: data.fromIcao === data.toIcao,
+    ...data.options
+  }
+  let allResults = route(
+    data.fromIcao,
+    data.toIcao,
+    data.jobs,
+    options,
+    data.maxHops,
+    [],
+    true,
+    data.maxBadLegs,
+    data.closeIcaosCache,
+    progressStep
+  );
+
+  // If destination is set
+  if (data.toIcao) {
+    // If destination is equal to origin, only keep route terminating at the origin
+    if (data.toIcao === data.fromIcao) {
+      allResults = allResults.filter(elm => elm.icaos[elm.icaos.length-1] === elm.icaos[0]);
+      // Try to add even more load: analyze each route
+      for (var i = 0; i < allResults.length; i++) {
+        const route = allResults[i];
+
+        // Analyse each stop in route
+        for (var j = 2; j < route.icaos.length; j++) {
+
+          // Compute remaining space
+          let [remainPax, remainKg] = computeRemain(route.cargos[j-1], options.maxPax, options.maxKg);
+          if (!remainKg) { continue; }
+
+          // If previous leg as a job not coming from the previous stop, abort
+          let stop = false;
+          for (var k = 0; k < route.cargos[j-1].TripOnly.length; k++) {
+            if (route.cargos[j-1].TripOnly[k].from !== route.icaos[j-1]) {
+              stop = true;
+              break;
+            }
+          }
+          if (stop) { continue; }
+
+          // Find previous stop having jobs to the same destination
+          for (k = j - 2; k >= 0; k--) {
+            if (route.cargos[k].VIP.length) { break; }
+            if (data.jobs[route.icaos[k]]) {
+              const jb = data.jobs[route.icaos[k]].get(route.icaos[j]);
+              if (jb) {
+
+                // Find best cargo, if any
+                const [pay, pax, kg, loadCargo] = maximizeTripOnly(jb.cargos.TripOnly.length, jb.cargos.TripOnly, remainPax, remainKg, {});
+                if (pay) {
+                  for (var l = k; l < j; l++) {
+                    route.cargos[l] = {TripOnly: [...route.cargos[l].TripOnly, ...loadCargo], VIP:[]};
+                  }
+                  route.pay += pay;
+                  remainPax -= pax;
+                  remainKg -= kg;
+                }
+              }
+            }
+            let [remainPax2, remainKg2] = computeRemain(route.cargos[k], options.maxPax, options.maxKg);
+            remainPax = Math.min(remainPax, remainPax2);
+            remainKg = Math.min(remainKg, remainKg2);
+          }
+        }
+      }
+    }
+    // Otherwise, add last leg to complete route
+    else {
+      for (var i = 0; i < allResults.length; i++) {
+        // Add only last leg if route does not terminate to correct destination
+        const lastIcao = allResults[i].icaos[allResults[i].icaos.length-1];
+        if (lastIcao !== data.toIcao) {
+          const dist = Math.round(convertDistance(getDistance(data.options.icaodata[lastIcao], data.options.icaodata[data.toIcao]), 'sm'));
+          allResults[i] = {
+            icaos: [...allResults[i].icaos, data.toIcao],
+            cargos: [...allResults[i].cargos, {TripOnly: [], VIP: []}],
+            pay: allResults[i].pay,
+            distance: allResults[i].distance + dist
+          }
+        }
+      }
+    }
+  }
+
   postMessage({
     status: 'finished',
     results: allResults
