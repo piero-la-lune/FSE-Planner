@@ -1,7 +1,6 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
-import Tooltip from '@material-ui/core/Tooltip';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import NavigationIcon from '@material-ui/icons/Navigation';
 import CenterFocusStrongIcon from '@material-ui/icons/CenterFocusStrong';
@@ -9,6 +8,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import ReactDOM from "react-dom";
+import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
@@ -81,20 +81,29 @@ const useStyles = makeStyles(theme => ({
     '&:hover': {
       textDecoration: 'none'
     }
-  }
+  },
+  toFSEPlane: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    marginRight: theme.spacing(0.2),
+    marginLeft: theme.spacing(0.2)
+  },
 }));
 
 const SVGs = new AirportSVG('#fff', '#3f51b5', 20);
 
 
-function PlaneHome({plane, icaodata, icao, goTo}) {
+function PlaneHome({plane, icaodata, icao, actions}) {
   const classes = useStyles();
-  const [tooltip, setTooltip] = React.useState(false);
 
   if (plane.home === icao) {
     return (
       <Typography variant="body2" className={classes.plane}>
-        {plane.reg} : ${plane.dry}/${plane.wet} (${plane.bonus})
+        {plane.reg}
+        <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane} title="Go to FSE">
+          <OpenInNewIcon fontSize="inherit" />
+        </Link>
+        : ${plane.dry}/${plane.wet} (${plane.bonus})
       </Typography>
     );
   }
@@ -106,23 +115,24 @@ function PlaneHome({plane, icaodata, icao, goTo}) {
 
   const handleClick = (evt) => {
     evt.preventDefault();
-    setTooltip(false);
-    goTo(plane.home);
+    actions.current.goTo(plane.home);
   }
 
   return (
     <React.Fragment>
       <Typography variant="body2" className={classes.plane}>
-        {plane.reg} : ${plane.dry}/${plane.wet} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
+        {plane.reg}
+        <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane} title="Go to FSE">
+          <OpenInNewIcon fontSize="inherit" />
+        </Link>
+        : ${plane.dry}/${plane.wet} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
       </Typography>
       <Typography variant="body2" className={classes.planeHome}>
         Home:
-        <Tooltip title="Go to home location" open={tooltip} onOpen={() => setTooltip(true)} onClose={() => setTooltip(false)}>
-          <Link href="#" onClick={handleClick} className={classes.planeSearch}>
-            <CenterFocusStrongIcon fontSize="inherit" />
-            {plane.home}
-          </Link>
-        </Tooltip>
+        <Link href="#" onClick={handleClick} className={classes.planeSearch} title="Go to home location">
+          <CenterFocusStrongIcon fontSize="inherit" />
+          {plane.home}
+        </Link>
         ({dir}° {dist}NM)
       </Typography>
     </React.Fragment>
@@ -150,11 +160,9 @@ function Popup(props) {
               <span className={classes.striked}>{icao}</span>{icaodata[icao][siminfo][0]}
             </React.Fragment>
         }
-        <Tooltip title="Go to FSE">
-          <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE}>
-            <OpenInNewIcon fontSize="inherit" />
-          </Link>
-        </Tooltip>
+        <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE} title="Go to FSE">
+          <OpenInNewIcon fontSize="inherit" />
+        </Link>
       </Typography>
       {
         icaodata[icao][siminfo].length > 1 &&
@@ -195,6 +203,73 @@ function Marker({position, size, color, sim, id, ...props}) {
         ReactDOM.render(<Popup {...props} />, div);
       }
       return div;
+    })
+    .on('contextmenu', (evt) => {
+      L.DomEvent.stopPropagation(evt);
+      const actions = [];
+      if (!sim) {
+        actions.push({
+          name: 'Open in FSE',
+          onClick: () => {
+            let w = window.open('https://server.fseconomy.net/airport.jsp?icao='+props.icao, 'fse');
+            w.focus();
+          }
+        });
+        const isFromIcao = props.actions.current.isFromIcao(props.icao);
+        const isToIcao = props.actions.current.isToIcao(props.icao);
+        if (isFromIcao) {
+          actions.push({
+            name: 'Cancel jobs radiating FROM',
+            onClick: () => props.actions.current.fromIcao('')
+          });
+        }
+        else {
+          actions.push({
+            name: 'Jobs radiating FROM',
+            onClick: () => {
+              if (isToIcao) {
+                props.actions.current.toIcao('');
+              }
+              props.actions.current.fromIcao(props.icao);
+            }
+          });
+        }
+        if (isToIcao) {
+          actions.push({
+            name: 'Cancel jobs radiating TO',
+            onClick: () => props.actions.current.toIcao('')
+          });
+        }
+        else {
+          actions.push({
+            name: 'Jobs radiating TO',
+            onClick: () => {
+              if (isFromIcao) {
+                props.actions.current.fromIcao('');
+              }
+              props.actions.current.toIcao(props.icao);
+            }
+          });
+        }
+        if (props.actions.current.isInCustom(props.icao)) {
+          actions.push({
+            name: 'Remove from Customs Markers',
+            onClick: () => props.actions.current.removeCustom(props.icao)
+          });
+        }
+        else {
+          actions.push({
+            name: 'Add to Customs Markers',
+            onClick: () => props.actions.current.addCustom(props.icao)
+          });
+        }
+      }
+      props.actions.current.contextMenu({
+        mouseX: evt.originalEvent.clientX,
+        mouseY: evt.originalEvent.clientY,
+        title: props.icao,
+        actions: actions
+      });
     });
 }
 

@@ -5,6 +5,7 @@ import NavigationIcon from '@material-ui/icons/Navigation';
 import { makeStyles } from '@material-ui/core/styles';
 
 import ReactDOM from "react-dom";
+import L from "leaflet";
 
 
 const useStyles = makeStyles(theme => ({
@@ -64,7 +65,32 @@ function Job(props) {
       var div = document.createElement('div');
       ReactDOM.render(<Tooltip {...props} />, div);
       return div;
-    }, {sticky: true});
+    }, {sticky: true})
+    .on('contextmenu', (evt) => {
+      L.DomEvent.stopPropagation(evt);
+      const actions = [
+        {
+          name: <span>Open {props.fromIcao} in FSE</span>,
+          onClick: () => {
+            let w = window.open('https://server.fseconomy.net/airport.jsp?icao='+props.fromIcao, 'fse');
+            w.focus();
+          }
+        },
+        {
+          name: <span>Open {props.toIcao} in FSE</span>,
+          onClick: () => {
+            let w = window.open('https://server.fseconomy.net/airport.jsp?icao='+props.toIcao, 'fse');
+            w.focus();
+          }
+        }
+      ];
+      props.actions.current.contextMenu({
+        mouseX: evt.originalEvent.clientX,
+        mouseY: evt.originalEvent.clientY,
+        title: <span>{props.fromIcao} - {props.toIcao} <NavigationIcon fontSize="inherit" style={{transform: 'rotate('+props.leg.direction+'deg'}} /></span>,
+        actions: actions
+      });
+    });
 
 }
 

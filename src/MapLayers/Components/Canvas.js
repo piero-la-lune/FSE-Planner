@@ -19,11 +19,11 @@ const Canvas = L.Canvas.extend({
   _updateAirportIcon: function (layer) {
     if (!this._drawing || layer._empty()) { return; }
 
-    const zoom = layer._hovered ? this._map._zoom+3 : this._map._zoom;
+    const zoom = this._map._zoom;
     const minZoom = this._map._layersMinZoom;
     const maxZoom = this._map._layersMaxZoom;
     const color = layer.options.color;
-    let fillColor = layer.options.fillColor;
+    const fillColor = layer.options.fillColor;
     const radius = layer.options.radius;
     const type = layer.options.type;
     const id = layer.options.id;
@@ -146,39 +146,53 @@ const Canvas = L.Canvas.extend({
 
   },
 
-  _updateArrow: function(layer) {
+  _updateArrowedPath: function(layer) {
     if (!layer._parts.length) { return; }
+
+    const zoom = this._map._zoom;
+    const minZoom = this._map._layersMinZoom;
+    const maxZoom = this._map._layersMaxZoom;
+    let ratio;
+    if (zoom <= 7) {
+      ratio = (1 - 0.05)/(7 - minZoom)*(zoom - minZoom) + 0.05;
+    }
+    else {
+      ratio = (2 - 1)/(maxZoom - 7)*(zoom - 7) + 1;
+    }
+
     const p1 = layer._parts[0][0];
     const p2 = layer._parts[0][1];
-    const x = p1.x + (p2.x - p1.x)/2;
-    const y = p1.y + (p2.y - p1.y)/2;
-    const angle = Math.atan((p2.y - p1.y)/(p2.x - p1.x));
-    const baseAngle = 60 * Math.PI / 360;
+    const dx = p1.x - p2.x;
+    const dy = p1.y - p2.y;
+    const norm = Math.sqrt(dx*dx+dy*dy);
+    const udx = dx/norm;
+    const udy = dy/norm;
 
+    const ax = udx * Math.sqrt(3)/2 - udy * 1/2;
+    const ay = udx * 1/2 + udy * Math.sqrt(3)/2;
+    const bx = udx * Math.sqrt(3)/2 + udy * 1/2;
+    const by =  - udx * 1/2 + udy * Math.sqrt(3)/2;
+    
     this._ctx.beginPath();
-    let xa, ya, xb, yb;
-    if (layer.options.bothWays || p1.x < p2.x) {
-      xa = x - 20 * Math.cos(baseAngle + angle);
-      ya = y - 20 * Math.sin(baseAngle + angle);
-      xb = x - 20 * Math.cos(baseAngle - angle);
-      yb = y + 20 * Math.sin(baseAngle - angle);
-      this._ctx.moveTo(xa, ya);
-      this._ctx.lineTo(x, y);
-      this._ctx.lineTo(xb, yb);
-    }
-    if (layer.options.bothWays || p1.x >= p2.x) {
-      xa = x + 20 * Math.cos(baseAngle - angle);
-      ya = y - 20 * Math.sin(baseAngle - angle);
-      xb = x + 20 * Math.cos(baseAngle + angle);
-      yb = y + 20 * Math.sin(baseAngle + angle);
-      this._ctx.moveTo(xa, ya);
-      this._ctx.lineTo(x, y);
-      this._ctx.lineTo(xb, yb);
+
+    this._ctx.moveTo(p1.x, p1.y);
+    this._ctx.lineTo(p2.x, p2.y);
+
+    const l = 20*ratio;
+
+    this._ctx.moveTo(p1.x - dx/2 + l * ax, p1.y - dy/2 + l * ay);
+    this._ctx.lineTo(p1.x - dx/2, p1.y - dy/2);
+    this._ctx.lineTo(p1.x - dx/2 + l * bx, p1.y - dy/2 + l * by);
+
+    if (layer.options.bothWays) {
+      this._ctx.moveTo(p1.x - dx/2 - l * ax, p1.y - dy/2 - l * ay);
+      this._ctx.lineTo(p1.x - dx/2, p1.y - dy/2);
+      this._ctx.lineTo(p1.x - dx/2 - l * bx, p1.y - dy/2 - l * by);
     }
 
     this._ctx.globalAlpha = layer.options.opacity;
     this._ctx.strokeStyle = layer.options.color;
-    this._ctx.lineWidth = layer.options.weight;
+    this._ctx.lineWidth = layer.options.weight*ratio;
     this._ctx.stroke();
     this._ctx.closePath();
   }

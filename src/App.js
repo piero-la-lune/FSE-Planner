@@ -22,12 +22,14 @@ import UpdateIcon from '@material-ui/icons/Update';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import CloseIcon from '@material-ui/icons/Close';
 import TuneIcon from '@material-ui/icons/Tune';
+import DirectionsIcon from '@material-ui/icons/Directions';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { default as _clone } from 'lodash/cloneDeep';
 import { default as _defaultsDeep } from 'lodash/defaultsDeep';
 
 import FSEMap from './Map.js';
+import Routing from './Routing.js';
 import UpdatePopup from './Popups/Update.js';
 import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';
@@ -44,13 +46,13 @@ const defaultSettings = {
       colors: {
         base: 'black',
         rentable: 'red',
-        selected: 'green',
+        selected: 'darkred',
         fse: 'black',
-        msfs: 'darkred',
+        msfs: 'darkslateblue',
         custom: 'darkcyan'
       },
       sizes: {
-        base: '17',
+        base: '13',
         rentable: '20',
         selected: '25',
         fse: '3',
@@ -63,13 +65,16 @@ const defaultSettings = {
         passengers: '#3f51b5',
         cargo: '#3f51b5',
         highlight: 'yellow',
-        flight: '#3087A8'
+        flight: 'darkred'
       },
       weights: {
         base: '1.2',
-        passengers: '10',
-        cargo: '10',
-        flight: '10'
+        passengers: '8',
+        cargo: '8',
+        flight: '5'
+      },
+      display: {
+        custom: true
       }
     },
     map: {
@@ -78,13 +83,13 @@ const defaultSettings = {
     sim: 'msfs'
   },
   from: {
-    distCoef: '1.5',
-    angle: '',
+    distCoef: '',
+    angle: '30',
     maxDist: ''
   },
   to: {
-    distCoef: '1.5',
-    angle: '',
+    distCoef: '',
+    angle: '30',
     maxDist: ''
   },
   direction: {
@@ -150,6 +155,8 @@ const useStyles = makeStyles(theme => ({
     color: "#fff",
     borderRadius: theme.shape.borderRadius,
     paddingLeft: theme.spacing(1),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
     width: "120px"
   },
   boxBorder: {
@@ -247,6 +254,12 @@ const useStyles = makeStyles(theme => ({
   searchIcao: {
     minWidth: 40,
     textAlign: 'center'
+  },
+  body: {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    flexGrow: '1',
+    overflow: 'hidden'
   }
 }));
 
@@ -304,6 +317,9 @@ function App() {
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
   const [customIcaos, setCustomIcaos] = React.useState(storage.get('customIcaos', []));
+  const [routeFinder, setRouteFinder] = React.useState(false);
+  const [route, setRoute] = React.useState(null);
+  const mapRef = React.useRef();
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
@@ -339,22 +355,82 @@ function App() {
       setCreditsPopup(true);
       storage.set('tutorial', process.env.REACT_APP_VERSION);
     }
+
+    // Set search if query string in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const icao = urlParams.get('icao');
+    if (icao) {
+      setSearch(icao);
+    }
   }, []);
 
   // Create goTo function, to allow panning to given ICAO
   // Cannot just use setSearch, because need to pan even if the ICAO was already in search var
   const goToRef = React.useRef(null);
   const goTo = React.useCallback((icao) => {
-    setSearch(prevIcao => prevIcao ? null : icao);
+    setSearch(prevIcao => prevIcao === icao ? null : icao);
     goToRef.current = icao;
+    window.history.replaceState({icao:icao}, '', '?icao='+icao);
   }, []);
   React.useEffect(() => {
-    if (goToRef.current && goToRef.current !== search) {
+    if (goToRef.current) {
       const icao = goToRef.current;
       goToRef.current = null;
       setSearch(icao);
     }
   }, [search]);
+
+  // Invalidate map size when routing toogled
+  React.useEffect(() => {
+    mapRef.current.leafletElement.invalidateSize({pan:false});
+  }, [routeFinder]);
+
+  const setFrom = React.useCallback((icao) => {
+    icao = icao.toUpperCase();
+    setFromIcaoInput(icao);
+    if (icaodata.hasOwnProperty(icao)) {
+      setFromIcao(icao);
+    }
+    else {
+      setFromIcao(null)
+    }
+  }, [icaodata]);
+  const isFromIcao = React.useCallback((icao) => fromIcao === icao, [fromIcao]);
+  const setTo = React.useCallback((icao) => {
+    icao = icao.toUpperCase();
+    setToIcaoInput(icao);
+    if (icaodata.hasOwnProperty(icao)) {
+      setToIcao(icao);
+    }
+    else {
+      setToIcao(null)
+    }
+  }, [icaodata]);
+  const isToIcao = React.useCallback((icao) => toIcao === icao, [toIcao]);
+  const addCustom = (icao) => setCustomIcaos(prev => [...prev, icao]);
+  const removeCustom = (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao));
+  const isInCustom = React.useCallback((icao) => customIcaos.includes(icao), [customIcaos]);
+  React.useEffect(() => {
+    storage.set('customIcaos', customIcaos);
+  }, [customIcaos]);
+
+  // Actions
+  const actions = React.useRef(null);
+  const setActions = () => {
+    actions.current = {
+      goTo: goTo,
+      fromIcao: setFrom,
+      isFromIcao: isFromIcao,
+      isToIcao: isToIcao,
+      toIcao: setTo,
+      addCustom: addCustom,
+      removeCustom: removeCustom,
+      isInCustom: isInCustom,
+      contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined
+    };
+  }
+  if (!actions.current) { setActions(); }
+  React.useEffect(setActions, [goTo, setFrom, isFromIcao, setTo, isToIcao, addCustom, removeCustom, isInCustom]);
 
 
   return (
@@ -409,16 +485,34 @@ function App() {
                     className={classes.inputSearch}
                     ref={params.InputProps.ref}
                     inputProps={params.inputProps}
-                    endAdornment={params.inputProps.value ? <IconButton size="small" onClick={() => {setSearch(null); setSearchInput('');}}><CloseIcon /></IconButton> : null}
+                    endAdornment={params.inputProps.value ?
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSearch(null);
+                            setSearchInput('');
+                            window.history.replaceState(null, '', '?');
+                          }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      :
+                        null
+                    }
                   />
                 }
                 PopperComponent={PopperMy}
                 onChange={(evt, value) => {
-                  setSearch(value.icao);
                   if (value) {
+                    setSearch(value.icao);
                     const list = [...(new Set([value.icao, ...searchHistory]))].slice(0, 5);
                     setSearchHistory(list);
                     storage.set('searchHistory', list);
+                    window.history.replaceState({icao:value.icao}, '', '?icao='+value.icao);
+                  }
+                  else {
+                    setSearch(null);
+                    window.history.replaceState(null, '', '?');
                   }
                 }}
                 value={search ? icaodataSrc[search] : null}
@@ -437,16 +531,7 @@ function App() {
                   className={classes.input}
                   inputProps={{maxLength:4}}
                   value={fromIcaoInput}
-                  onChange={evt => {
-                    let val = evt.target.value.toUpperCase();
-                    setFromIcaoInput(val);
-                    if (icaodata.hasOwnProperty(val)) {
-                      setFromIcao(val);
-                    }
-                    else {
-                      setFromIcao(null)
-                    }
-                  }}
+                  onChange={evt => setFrom(evt.target.value)}
                 />
               </div>
             </Tooltip>
@@ -459,16 +544,7 @@ function App() {
                   className={classes.input}
                   inputProps={{maxLength:4}}
                   value={toIcaoInput}
-                  onChange={evt => {
-                    let val = evt.target.value.toUpperCase();
-                    setToIcaoInput(val);
-                    if (icaodata.hasOwnProperty(val)) {
-                      setToIcao(val);
-                    }
-                    else {
-                      setToIcao(null)
-                    }
-                  }}
+                  onChange={evt => setTo(evt.target.value)}
                 />
               </div>
             </Tooltip>
@@ -555,6 +631,11 @@ function App() {
                 <TuneIcon />
               </Tooltip>
             </IconButton>
+            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setRouteFinder(!routeFinder)} data-tour="Step8b">
+              <Tooltip title="Route finder">
+                <DirectionsIcon />
+              </Tooltip>
+            </IconButton>
             <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setUpdatePopup(true)} data-tour="Step2">
               <Tooltip title="Load data from FSE">
                 <UpdateIcon />
@@ -563,13 +644,25 @@ function App() {
           </div>
         </Toolbar>
       </AppBar>
-      <FSEMap
-        options={options}
-        search={search}
-        goTo={goTo}
-        icaos={icaos}
-        customIcaos={customIcaos}
-      />
+      <div className={classes.body}>
+        <Routing
+          options={options}
+          setRoute={setRoute}
+          hidden={!routeFinder}
+          mapRef={mapRef}
+          close={() => setRouteFinder(false)}
+          actions={actions}
+        />
+        <FSEMap
+          options={options}
+          search={search}
+          icaos={icaos}
+          customIcaos={customIcaos}
+          route={route}
+          mapRef={mapRef}
+          actions={actions}
+        />
+      </div>
       <UpdatePopup
         open={updatePopup}
         setUpdatePopup={setUpdatePopup}

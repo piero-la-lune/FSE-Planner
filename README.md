@@ -18,6 +18,9 @@ FSE Planner is a map visualization app that allows you to display all kind of in
 	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/master/visual_assets/feature1.png?raw=true" alt="Display available jobs on map & apply search filters on location, length, amount, pay, direction, etc.">
 </p>
 <p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/master/visual_assets/feature6.png?raw=true" alt="Route Finder: find best paying multi-hop multi-assignment route with complex on-route stops and return to home capabilities">
+</p>
+<p align="center">
 	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/master/visual_assets/feature2.png?raw=true" alt="Display airports with rentable planes & get detailed information about the available planes">
 </p>
 <p align="center">

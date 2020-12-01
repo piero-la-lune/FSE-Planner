@@ -13,6 +13,9 @@ class Storage {
         this.remove('planes');
         this.remove('jobs');
       }
+      if (oldVersion < '1.1.0') {
+        this.remove('settings');
+      }
       localStorage.setItem('version', version);
     }
   }

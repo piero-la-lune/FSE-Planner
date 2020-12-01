@@ -15,8 +15,7 @@ const JobSegment = L.Polyline.extend({
   },
 
   _updatePath: function() {
-    L.Polyline.prototype._updatePath.call(this);
-    this._renderer._updateArrow(this);
+    this._renderer._updateArrowedPath(this);
   },
 
   _clickTolerance: function() {
