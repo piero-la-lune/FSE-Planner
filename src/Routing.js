@@ -122,7 +122,8 @@ const useStyles = makeStyles(theme => ({
     borderTop: "1px solid #ccc",
   },
   typeButtons: {
-    marginBottom: theme.spacing(3)
+    marginBottom: theme.spacing(3),
+    marginTop: theme.spacing(4)
   },
   tlOp: {
     flex: 10
@@ -915,6 +916,57 @@ const Routing = React.memo((props) => {
             </Grid>
           </Grid>
 
+
+          <ToggleButtonGroup
+            value={type}
+            exclusive
+            onChange={(evt, newType) => {
+              if (newType !== null) {
+                setType(newType);
+                if (newType !== 'rent' && sortBy === 'bonus') {
+                  setSortBy('payTime');
+                }
+              }
+            }}
+            className={classes.typeButtons}
+          >
+            <ToggleButton value="rent">Rent a plane</ToggleButton>
+            <ToggleButton value="free">Free search</ToggleButton>
+          </ToggleButtonGroup>
+
+          { type === "rent" ?
+            <FormControlLabel
+              control={<Switch checked={loop} onChange={(evt) => setLoop(evt.target.checked)} />}
+              label="Return plane to starting airport"
+            />
+          :
+            <React.Fragment>
+              <Typography variant="body1" className={classes.formLabel}>Restrict search to specific route:</Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                  <TextField
+                    label="From"
+                    placeholder="ICAO"
+                    variant="outlined"
+                    value={fromIcao}
+                    onChange={(evt) => setFromIcao(evt.target.value.toUpperCase())}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="To"
+                    variant="outlined"
+                    placeholder="ICAO"
+                    value={toIcao}
+                    onChange={(evt) => setToIcao(evt.target.value.toUpperCase())}
+                  />
+                </Grid>
+              </Grid>
+            </React.Fragment>
+          }
+
+
           {!moreSettings &&
             <Typography variant="body1" className={classes.pMore}>
               <span className={classes.more} onClick={() => setMoreSettings(true)}>More options...</span>
@@ -923,57 +975,6 @@ const Routing = React.memo((props) => {
 
           {moreSettings &&
             <div>
-              <div className={classes.moreSettings}>
-                <ToggleButtonGroup
-                  value={type}
-                  exclusive
-                  onChange={(evt, newType) => {
-                    if (newType !== null) {
-                      setType(newType);
-                      if (newType !== 'rent' && sortBy === 'bonus') {
-                        setSortBy('payTime');
-                      }
-                    }
-                  }}
-                  className={classes.typeButtons}
-                >
-                  <ToggleButton value="rent">Rent a plane</ToggleButton>
-                  <ToggleButton value="free">Free search</ToggleButton>
-                </ToggleButtonGroup>
-  
-                { type === "rent" ?
-                  <FormControlLabel
-                    control={<Switch checked={loop} onChange={(evt) => setLoop(evt.target.checked)} />}
-                    label="Return plane to starting airport"
-                  />
-                :
-                  <React.Fragment>
-                    <Typography variant="body1" className={classes.formLabel}>Restrict search to specific route:</Typography>
-                    <Grid container spacing={1}>
-                      <Grid item xs={6}>
-                        <TextField
-                          label="From"
-                          placeholder="ICAO"
-                          variant="outlined"
-                          value={fromIcao}
-                          onChange={(evt) => setFromIcao(evt.target.value.toUpperCase())}
-                          required
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          label="To"
-                          variant="outlined"
-                          placeholder="ICAO"
-                          value={toIcao}
-                          onChange={(evt) => setToIcao(evt.target.value.toUpperCase())}
-                        />
-                      </Grid>
-                    </Grid>
-                  </React.Fragment>
-                }
-              </div>
-
               <div className={classes.moreSettings}>
                 <Typography variant="body1" className={classes.formLabel}>Change default algorithm parameters:</Typography>
                 <Grid container spacing={1}>

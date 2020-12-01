@@ -180,10 +180,23 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
         />
     },
     {
+      selector: '[data-tour="Step8b"]',
+      content: ({goTo}) => 
+        <TourStep
+          step={10}
+          title="Route finding"
+          text={[
+            "Click here to open the Route Finder.",
+            "The Route Finder will allow you to find the best paying multi-hop multi-assignment routes."
+          ]}
+          goTo={goTo}
+        />
+    },
+    {
       selector: '[data-tour="Step9"]',
       content: ({goTo}) =>
         <TourStep
-          step={10}
+          step={11}
           title="Your turn!"
           text="You can launch again this tutorial or review the changelog and credits here."
           goTo={goTo}

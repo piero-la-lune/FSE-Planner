@@ -631,7 +631,7 @@ function App() {
                 <TuneIcon />
               </Tooltip>
             </IconButton>
-            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setRouteFinder(!routeFinder)}>
+            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setRouteFinder(!routeFinder)} data-tour="Step8b">
               <Tooltip title="Route finder">
                 <DirectionsIcon />
               </Tooltip>
