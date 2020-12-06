@@ -15,6 +15,10 @@ const useStyles = makeStyles(theme => ({
   icon: {
     display: 'flex',
     alignItems: 'center'
+  },
+  icaos: {
+    fontSize: '0.8em',
+    paddingLeft: theme.spacing(1)
   }
 }));
 
@@ -32,11 +36,11 @@ function Cargo({cargo, pay, dir}) {
 }
 
 // Generate tooltip
-function Tooltip({leg, type, rleg}) {
+function Tooltip({leg, type, rleg, fromIcao, toIcao}) {
   const classes = useStyles();
   return (
     <div>
-      <Typography variant="body1"><b>{leg.distance}NM</b></Typography>
+      <Typography variant="body1"><b>{leg.distance}NM</b><span className={classes.icaos}>{fromIcao} - {toIcao}</span></Typography>
       { leg.amount > 0 && <Cargo cargo={{[type]: leg.amount}} pay={leg.pay} dir={leg.direction} /> }
       { rleg && rleg.amount > 0 && <Cargo cargo={{[type]: rleg.amount}} pay={rleg.pay} dir={rleg.direction} /> }
       { (leg.flight || (rleg && rleg.flight)) &&

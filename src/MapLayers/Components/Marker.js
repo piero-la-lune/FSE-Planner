@@ -39,6 +39,7 @@ const useStyles = makeStyles(theme => ({
     display: 'inline-flex',
     alignItems: 'center',
     marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(2),
     color: 'rgba(255, 255, 255, 0.5) !important',
     fontSize: '0.8em',
     '&:hover': {
@@ -203,6 +204,8 @@ function Marker({position, size, color, sim, id, ...props}) {
         ReactDOM.render(<Popup {...props} />, div);
       }
       return div;
+    }, {
+      autoPanPadding: new L.Point(30, 30)
     })
     .on('contextmenu', (evt) => {
       L.DomEvent.stopPropagation(evt);

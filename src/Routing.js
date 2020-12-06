@@ -10,7 +10,6 @@ import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Tooltip from '@material-ui/core/Tooltip';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
@@ -45,13 +44,6 @@ const useStyles = makeStyles(theme => ({
     zIndex: 1000,
     display: "flex",
     flexDirection: "column"
-  },
-  buttonProgress: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -12,
-    marginLeft: -12,
   },
   title: {
     textAlign: "center",
@@ -219,7 +211,8 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.grey[500],
   },
   progressBar: {
-    marginTop: theme.spacing(2)
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
   }
 }));
 
@@ -324,6 +317,7 @@ const Routing = React.memo((props) => {
   const [maxTime, setMaxTime] = React.useState('');
   const [nbDisplay, setNbDisplay] = React.useState(20);
   const [progress, setProgress] = React.useState(0);
+  const [cancel, setCancel] = React.useState(null);
   const classes = useStyles();
 
   const sortFunctions = {
@@ -451,6 +445,7 @@ const Routing = React.memo((props) => {
     results.current = allResults;
     filterResults();
     setLoading(false);
+    setCancel(null);
   }
 
   const startSearch = () => {
@@ -558,6 +553,7 @@ const Routing = React.memo((props) => {
           setProgress(prev => prev+(data.progress/totalIcaos));
         }
       };
+      const workers = [];
       for (var i = 0; i < maxWorkers; i++) {
         const worker = new RoutingWorker();
         worker.onmessage = (evt) => onmessage(evt, worker);
@@ -572,7 +568,9 @@ const Routing = React.memo((props) => {
           maxBadLegs: maxBadLegs,
           closeIcaosCache: closeIcaosCache
         });
+        workers.push(worker);
       }
+      setCancel(workers);
     }
     else {
       const worker = new RoutingWorker();
@@ -594,9 +592,18 @@ const Routing = React.memo((props) => {
         maxBadLegs: maxBadLegs,
         closeIcaosCache: {}
       });
+      setCancel([worker]);
     }
 
   };
+
+  const cancelWorkers = () => {
+    for (const worker of cancel) {
+      worker.terminate();
+    }
+    setLoading(false);
+    setCancel(null);
+  }
 
   if (props.hidden) { return null; }
 
@@ -1073,11 +1080,17 @@ const Routing = React.memo((props) => {
           }
 
           <div className={classes.pButtons}>
-            <Button variant="contained" color="primary" size="large" onClick={startSearch} disabled={loading || !maxPax || !maxKg || !maxHops || !maxStops || !minLoad || !maxBadLegs || !speed || !approachLength || (type === "free" && !fromIcao)}>
-              Find best routes
-              {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
-            </Button>
+            {!loading &&
+              <Button variant="contained" color="primary" size="large" onClick={startSearch} disabled={!maxPax || !maxKg || !maxHops || !maxStops || !minLoad || !maxBadLegs || !speed || !approachLength || (type === "free" && !fromIcao)}>
+                Find best routes
+              </Button>
+            }
             {loading && <LinearProgress variant="determinate" value={progress} className={classes.progressBar} />}
+            {cancel !== null &&
+              <Button color="secondary" onClick={cancelWorkers}>
+                Cancel
+              </Button>
+            }
           </div>
         </div>
       }

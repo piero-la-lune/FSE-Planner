@@ -82,6 +82,23 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.1.1 (2020-12-07)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Cancel button in Route Finder</ListItem>
+              <ListItem>ICAOs in leg tooltips</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>MSFS airports updated</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Overlapping buttons in airport popups</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.1.0 (2020-12-01)</Typography>
             <Alert style={{margin:20}} severity="warning">User settings have been reset</Alert>
             <Typography variant="h6">Added</Typography>

@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.1.1] - 2020-12-07
+
+### Added
+- Cancel button in Route Finder
+- ICAOs in leg tooltips
+
+### Changed
+- MSFS airports updated
+
+### Fixed
+- Overlapping buttons in airport popups
+
+
+
 ## [1.1.0] - 2020-12-01
 
 ### Added
