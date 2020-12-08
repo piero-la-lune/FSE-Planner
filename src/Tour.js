@@ -95,7 +95,7 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
           title="Welcome aboard FSE Planner!"
           text="This quick tour will show you the main features of this application."
           goTo={goTo}
-          skip={() => goTo(9)}
+          skip={() => goTo(10)}
         />
     },
     {
