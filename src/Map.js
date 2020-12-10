@@ -40,6 +40,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   const canvasRendererRef = React.useRef(new Canvas({ padding: 0.5 }));
   const maxBounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
   const [contextMenu, setContextMenu] = React.useState(null);
+  const [unbuiltFBOs, setUnbuildFBOs] = React.useState([]);
 
   // Display search marker
   const searchRef = React.useRef(null);
@@ -120,6 +121,17 @@ const FSEMap = React.memo(function FSEMap(props) {
     }
   }, [props.route, props.options.icaodata, mapRef]);
 
+  // Load unbuilt lots
+  React.useEffect(() => {
+    fetch('https://piero-la-lune.fr/fseplanner/data/unbuilt.json').then(response => {
+      if (response.ok) {
+        response.json().then(arr => {
+          setUnbuildFBOs(arr);
+        });
+      }
+    });
+  }, []);
+
 
   props.actions.current.contextMenu = setContextMenu;
 
@@ -186,6 +198,18 @@ const FSEMap = React.memo(function FSEMap(props) {
             siminfo={s.display.sim}
             actions={props.actions}
             id="fse"
+          />
+        </LayersControl.Overlay>
+        <LayersControl.Overlay name="Unbuilt lots" checked={false}>
+          <AirportsLayer
+            icaos={unbuiltFBOs}
+            icaodata={props.options.icaodata}
+            fseicaodata={props.options.icaodata}
+            color={s.display.markers.colors.fse}
+            size={s.display.markers.sizes.custom}
+            siminfo={s.display.sim}
+            actions={props.actions}
+            id="fbo"
           />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="MSFS airports" checked={false}>
