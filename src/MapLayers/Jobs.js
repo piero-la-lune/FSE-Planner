@@ -6,6 +6,7 @@ import { useLeaflet } from "react-leaflet";
 
 import Marker from "./Components/Marker.js";
 import Job from "./Components/Job.js";
+import { hideAirport } from "../utility.js";
 
 
 function cleanLegs(jobs, opts) {
@@ -18,6 +19,9 @@ function cleanLegs(jobs, opts) {
     const [frIcao, toIcao] = keys[i].split('-');
     const fr = { latitude: opts.icaodata[frIcao].lat, longitude: opts.icaodata[frIcao].lon };
     const to = { latitude: opts.icaodata[toIcao].lat, longitude: opts.icaodata[toIcao].lon };
+
+    // Filter out airports not meeting criterias
+    if (hideAirport(frIcao, opts.settings.airport) || hideAirport(toIcao, opts.settings.airport)) { continue; }
 
     // Filter out jobs based on distance
     if (opts.minDist && leg.distance < opts.minDist) { continue; }

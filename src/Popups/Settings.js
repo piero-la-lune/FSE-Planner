@@ -17,6 +17,7 @@ import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import FlightLandIcon from '@material-ui/icons/FlightLand';
 import ExploreIcon from '@material-ui/icons/Explore';
 import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
+import BusinessIcon from '@material-ui/icons/Business';
 import Grid from '@material-ui/core/Grid';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
@@ -99,6 +100,29 @@ function SettingSwitch({xs, setting, s, setS, label, ...props}) {
           />
         }
         label={label}
+      />
+    </Grid>
+  );
+}
+function SettingSlider2({xs, setting, s, setS, label, ...props}) {
+  const val = setting.split('.').reduce((a, b) => a[b], s);
+  const computeVal = val => val > 3500 ? 3500+(val-3500)/10 : val;
+  const inverseVal = val => val > 3500 ? 3500+(val-3500)*10 : val;
+  return (
+    <Grid item xs={xs || 6}>
+      <Typography variant="body2">{label}:</Typography>
+      <Slider
+        min={0}
+        max={5500}
+        value={[computeVal(val[0]), computeVal(val[1])]}
+        valueLabelFormat={inverseVal}
+        valueLabelDisplay="auto"
+        onChange={(evt, value) => {
+          const obj = Object.assign({}, s);
+          _set(obj, setting, [inverseVal(value[0]), inverseVal(value[1])])
+          setS(obj);
+        }}
+        marks={[{value: 0, label: '1 lot'}, {value: 1000, label: '2 lots'}, {value: 3500, label: '3 lots'}]}
       />
     </Grid>
   );
@@ -217,6 +241,17 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Minimum job pay (in $)" setting='pay.min_job' xs={4} />
               <Setting s={s} setS={setS} label="Minimum leg pay (in $)" setting='pay.min_leg' xs={4} />
               <Setting s={s} setS={setS} label="Top paying jobs (in percent)" setting='pay.top' xs={4} />
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <BusinessIcon />&nbsp;<Typography>Airport filtering</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={3}>
+              <SettingSlider2 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
+              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use MSFS compatible airports" setting="airport.onlyMSFS" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>

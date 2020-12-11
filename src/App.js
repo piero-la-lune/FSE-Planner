@@ -99,6 +99,10 @@ const defaultSettings = {
     min_job: '',
     min_leg: '',
     top: '',
+  },
+  airport: {
+    size: [0, 23500],
+    onlyMSFS: false
   }
 };
 

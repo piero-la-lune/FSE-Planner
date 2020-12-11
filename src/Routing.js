@@ -35,6 +35,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { getDistance, convertDistance, getBounds } from "geolib";
 
 import RoutingWorker from './routing.worker.js';
+import { hideAirport } from "./utility.js";
 
 const useStyles = makeStyles(theme => ({
   routing: {
@@ -467,6 +468,7 @@ const Routing = React.memo((props) => {
     const jobs = {};
     for (const [k, v] of Object.entries(props.options.jobs)) {
       const [fr, to] = k.split('-');
+      if (hideAirport(fr, props.options.settings.airport) || hideAirport(to, props.options.settings.airport)) { continue; }
       const obj = {
         cargos: {
           TripOnly: [],

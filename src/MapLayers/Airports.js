@@ -6,6 +6,7 @@ import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 
 import Marker from "./Components/Marker.js";
 import Job from "./Components/Job.js";
+import { hideAirport } from "../utility.js";
 
 const AirportsLayer = React.memo(function AirportsLayer(props) {
 
@@ -67,6 +68,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
 
     // Create markers
     for (const icao of props.icaos) {
+      if (hideAirport(icao, props.airportFilter)) { continue; }
       Marker({
         position: [props.icaodata[icao].lat, props.icaodata[icao].lon],
         size: props.size,
@@ -99,7 +101,8 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
     props.actions,
     props.id,
     props.weight,
-    props.highlight
+    props.highlight,
+    props.airportFilter
   ]);
 
   return null;
