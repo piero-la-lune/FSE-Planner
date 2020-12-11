@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.2.0] - 2020-12-11
+
+### Added
+- New map overlay with unbuilt lots (updated daily)
+- Airport filter settings: only show/consider aiports in MSFS or in the given size range (also works with Route Finder)
+
+### Changed
+- Display sort by value in Route Finder results
+
+### Fixed
+- Planes showing as rentable but cannot be rented
+- Tutorial skip button issue
+
+
+
 ## [1.1.1] - 2020-12-07
 
 ### Added
