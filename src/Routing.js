@@ -35,6 +35,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { getDistance, convertDistance, getBounds } from "geolib";
 
 import RoutingWorker from './routing.worker.js';
+import { hideAirport } from "./utility.js";
 
 const useStyles = makeStyles(theme => ({
   routing: {
@@ -82,24 +83,31 @@ const useStyles = makeStyles(theme => ({
     cursor: "pointer",
     "&:hover": {
       background: "#f9f9f9"
-    }
+    },
+    position: "relative"
   },
   separator: {
     marginLeft: 1,
     marginRight: 1
   },
   icon: {
-    color: "#ccc",
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(0.2)
   },
   grid: {
-    marginTop: theme.spacing(1)
+    marginTop: theme.spacing(1),
+    marginLeft: -theme.spacing(2)
   },
   gridText: {
     display: "flex",
     alignItems: "center",
-    color: "#888",
     justifyContent: "center"
+  },
+  sortByValue: {
+    position: "absolute",
+    top: theme.spacing(1),
+    right: theme.spacing(1),
+    color: "#aaa",
+    fontSize: "0.8em"
   },
   form: {
     padding: theme.spacing(2),
@@ -242,8 +250,17 @@ function textTotalCargo(cargos, kgPax = true) {
   return text.join(' and ');
 }
 
+function filterText(sortBy, result) {
+  switch(sortBy) {
+    case 'payNM': return '$'+Math.round(result.payNM)+'/NM';
+    case 'payLeg': return '$'+Math.round(result.payLeg)+'/leg';
+    case 'payTime': return '$'+Math.round(result.payTime)+'/H';
+    case 'pay': return '';
+    default: return '$'+result.b+' bonus';
+  }
+}
 
-const Results = React.memo(({results, classes, showDetail, goTo, setRoute, nbDisplay}) => {
+const Results = React.memo(({results, classes, showDetail, goTo, setRoute, nbDisplay, sortBy}) => {
   return (
     results.slice(0, nbDisplay).map(result =>
       <div
@@ -272,15 +289,16 @@ const Results = React.memo(({results, classes, showDetail, goTo, setRoute, nbDis
         </Breadcrumbs>
         <Grid container spacing={1} className={classes.grid}>
           <Grid item xs={4}>
-            <Typography variant="body2" className={classes.gridText}><MonetizationOnIcon className={classes.icon} />${result.pay}</Typography>
+            <Typography variant="body2" className={classes.gridText}><MonetizationOnIcon className={classes.icon} />{result.pay}</Typography>
           </Grid>
           <Grid item xs={4}>
-            <Typography variant="body2" className={classes.gridText}><SettingsEthernetIcon className={classes.icon} />{result.distance}NM</Typography>
+            <Typography variant="body2" className={classes.gridText}><SettingsEthernetIcon className={classes.icon} />{result.distance} NM</Typography>
           </Grid>
           <Grid item xs={4}>
             <Typography variant="body2" className={classes.gridText}><TimerIcon className={classes.icon} />{result.time}</Typography>
           </Grid>
         </Grid>
+        <Typography variant="body2" className={classes.sortByValue}>{filterText(sortBy, result)}</Typography>
       </div>
     )
   );
@@ -467,6 +485,7 @@ const Routing = React.memo((props) => {
     const jobs = {};
     for (const [k, v] of Object.entries(props.options.jobs)) {
       const [fr, to] = k.split('-');
+      if (hideAirport(fr, props.options.settings.airport) || hideAirport(to, props.options.settings.airport)) { continue; }
       const obj = {
         cargos: {
           TripOnly: [],
@@ -628,10 +647,10 @@ const Routing = React.memo((props) => {
             <div className={classes.content}>
               <Grid container spacing={1} className={classes.tlGrid}>
                 <Grid item xs={4}>
-                  <Typography variant="body1" className={classes.tlGridText}><MonetizationOnIcon className={classes.icon} />${focus.pay}</Typography>
+                  <Typography variant="body1" className={classes.tlGridText}><MonetizationOnIcon className={classes.icon} />{focus.pay}</Typography>
                 </Grid>
                 <Grid item xs={4}>
-                  <Typography variant="body1" className={classes.tlGridText}><SettingsEthernetIcon className={classes.icon} />{focus.distance}NM</Typography>
+                  <Typography variant="body1" className={classes.tlGridText}><SettingsEthernetIcon className={classes.icon} />{focus.distance} NM</Typography>
                 </Grid>
                 <Grid item xs={4}>
                   <Typography variant="body1" className={classes.tlGridText}><TimerIcon className={classes.icon} />{focus.time}</Typography>
@@ -889,6 +908,7 @@ const Routing = React.memo((props) => {
                 goTo={props.actions.current.goTo}
                 setRoute={props.setRoute}
                 nbDisplay={nbDisplay}
+                sortBy={sortBy}
               />
             </div>
           </React.Fragment>

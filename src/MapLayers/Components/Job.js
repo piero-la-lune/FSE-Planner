@@ -40,7 +40,7 @@ function Tooltip({leg, type, rleg, fromIcao, toIcao}) {
   const classes = useStyles();
   return (
     <div>
-      <Typography variant="body1"><b>{leg.distance}NM</b><span className={classes.icaos}>{fromIcao} - {toIcao}</span></Typography>
+      <Typography variant="body1"><b>{leg.distance} NM</b><span className={classes.icaos}>{fromIcao} - {toIcao}</span></Typography>
       { leg.amount > 0 && <Cargo cargo={{[type]: leg.amount}} pay={leg.pay} dir={leg.direction} /> }
       { rleg && rleg.amount > 0 && <Cargo cargo={{[type]: rleg.amount}} pay={rleg.pay} dir={rleg.direction} /> }
       { (leg.flight || (rleg && rleg.flight)) &&

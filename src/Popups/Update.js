@@ -101,6 +101,7 @@ function cleanPlanes(list) {
     if (obj.Location === 'In Flight') { continue; }
     if (obj.RentedBy !== 'Not rented.') { continue; }
     if (!obj.RentalDry && !obj.RentalWet) { continue; }
+    if (obj.FeeOwed) { continue; }
 
     // Ensure location exist in planes object
     if (!planes.hasOwnProperty(obj.MakeModel)) { planes[obj.MakeModel] = {}; }

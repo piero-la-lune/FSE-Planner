@@ -82,6 +82,24 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.2.0 (2020-12-11)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>New map overlay with unbuilt lots (updated daily)</ListItem>
+              <ListItem>Airport filter settings: only show/consider aiports in MSFS or in the given size range (also works with Route Finder)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Display sort by value in Route Finder results</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Planes showing as rentable but cannot be rented</ListItem>
+              <ListItem>Tutorial skip button issue</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.1.1 (2020-12-07)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>

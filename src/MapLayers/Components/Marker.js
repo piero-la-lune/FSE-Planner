@@ -104,7 +104,7 @@ function PlaneHome({plane, icaodata, icao, actions}) {
         <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane} title="Go to FSE">
           <OpenInNewIcon fontSize="inherit" />
         </Link>
-        : ${plane.dry}/${plane.wet} (${plane.bonus})
+        : {plane.dry ? '$'+plane.dry : '-'}/{plane.wet ? '$'+plane.wet : '-'} (${plane.bonus})
       </Typography>
     );
   }
@@ -126,7 +126,7 @@ function PlaneHome({plane, icaodata, icao, actions}) {
         <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane} title="Go to FSE">
           <OpenInNewIcon fontSize="inherit" />
         </Link>
-        : ${plane.dry}/${plane.wet} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
+        : {plane.dry ? '$'+plane.dry : '-'}/{plane.wet ? '$'+plane.wet : '-'} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
       </Typography>
       <Typography variant="body2" className={classes.planeHome}>
         Home:
