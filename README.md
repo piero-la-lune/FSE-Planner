@@ -32,6 +32,9 @@ FSE Planner is a map visualization app that allows you to display all kind of in
 <p align="center">
 	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/master/visual_assets/feature5.png?raw=true" alt="Display all MSFS airports on the map & warn about non-existent or renamed airports">
 </p>
+<p align="center">
+	<img width="600" src="https://github.com/piero-la-lune/FSE-Planner/blob/master/visual_assets/feature7.png?raw=true" alt="Display all airport with available lots to be built upon & filter out airports based on size">
+</p>
 
 
 
