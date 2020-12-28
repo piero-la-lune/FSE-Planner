@@ -40,6 +40,11 @@ import RoutingWorker from './routing.worker.js';
 import { hideAirport } from "./utility.js";
 
 import aircrafts from "./data/aircraft.json";
+  // See: https://stackoverflow.com/a/57786248
+  const mapAdjacent = (mapping, [head, ...tail]) =>
+    tail.reduceRight((recur, item) => prev =>
+      [mapping(prev, item), ...recur(item)]
+      , _ => [])(head);
 
 const useStyles = makeStyles(theme => ({
   routing: {
@@ -336,6 +341,8 @@ const Routing = React.memo((props) => {
   const [filterMenu, setFilterMenu] = React.useState(null);
   const [minDist, setMinDist] = React.useState('');
   const [maxDist, setMaxDist] = React.useState('');
+  const [minLegDist, setMinLegDist] = React.useState('');
+  const [maxLegDist, setMaxLegDist] = React.useState('');
   const [minPay, setMinPay] = React.useState('');
   const [maxPay, setMaxPay] = React.useState('');
   const [minTime, setMinTime] = React.useState('');
@@ -391,6 +398,8 @@ const Routing = React.memo((props) => {
           || (maxPay && elm.pay > maxPay)
           || (minTimeNb && elm.timeNb < minTimeNb)
           || (maxTimeNb && elm.timeNb > maxTimeNb)
+          || (minLegDist && elm.legDists.some(x => x < parseFloat(minLegDist)))
+          || (maxLegDist && elm.legDists.some(x => x > parseFloat(maxLegDist)))
         );
       })
       r.sort(sortFunctions[sortBy]);
@@ -562,6 +571,9 @@ const Routing = React.memo((props) => {
       allResults[i].reg = planeReg;
       allResults[i].rentalType = rentalType;
       allResults[i].b = bonus;
+      allResults[i].legDists = mapAdjacent((fr, to) => convertDistance(getDistance(fr, to), 'sm'),
+                                           allResults[i].icaos.map(icao => { return {latitude: props.options.icaodata[icao].lat,
+                                                                                     longitude: props.options.icaodata[icao].lon} }));
     }
     allResults.sort(sortFunctions[sortBy]);
 
@@ -920,6 +932,38 @@ const Routing = React.memo((props) => {
                         variant="outlined"
                         value={maxDist}
                         onChange={(evt) => setMaxDist(evt.target.value.replace(/[^0-9]/g, ''))}
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                        }}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        margin="dense"
+                        className={classes.filtersInput}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Min leg distance"
+                        variant="outlined"
+                        value={minLegDist}
+                        onChange={(evt) => setMinLegDist(evt.target.value.replace(/[^0-9]/g, ''))}
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                        }}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        margin="dense"
+                        className={classes.filtersInput}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Max leg distance"
+                        variant="outlined"
+                        value={maxLegDist}
+                        onChange={(evt) => setMaxLegDist(evt.target.value.replace(/[^0-9]/g, ''))}
                         InputProps={{
                           endAdornment: <InputAdornment position="end">NM</InputAdornment>,
                         }}
