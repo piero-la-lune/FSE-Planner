@@ -121,6 +121,7 @@ function cleanPlanes(list) {
 
 function cleanJobs(list, icaodata) {
   const jobs = {};
+  let missingIcaos = {};
   for (const job of list) {
     // Do not keep non paying jobs
     if (!job.Pay) { continue; }
@@ -129,6 +130,16 @@ function cleanJobs(list, icaodata) {
 
     // Ensure leg exist in jobs object
     if (!jobs.hasOwnProperty(key)) {
+      let hasMissingIcao = false;
+      if (icaodata[job.Location] === undefined) {
+        missingIcaos[job.Location] = true;
+        hasMissingIcao = true;
+      }
+      if (icaodata[job.ToIcao] === undefined) {
+        missingIcaos[job.ToIcao] = true;
+        hasMissingIcao = true;
+      }
+      if (hasMissingIcao) { continue; }
       const fr = { latitude: icaodata[job.Location].lat, longitude: icaodata[job.Location].lon };
       const to = { latitude: icaodata[job.ToIcao].lat, longitude: icaodata[job.ToIcao].lon };
       jobs[key] = {
@@ -147,6 +158,9 @@ function cleanJobs(list, icaodata) {
       nb: job.Amount,
       pay: job.Pay
     });
+  }
+  if (Object.keys(missingIcaos).length > 0) {
+    console.warn("Jobs contained %d missing ICAOs: %s", Object.keys(missingIcaos).length, Object.keys(missingIcaos).join(" "));
   }
   return jobs;
 }
