@@ -158,7 +158,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         setContextMenu({
           mouseX: evt.originalEvent.clientX,
           mouseY: evt.originalEvent.clientY,
-          title: lat + (lat >= 0 ? 'N ' : 'S ') + lon + (lon >= 0 ? 'E': 'W'),
+          title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
           actions: []
         });
       }}
