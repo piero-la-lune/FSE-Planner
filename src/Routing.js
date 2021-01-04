@@ -511,14 +511,14 @@ const Routing = React.memo((props) => {
       if (v.passengers) {
         if (v.passengers['Trip-Only']) {
           for (const c of v.passengers['Trip-Only']) {
-            if (c.nb*70 > maxKg || c.nb > maxPax) { continue; }
-            obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*70, pay: c.pay, from: fr, to: to});
+            if (c.nb*77 > maxKg || c.nb > maxPax) { continue; }
+            obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to});
           }
         }
         if (v.passengers['VIP']) {
           for (const c of v.passengers['VIP']) {
-            if (c.nb*70 > maxKg || c.nb > maxPax) { continue; }
-            obj.cargos.VIP.push({pax: c.nb, kg: c.nb*70, pay: c.pay, from: fr, to: to});
+            if (c.nb*77 > maxKg || c.nb > maxPax) { continue; }
+            obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to});
           }
         }
       }
