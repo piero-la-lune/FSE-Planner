@@ -4,6 +4,7 @@ import Link from '@material-ui/core/Link';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import NavigationIcon from '@material-ui/icons/Navigation';
 import CenterFocusStrongIcon from '@material-ui/icons/CenterFocusStrong';
+import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
@@ -12,6 +13,7 @@ import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
+import { airportSurface } from "../../utility.js"
 
 const useStyles = makeStyles(theme => ({
   striked: {
@@ -21,15 +23,22 @@ const useStyles = makeStyles(theme => ({
     textDecorationStyle: 'double',
     fontWeight: 300
   },
-  icao: {
-    display: 'flex',
-    alignItems: 'center',
+  popupHeader: {
     background: theme.palette.primary.main,
     color: '#fff',
-    padding: '3px 32px 3px 8px',
+    padding: '3px 32px 6px 8px',
     borderTopLeftRadius: 3,
-    borderTopRightRadius: 3,
-    margin: '-14px -14px 8px -14px'
+    borderTopRightRadius: 3
+  },
+  popupPart: {
+    padding: '6px 8px 12px 8px'
+  },
+  popupLabel: {
+    margin: '8px 0 0 0 !important'
+  },
+  icao: {
+    display: 'flex',
+    alignItems: 'center'
   },
   icon: {
     display: 'inline-flex',
@@ -46,29 +55,28 @@ const useStyles = makeStyles(theme => ({
       color: '#fff !important'
     }
   },
-  sim: {
-    background: theme.palette.primary.main,
-    padding: '8px 8px',
-    color: 'rgba(255, 255, 255, 0.5)',
-    margin: '-12px -14px 8px -14px !important',
-    lineHeight: '1'
+  name: {
+    margin: '0 0 0 28px !important',
+    fontWeight: 300,
   },
-  simLabel: {
-    fontSize: '0.7em',
-    display: 'block',
-    marginBottom: theme.spacing(0.5)
+  simSeparator: {
+    marginLeft: 4,
+    marginRight: 4
   },
-  simIcao: {
-    display: 'inline-block',
-    marginRight: theme.spacing(0.5)
+  model: {
+    background: theme.palette.primary.light,
+    color: '#fff',
+    margin: '0 !important',
+    padding: '2px 4px',
+    borderRadius: 3
   },
   plane: {
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
+    margin: '6px 0 0 12px !important'
   },
   planeHome: {
-    marginTop: '-10px !important',
-    marginLeft: theme.spacing(2)+'px !important',
+    margin: '0 0 0 24px !important',
     fontSize: '0.7rem',
     color: '#aaa',
     display: 'flex',
@@ -149,31 +157,60 @@ function Popup(props) {
     iconRef.current.innerHTML = SVGs.get(icaodata[icao].type, icaodata[icao].size);
   }, [icaodata, icao]);
 
+  const models = {}
+  if (planes) {
+    for (const plane of planes) {
+      if (!models[plane.model]) { models[plane.model] = []; }
+      models[plane.model].push(plane);
+    }
+  }
+
   return (
     <React.Fragment>
-      <Typography variant="h5" className={classes.icao}>
-        <span ref={iconRef} className={classes.icon}></span>
+      <div className={classes.popupHeader}>
+        <Typography variant="h5" className={classes.icao}>
+          <span ref={iconRef} className={classes.icon}></span>
+          {
+            icaodata[icao][siminfo][0] === icao ?
+              icao
+            :
+              <React.Fragment>
+                <span className={classes.striked}>{icao}</span>{icaodata[icao][siminfo][0]}
+              </React.Fragment>
+          }
+          <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE} title="Go to FSE">
+            <OpenInNewIcon fontSize="inherit" />
+          </Link>
+        </Typography>
+        <Typography variant="body2" className={classes.name}>{icaodata[icao].name}</Typography>
+      </div>
+      <div className={classes.popupPart}>
+        <Typography variant="body2" className={classes.popupLabel}>Surface: {airportSurface(icaodata[icao].surface)}</Typography>
+        <Typography variant="body2" className={classes.popupLabel}>Longest runway: {icaodata[icao].runway} feet</Typography>
         {
-          icaodata[icao][siminfo][0] === icao ?
-            icao
-          :
+          icaodata[icao][siminfo].length > 1 &&
             <React.Fragment>
-              <span className={classes.striked}>{icao}</span>{icaodata[icao][siminfo][0]}
+              <Typography variant="body2" className={classes.popupLabel}>MSFS alternatives:</Typography>
+              <Breadcrumbs
+                separator={null}
+                maxItems={4}
+                itemsBeforeCollapse={4}
+                itemsAfterCollapse={0}
+                classes={{separator: classes.simSeparator}}
+                component='span'
+              >
+                {icaodata[icao][siminfo].slice(1).map(elm => <span key={elm}>{elm}</span>)}
+              </Breadcrumbs>
             </React.Fragment>
         }
-        <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE} title="Go to FSE">
-          <OpenInNewIcon fontSize="inherit" />
-        </Link>
-      </Typography>
+      </div>
       {
-        icaodata[icao][siminfo].length > 1 &&
-          <Typography variant="body2" className={classes.sim}>
-            <span className={classes.simLabel}>Other possible landing spots:</span>
-            {icaodata[icao][siminfo].slice(1).map(elm => <span key={elm} className={classes.simIcao}>{elm}</span>)}
-          </Typography>
-      }
-      {
-        planes && planes.map(plane => <PlaneHome key={plane.reg} plane={plane} {...props} />)
+        planes && Object.entries(models).map(([model, planes]) =>
+          <div className={classes.popupPart} key={model}>
+            <Typography variant="body1" className={classes.model}>{model}</Typography>
+            {planes.map(plane => <PlaneHome key={plane.reg} plane={plane} {...props} />)}
+          </div>
+        )
       }
     </React.Fragment>
   );
@@ -198,14 +235,16 @@ function Marker({position, size, color, sim, id, ...props}) {
     .bindPopup(() => {
       var div = document.createElement('div');
       if (sim) {
-        ReactDOM.render(<Typography variant="h5">{props.icao}</Typography>, div);
+        ReactDOM.render(<Typography variant="h5" style={{padding:'3px 8px 3px 8px'}}>{props.icao}</Typography>, div);
       }
       else {
         ReactDOM.render(<Popup {...props} />, div);
       }
       return div;
     }, {
-      autoPanPadding: new L.Point(30, 30)
+      autoPanPadding: new L.Point(30, 30),
+      minWidth: sim ? 100 : Math.min(250, window.innerWidth-10),
+      maxWidth: Math.max(600, window.innerWidth-10)
     })
     .on('contextmenu', (evt) => {
       L.DomEvent.stopPropagation(evt);

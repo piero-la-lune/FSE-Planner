@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.3.0] - 2021-01-05
+
+### Added
+- New airport surface and airport runway length filter ([#20](https://github.com/piero-la-lune/FSE-Planner/issues/20))
+
+### Changed
+- Airport popup now show runway length and surface
+- Airplane model list updated to include the new CJ4 and 2 other new models ([#19](https://github.com/piero-la-lune/FSE-Planner/issues/19))
+
+### Fixed
+- Wrong latitude and longitude in context menu ([#25](https://github.com/piero-la-lune/FSE-Planner/issues/25))
+- Missing MN24 airport ([#14](https://github.com/piero-la-lune/FSE-Planner/issues/14))
+- Wrong passenger weight in Route Planner ([#21](https://github.com/piero-la-lune/FSE-Planner/issues/21))
+
+
+
 ## [1.2.0] - 2020-12-11
 
 ### Added
