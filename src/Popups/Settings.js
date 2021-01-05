@@ -21,6 +21,7 @@ import BusinessIcon from '@material-ui/icons/Business';
 import Grid from '@material-ui/core/Grid';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import MenuItem from '@material-ui/core/MenuItem';
 import { makeStyles } from '@material-ui/core/styles';
 
 import {default as _set} from 'lodash/set';
@@ -127,6 +128,60 @@ function SettingSlider2({xs, setting, s, setS, label, ...props}) {
     </Grid>
   );
 }
+function SettingSlider3({xs, setting, s, setS, label, ...props}) {
+  const val = setting.split('.').reduce((a, b) => a[b], s);
+  const computeVal = val => val > 15000 ? 15000 : val;
+  const inverseVal = val => val === 15000 ? 30000 : val;
+  return (
+    <Grid item xs={xs || 6}>
+      <Typography variant="body2">{label}:</Typography>
+      <Slider
+        min={0}
+        max={15000}
+        value={[computeVal(val[0]), computeVal(val[1])]}
+        valueLabelFormat={inverseVal}
+        valueLabelDisplay="auto"
+        onChange={(evt, value) => {
+          const obj = Object.assign({}, s);
+          _set(obj, setting, [inverseVal(value[0]), inverseVal(value[1])])
+          setS(obj);
+        }}
+        marks={[{value: 5000, label: '5000 feet'}, {value: 10000, label: '10000 feet'}, {value: 15000, label: 'no limit'}]}
+      />
+    </Grid>
+  );
+}
+function SettingSelect({xs, setting, s, setS, ...props}) {
+  return (
+    <Grid item xs={xs || 6}>
+      <TextField
+        {...props}
+        variant="outlined"
+        fullWidth
+        size="small"
+        value={setting.split('.').reduce((a, b) => a[b], s)}
+        select
+        SelectProps={{multiple: true}}
+        onChange={(evt) => {
+          const obj = Object.assign({}, s);
+          _set(obj, setting, evt.target.value)
+          setS(obj);
+        }}
+      >
+        <MenuItem value={1}>Asphalt</MenuItem>
+        <MenuItem value={2}>Concrete</MenuItem>
+        <MenuItem value={3}>Coral</MenuItem>
+        <MenuItem value={4}>Dirt</MenuItem>
+        <MenuItem value={5}>Grass</MenuItem>
+        <MenuItem value={6}>Gravel</MenuItem>
+        <MenuItem value={7}>Helipad</MenuItem>
+        <MenuItem value={8}>Oil Treated</MenuItem>
+        <MenuItem value={9}>Snow</MenuItem>
+        <MenuItem value={10}>Steel Mats</MenuItem>
+        <MenuItem value={11}>Water</MenuItem>
+      </TextField>
+    </Grid>
+  );}
 
 
 function SettingsPopup(props) {
@@ -251,6 +306,8 @@ function SettingsPopup(props) {
           <AccordionDetails>
             <Grid container spacing={3}>
               <SettingSlider2 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
+              <SettingSlider3 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
+              <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" xs={12} />
               <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use MSFS compatible airports" setting="airport.onlyMSFS" xs={12} />
             </Grid>
           </AccordionDetails>

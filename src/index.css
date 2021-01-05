@@ -16,13 +16,10 @@ code {
 }
 
 .leaflet-popup-content {
-	margin: 13px 13px;
-}
-
-.leaflet-popup-content p {
-	margin: 6px 0;
+	margin: 0;
 }
 
 .leaflet-popup-content-wrapper {
 	border-radius: 3px;
+  padding: 0;
 }
