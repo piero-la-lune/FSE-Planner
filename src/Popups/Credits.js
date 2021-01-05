@@ -41,6 +41,11 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
+function IssueLink({id}) {
+  return <Link href={"https://github.com/piero-la-lune/FSE-Planner/issues/"+id} target="_blank">#{id}</Link>
+}
+
+
 function CreditsPopup(props) {
 
   const [expanded, setExpanded] = React.useState(0);
@@ -81,6 +86,25 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
+          <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.3.0 (2021-01-05)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>New airport surface and airport runway length filter (<IssueLink id={20} />)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Airport popup now show runway length and surface</ListItem>
+              <ListItem>Airplane model list updated to include the new CJ4 and 2 other new models (<IssueLink id={19} />)</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Wrong latitude and longitude in context menu (<IssueLink id={25} />)</ListItem>
+              <ListItem>Missing MN24 airport (<IssueLink id={14} />)</ListItem>
+              <ListItem>Wrong passenger weight in Route Planner (<IssueLink id={21} />)</ListItem>
+            </List>
+          </Paper>
+
           <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.2.0 (2020-12-11)</Typography>
             <Typography variant="h6">Added</Typography>
