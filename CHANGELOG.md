@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.3.1] - 2021-01-07
+
+### Fixed
+- Wrong passenger count in Route Finder ([#31](https://github.com/piero-la-lune/FSE-Planner/issues/31))
+
+
+
 ## [1.3.0] - 2021-01-05
 
 ### Added
@@ -18,7 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Wrong latitude and longitude in context menu ([#25](https://github.com/piero-la-lune/FSE-Planner/issues/25))
 - Missing MN24 airport ([#14](https://github.com/piero-la-lune/FSE-Planner/issues/14))
-- Wrong passenger weight in Route Planner ([#21](https://github.com/piero-la-lune/FSE-Planner/issues/21))
+- Wrong passenger weight in Route Finder ([#21](https://github.com/piero-la-lune/FSE-Planner/issues/21))
 
 
 

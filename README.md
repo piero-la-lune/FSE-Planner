@@ -52,7 +52,7 @@ To install your own instance of FSE Planner on your computer:
 2. Unzip the release on your computer
 3. Open `index.html` in your favorite web browser
 
-/!\ The Route Planner will not work. This is a known issue with no workaround (see Remote installation to make it works).
+/!\ The Route Finder will not work. This is a known issue with no workaround (see Remote installation to make it works).
 
 ### Remote (server) installation
 

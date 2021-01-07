@@ -87,6 +87,14 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.3.1 (2021-01-07)</Typography>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Wrong passenger count in Route Finder (<IssueLink id={31} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.3.0 (2021-01-05)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
@@ -101,7 +109,7 @@ function CreditsPopup(props) {
             <List dense>
               <ListItem>Wrong latitude and longitude in context menu (<IssueLink id={25} />)</ListItem>
               <ListItem>Missing MN24 airport (<IssueLink id={14} />)</ListItem>
-              <ListItem>Wrong passenger weight in Route Planner (<IssueLink id={21} />)</ListItem>
+              <ListItem>Wrong passenger weight in Route Finder (<IssueLink id={21} />)</ListItem>
             </List>
           </Paper>
 
