@@ -42,11 +42,67 @@ FSE Planner is a map visualization app that allows you to display all kind of in
 
 A public instance of FSE Planner is available at [https://piero-la-lune.fr/fseplanner/](https://piero-la-lune.fr/fseplanner/).
 
-If you prefer, you can instead install your own instance on your computer:
+If you prefer, you can instead install your own instance.
+
+### Local installation
+
+To install your own instance of FSE Planner on your computer:
 
 1. Download the [latest release](https://github.com/piero-la-lune/FSE-Planner/releases) from GitHub (you can also build the application from scratch, see "Developer instructions" bellow)
 2. Unzip the release on your computer
 3. Open `index.html` in your favorite web browser
+
+/!\ The Route Finder will not work. This is a known issue with no workaround (see Remote installation to make it works).
+
+### Remote (server) installation
+
+To install your own instance of FSE Planner on a web server, execute the following steps.
+
+/!\ Because of a bad configuration of the FSE server (wrong CORS settings), you will need to set up a proxy (you may also use an existing one such as https://cors-anywhere.herokuapp.com/).
+
+1. Clone the [latest release](https://github.com/piero-la-lune/FSE-Planner/releases) on your computer or server
+2. Edit the `.env` file to specify your proxy URL, for instance:
+```
+REACT_APP_PROXY=https://cors-anywhere.herokuapp.com/https://server.fseconomy.net/
+```
+3. Build the app (`npm install` then `npm run build`)
+4. Drop all the files from the `build` folder to your web server.
+
+Example of a complete nginx configuration:
+```
+server {
+
+        listen 80;
+
+        server_name YOUR_DOMAIN;
+
+        root /YOUR_APP_FOLDER;
+
+        location /proxy {
+
+                if ($http_origin !~* "(^null$|^$|^https?://(YOUR_DOMAIN|localhost:3000)$)") {
+                        return 404;
+                }
+
+                rewrite ^/proxy/(.*)$ /$1 break;
+
+                # Activate proxy
+                proxy_set_header                X-Real-IP $remote_addr;
+                proxy_set_header                X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_pass                      https://server.fseconomy.net;
+                proxy_redirect                  off;
+                proxy_buffers                   32 16k;
+                proxy_busy_buffers_size         64k;
+
+                # Add CORS headers
+                add_header    'Access-Control-Allow-Origin' "$http_origin" always;
+                add_header    'Access-Control-Allow-Methods' 'GET' always;
+                add_header    'Access-Control-Allow-Headers' 'Origin, X-Requested-With, Content-Type, Accept' always;
+                add_header    'Access-Control-Allow-Credentials' 'true' always;
+        }
+
+}
+```
 
 
 ## Developer instructions

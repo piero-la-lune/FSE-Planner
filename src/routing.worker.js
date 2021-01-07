@@ -325,13 +325,13 @@ onmessage = function({data}) {
       // Try to add even more load: analyze each route
       for (var i = 0; i < allResults.length; i++) {
         const route = allResults[i];
+        const icaos = [];
 
         // Analyse each stop in route
-        for (var j = 2; j < route.icaos.length; j++) {
-
-          // Compute remaining space
-          let [remainPax, remainKg] = computeRemain(route.cargos[j-1], options.maxPax, options.maxKg);
-          if (!remainKg) { continue; }
+        for (var j = 1; j < route.icaos.length; j++) {
+          if (icaos.includes(route.icaos[j])) { break; }
+          icaos.push(route.icaos[j]);
+          if (j<2) { continue; }
 
           // If previous leg as a job not coming from the previous stop, abort
           let stop = false;
@@ -343,9 +343,17 @@ onmessage = function({data}) {
           }
           if (stop) { continue; }
 
+          // Compute remaining space
+          if (route.cargos[j-1].VIP.length) { continue; }
+          let [remainPax, remainKg] = computeRemain(route.cargos[j-1], options.maxPax, options.maxKg);
+          if (!remainKg) { continue; }
+
           // Find previous stop having jobs to the same destination
           for (k = j - 2; k >= 0; k--) {
             if (route.cargos[k].VIP.length) { break; }
+            let [remainPax2, remainKg2] = computeRemain(route.cargos[k], options.maxPax, options.maxKg);
+            remainPax = Math.min(remainPax, remainPax2);
+            remainKg = Math.min(remainKg, remainKg2);
             if (data.jobs[route.icaos[k]]) {
               const jb = data.jobs[route.icaos[k]].get(route.icaos[j]);
               if (jb) {
@@ -362,9 +370,6 @@ onmessage = function({data}) {
                 }
               }
             }
-            let [remainPax2, remainKg2] = computeRemain(route.cargos[k], options.maxPax, options.maxKg);
-            remainPax = Math.min(remainPax, remainPax2);
-            remainKg = Math.min(remainKg, remainKg2);
           }
         }
       }
