@@ -8,6 +8,7 @@ import Switch from '@material-ui/core/Switch';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Typography from '@material-ui/core/Typography';
+import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
 import Grid from '@material-ui/core/Grid';
 import Tooltip from '@material-ui/core/Tooltip';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -40,6 +41,9 @@ import RoutingWorker from './routing.worker.js';
 import { hideAirport } from "./utility.js";
 
 import aircrafts from "./data/aircraft.json";
+import icaodataSrc from "./data/icaodata-with-zones.json";
+const icaodataSrcArr = Object.values(icaodataSrc);
+
   // See: https://stackoverflow.com/a/57786248
   const mapAdjacent = (mapping, [head, ...tail]) =>
     tail.reduceRight((recur, item) => prev =>
@@ -229,6 +233,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+const filter = createFilterOptions({limit: 5});
 
 
 function textTotalCargo(cargos, kgPax = true) {
@@ -347,6 +352,8 @@ const Routing = React.memo((props) => {
   const [maxPay, setMaxPay] = React.useState('');
   const [minTime, setMinTime] = React.useState('');
   const [maxTime, setMaxTime] = React.useState('');
+  const [searchInput, setSearchInput] = React.useState('');
+  const [includedIcaos, setIncludedIcaos] = React.useState([]);
   const [nbDisplay, setNbDisplay] = React.useState(20);
   const [progress, setProgress] = React.useState(0);
   const [cancel, setCancel] = React.useState(null);
@@ -400,6 +407,7 @@ const Routing = React.memo((props) => {
           || (maxTimeNb && elm.timeNb > maxTimeNb)
           || (minLegDist && elm.legDists.some(x => x < parseFloat(minLegDist)))
           || (maxLegDist && elm.legDists.some(x => x > parseFloat(maxLegDist)))
+          || (includedIcaos.length !== 0 && !includedIcaos.every(x => elm.icaos.includes(x.icao)))
         );
       })
       r.sort(sortFunctions[sortBy]);
@@ -1042,6 +1050,28 @@ const Routing = React.memo((props) => {
                         }}
                         margin="dense"
                         className={classes.filtersInput}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Autocomplete
+                        multiple
+                        options={icaodataSrcArr}
+                        getOptionLabel={(a) => a.icao ? a.icao : ''}
+                        renderOption={(a) => a.icao ? a.icao : ''}
+                        filterOptions={(options, params) => {
+                          // Search for ICAO
+                          let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => (a.icao ? a.icao : '') });
+                          return filtered;
+                        }}
+                        onChange={(evt, value) => {
+                          setIncludedIcaos(value)
+                        }}
+                        renderInput={(params) => <TextField {...params} label="Include ICAOs" variant="outlined" />}
+                        value={includedIcaos}
+                        inputValue={searchInput}
+                        onInputChange={(evt, value) => setSearchInput(value)}
+                        autoHighlight={true}
+                        selectOnFocus={false}
                       />
                     </Grid>
                   </Grid>
