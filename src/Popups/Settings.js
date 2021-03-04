@@ -218,8 +218,8 @@ function SettingsPopup(props) {
             <Grid container spacing={3}>
               <Setting s={s} setS={setS} label="Standard airport color" setting='display.markers.colors.base' />
               <Setting s={s} setS={setS} label="Standard airport size" setting='display.markers.sizes.base' />
-              <Setting s={s} setS={setS} label="Airport with rentable plane color" setting='display.markers.colors.rentable' />
-              <Setting s={s} setS={setS} label="Airport with rentable plane size" setting='display.markers.sizes.rentable' />
+              <Setting s={s} setS={setS} label="Airport with available plane color" setting='display.markers.colors.rentable' />
+              <Setting s={s} setS={setS} label="Airport with available plane size" setting='display.markers.sizes.rentable' />
               <Setting s={s} setS={setS} label="Highlighted airport color" setting='display.markers.colors.selected' />
               <Setting s={s} setS={setS} label="Highlighted airport size" setting='display.markers.sizes.selected' />
               <Setting s={s} setS={setS} label="FSE airport color" setting='display.markers.colors.fse' />

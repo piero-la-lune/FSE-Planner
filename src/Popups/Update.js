@@ -92,7 +92,7 @@ function getIcaoList(countries, bounds, icaodata, icaos) {
 }
 
 
-function cleanPlanes(list) {
+function cleanPlanes(list, rentable = true) {
   const planes = {};
   for (const obj of list) {
     // Exclude broken airplanes
@@ -100,7 +100,7 @@ function cleanPlanes(list) {
     // Ensure plane can be rented
     if (obj.Location === 'In Flight') { continue; }
     if (obj.RentedBy !== 'Not rented.') { continue; }
-    if (!obj.RentalDry && !obj.RentalWet) { continue; }
+    if (rentable && !obj.RentalDry && !obj.RentalWet) { continue; }
     if (obj.FeeOwed) { continue; }
 
     // Ensure location exist in planes object
@@ -187,6 +187,9 @@ const useStyles = makeStyles(theme => ({
   },
   title: {
     flexGrow: 1
+  },
+  ownedPlanes: {
+    marginTop: theme.spacing(2)
   }
 }));
 
@@ -205,8 +208,10 @@ function UpdatePopup(props) {
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
   const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos).length);
   const [planeModel, setPlaneModel] = React.useState(storage.get('planeModel', []));
+  const [planeUser, setPlaneUser] = React.useState(storage.get('planeUser', []));
   const [planesTime, setPlanesTime] = React.useState(storage.get('planesTime'));
-  const [planesRequests, setPlanesRequests] = React.useState(planeModel.length);
+  const [rentablePlanesRequests, setRentablePlanesRequests] = React.useState(planeModel.length);
+  const [ownedPlanesRequests, setOwnedPlanesRequests] = React.useState(planeUser.length);
   const [flightTime, setFlightTime] = React.useState(storage.get('flightTime'));
   const [loading, setLoading] = React.useState(false);
   const [openCustom, setOpenCustom] = React.useState(false);
@@ -301,7 +306,7 @@ function UpdatePopup(props) {
   }
 
   // Loop function to get planes from FSE
-  const updatePlanesRequest = (models, planes, callback) => {
+  const updateRentablePlanesRequest = (models, planes, callback) => {
     if (!models.length) {
       callback(planes);
       return;
@@ -322,7 +327,7 @@ function UpdatePopup(props) {
         throw new Error("Parsing error");
       }
       // Convert array to object
-      updatePlanesRequest(models, [...planes, ...parse.data], callback);
+      updateRentablePlanesRequest(models, [...planes, ...parse.data], callback);
     })
     .catch(function(error) {
       console.log(error);
@@ -330,25 +335,57 @@ function UpdatePopup(props) {
       setLoading(false);
     });
   }
+  const updateOwnedPlanesRequest = (usernames, planes, callback) => {
+    if (!usernames.length) {
+      callback(planes);
+      return;
+    }
+    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=ownername&ownername='+encodeURI(usernames.pop());
+    // Fetch plane list
+    fetch(process.env.REACT_APP_PROXY+url)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error("Network error");
+      }
+      return response.text();
+    })
+    .then(function(csv) {
+      // Parse CSV
+      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy', dynamicTyping: true});
+      if (parse.errors.length > 0) {
+        throw new Error("Parsing error");
+      }
+      // Convert array to object
+      updateRentablePlanesRequest(usernames, [...planes, ...parse.data], callback);
+    })
+    .catch(function(error) {
+      console.log(error);
+      alert('Could not get data.\n\nPossible cause #1: specified user or group does not exist.\n\nPossible cause #2: wrong read access key or quota limit reached.');
+      setLoading(false);
+    });
+  }
   // Planes Update button clicked
   const updatePlanes = (evt) => {
     evt.stopPropagation();
     setLoading(true);
-    updatePlanesRequest(planeModel.slice(), [], (list) => {
-      // Transform to object
-      const planes = cleanPlanes(list);
-      // Update planes
-      storage.set('planes', planes);
-      props.setPlanes(planes);
-      // Update date
-      let date = new Date().toString();
-      storage.set('planesTime', date);
-      setPlanesTime(date);
-      // Update model
-      storage.set('planeModel', planeModel);
-      // Close popup
-      setLoading(false);
-      handleClose();
+    updateRentablePlanesRequest(planeModel.slice(), [], (list1) => {
+      updateOwnedPlanesRequest(planeUser.slice(), [], (list2) => {
+        // Transform to object
+        const planes = {...cleanPlanes(list1, true), ...cleanPlanes(list2, false)};
+        // Update planes
+        storage.set('planes', planes);
+        props.setPlanes(planes);
+        // Update date
+        let date = new Date().toString();
+        storage.set('planesTime', date);
+        setPlanesTime(date);
+        // Update model
+        storage.set('planeModel', planeModel);
+        storage.set('planeUser', planeUser);
+        // Close popup
+        setLoading(false);
+        handleClose();
+      });
     });
   }
   // Planes Clear button clicked
@@ -552,14 +589,14 @@ function UpdatePopup(props) {
 
         <Accordion expanded={expanded === 'panel3'} onChange={panelChange('panel3')} data-tour="Step6">
           <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
-            <Typography className={classes.title}>Rentable planes</Typography>
+            <Typography className={classes.title}>Available planes</Typography>
             <Button color="secondary" onClick={clearPlanes}>
               Clear
             </Button>
             &nbsp;
             <Tooltip title={<span>Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key || !planeModel.length || planesRequests > 10}>
+                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
                   Update
                   {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
@@ -572,16 +609,56 @@ function UpdatePopup(props) {
               limitTags={2}
               options={Object.keys(aircrafts)}
               renderInput={(params) => (
-                planesRequests > 1 ?
-                  <TextField {...params} label='Aircraft model' variant='outlined' error helperText={planesRequests+' models selected, it will require '+planesRequests+' requests (10 max)'} />
+                rentablePlanesRequests > 1 ?
+                  <TextField {...params} label='Rentable planes: aircraft models' variant='outlined' error helperText={rentablePlanesRequests+' models selected, it will require '+rentablePlanesRequests+' requests (10 max)'} />
                 :
-                  <TextField {...params} label='Aircraft model' variant='outlined' />
+                  <TextField {...params} label='Rentable planes: aircraft model' variant='outlined' />
               )}
               onChange={(evt, value) => {
                 setPlaneModel(value);
-                setPlanesRequests(value.length);
+                setRentablePlanesRequests(value.length);
               }}
               value={planeModel}
+            />
+            <Autocomplete
+              multiple
+              freeSolo
+              options={[]}
+              renderInput={(params) => (
+                ownedPlanesRequests > 1 ?
+                  <TextField {...params} label='Owned planes: user or group names' variant='outlined' error helperText={ownedPlanesRequests+' users/groups selected, it will require '+ownedPlanesRequests+' requests (10 max)'} />
+                :
+                  <TextField {...params} label='Owned planes: user or group name' variant='outlined' />
+              )}
+              onChange={(evt, value) => {
+                const arr = [];
+                for (const v of value) {
+                  if (typeof v === 'string') {
+                    arr.push(v);
+                  }
+                  else {
+                    arr.push(v.inputValue);
+                  }
+                }
+                setPlaneUser(arr);
+                setOwnedPlanesRequests(value.length);
+              }}
+              filterOptions={(options, params) => {
+                return params.inputValue === '' ? [] : [{
+                  inputValue: params.inputValue,
+                  title: `Owned by "${params.inputValue}"`,
+                }];
+              }}
+              getOptionLabel={(option) => {
+                // Value selected with enter, right from the input
+                if (typeof option === 'string') {
+                  return option;
+                }
+                // Owned by "xxx" option created dynamically
+                return option.title;
+              }}
+              value={planeUser}
+              className={classes.ownedPlanes}
             />
           </AccordionDetails>
         </Accordion>
