@@ -957,7 +957,7 @@ const Routing = React.memo((props) => {
             }}
             className={classes.typeButtons}
           >
-            <ToggleButton value="rent">Rent a plane</ToggleButton>
+            <ToggleButton value="rent">Available planes</ToggleButton>
             <ToggleButton value="free">Free search</ToggleButton>
           </ToggleButtonGroup>
 

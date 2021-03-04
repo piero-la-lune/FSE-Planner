@@ -3,10 +3,12 @@
 FSE Planner is a map visualization app that allows you to display all kind of information from [FSE Economy](https://www.fseconomy.net) onto a world map:
 
 * available jobs with tons of filtering options
-* available rentable planes
+* available rentable planes, available user/group planes
 * all FSE airports, with their landing area and corresponding MSFS airports
 * all MFSF airports
 * ...
+
+It also offers a tool to find the most paying routes.
 
 <p align="center">
 	<a href="https://www.youtube.com/watch?v=MDB7AFYSqMI"><img width="300" height="169" src="https://github.com/piero-la-lune/FSE-Planner/blob/master/visual_assets/video_small.png?raw=true" alt="Overview video"></a>
