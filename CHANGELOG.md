@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.3.2] - 2021-03-05
+
+### Added
+- You can now load owned planes (by any user or group) on top of / instead of publicly rentable planes
+
+### Fixed
+- Aircraft models list updated ([#36](https://github.com/piero-la-lune/FSE-Planner/issues/36))
+
+
+
 ## [1.3.1] - 2021-01-07
 
 ### Fixed

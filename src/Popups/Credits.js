@@ -87,6 +87,18 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.3.2 (2021-03-05)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>You can now load owned planes (by any user or group) on top of / instead of publicly rentable planes</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Aircraft models list updated (<IssueLink id={36} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.3.1 (2021-01-07)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
