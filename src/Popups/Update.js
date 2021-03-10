@@ -100,7 +100,9 @@ function cleanPlanes(list, rentable = true) {
     // Ensure plane can be rented
     if (obj.Location === 'In Flight') { continue; }
     if (obj.RentedBy !== 'Not rented.') { continue; }
-    if (rentable && !obj.RentalDry && !obj.RentalWet) { continue; }
+    if (rentable && !obj.RentalDry && !obj.RentalWet) {
+      if (!obj.Owner === 'Bank of FSE') { continue; }
+    }
     if (obj.FeeOwed) { continue; }
 
     // Ensure location exist in planes object
