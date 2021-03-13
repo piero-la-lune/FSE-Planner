@@ -101,7 +101,7 @@ function cleanPlanes(list, rentable = true) {
     if (obj.Location === 'In Flight') { continue; }
     if (obj.RentedBy !== 'Not rented.') { continue; }
     if (rentable && !obj.RentalDry && !obj.RentalWet) {
-      if (!obj.Owner === 'Bank of FSE') { continue; }
+      if (obj.Owner !== 'Bank of FSE') { continue; }
     }
     if (obj.FeeOwed) { continue; }
 
