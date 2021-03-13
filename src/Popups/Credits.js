@@ -37,6 +37,9 @@ const useStyles = makeStyles(theme => ({
   },
   version: {
     marginBottom: theme.spacing(1)
+  },
+  level2: {
+    paddingLeft: theme.spacing(4)
   }
 }));
 
@@ -86,6 +89,27 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
+          <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.4.0 (2021-03-13)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Better and more advanced parameters for the route finder:</ListItem>
+              <List dense className={classes.level2}>
+                <ListItem>Net earnings: the ground handling fees, booking fees, rental cost & bonus and fuel cost can be deduced from the total pay</ListItem>
+                <ListItem>When using the 'Available planes' option, no need to set the aircraft specifications anymore (like 'max pax'), it is automatically deduced from the aircraft model</ListItem>
+                <ListItem>New idle/taxi time parameter, to better take into account time spent on the ground</ListItem>
+                <ListItem>New distance overhead parameter, to take into account airways and routes that are not straight between two airports</ListItem>
+                <ListItem>Legs now cannot exceed the aircraft maximum range</ListItem>
+                <ListItem>New parameter to only search for VIP assignments</ListItem>
+              </List>
+              <ListItem><span>Route finder considers on-route stops to better fill the plane along the way to a destination (was only considering loading more cargo to drop by along the way, but was not considering picking up cargo on the route) (<IssueLink id={33} />)</span></ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Aircrafts reserved for All-in assignments are now correctly displayed on the map (<IssueLink id={40} />)</ListItem>
+            </List>
+          </Paper>
+
           <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.3.2 (2021-03-05)</Typography>
             <Typography variant="h6">Added</Typography>
