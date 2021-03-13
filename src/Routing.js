@@ -732,7 +732,7 @@ const Routing = React.memo((props) => {
         }
       }
       else if (data.status === 'progress') {
-        setProgress(prev => prev+(data.progress/total));
+        setProgress(prev => prev + (data.progress/total));
       }
     };
     const workers = [];

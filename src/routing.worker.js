@@ -301,7 +301,14 @@ function computeRemain(cargos, maxPax, maxKg) {
 
 
 onmessage = function({data}) {
-  const progressStep = 100 / (closeIcaos(data.fromIcao, data.options.icaos, data.options.icaodata, data.options.maxEmptyLeg).length + (data.jobs[data.fromIcao] ? data.jobs[data.fromIcao].size : 0) + 1);
+  data.closeIcaosCache[data.fromIcao] = closeIcaos(data.fromIcao, data.options.icaos, data.options.icaodata, data.options.maxEmptyLeg);
+  if (!data.closeIcaosCache[data.fromIcao].length && !data.jobs[data.fromIcao]) {
+    // No jobs around this starting point, no need to continue
+    postMessage({status: 'progress', progress: 100});
+    postMessage({status: 'finished', results: []});
+    return;
+  }
+  const progressStep = 100 / (data.closeIcaosCache[data.fromIcao].length + (data.jobs[data.fromIcao] ? data.jobs[data.fromIcao].size : 0));
 
   const options = {
     loop: data.fromIcao === data.toIcao,
