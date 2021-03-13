@@ -629,6 +629,7 @@ const Routing = React.memo((props) => {
     
     // Build job list
     const jobs = {};
+    const jobsReverse = {};
     for (const [k, v] of Object.entries(props.options.jobs)) {
       const [fr, to] = k.split('-');
       if (hideAirport(fr, props.options.settings.airport) || hideAirport(to, props.options.settings.airport)) { continue; }
@@ -671,6 +672,8 @@ const Routing = React.memo((props) => {
       if (obj.cargos.TripOnly || obj.cargos.VIP) {
         if (!jobs[fr]) { jobs[fr] = new Map(); }
         jobs[fr].set(to, obj);
+        if (!jobsReverse[to]) { jobsReverse[to] = []; }
+        jobsReverse[to].push(fr);
       }
     }
 
@@ -709,7 +712,8 @@ const Routing = React.memo((props) => {
           maxEmptyLeg: maxEmptyLeg,
           icaos: Object.keys(jobs),
           icaodata: props.options.icaodata,
-          model: model
+          model: model,
+          jobsReverse: jobsReverse
         },
         maxHops: maxHops,
         maxBadLegs: maxBadLegs,
