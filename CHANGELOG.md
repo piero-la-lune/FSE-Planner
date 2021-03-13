@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.4.0] - 2021-03-13
+
+### Added
+- Better and more advanced parameters for the route finder:
+  - Net earnings: the ground handling fees, booking fees, rental cost & bonus and fuel cost can be deduced from the total pay
+  - When using the 'Available planes' option, no need to set the aircraft specifications anymore (like 'max pax'), it is automatically deduced from the aircraft model
+  - New idle/taxi time parameter, to better take into account time spent on the ground
+  - New distance overhead parameter, to take into account airways and routes that are not straight between two airports
+  - Legs now cannot exceed the aircraft maximum range
+  - New parameter to only search for VIP assignments
+- Route finder considers on-route stops to better fill the plane along the way to a destination (was only considering loading more cargo to drop by along the way, but was not considering picking up cargo on the route) ([#33](https://github.com/piero-la-lune/FSE-Planner/issues/33))
+
+### Fixed
+- Aircrafts reserved for All-in assignments are now correctly displayed on the map ([#40](https://github.com/piero-la-lune/FSE-Planner/issues/40))
+
+
+
 ## [1.3.2] - 2021-03-05
 
 ### Added

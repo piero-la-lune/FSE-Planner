@@ -289,6 +289,22 @@ function transformPlanes(p) {
   }
   return planes;
 }
+function transformJobs(j) {
+  const jobs = _clone(j);
+  for (const key of Object.keys(jobs)) {
+    if (jobs[key].passengers && jobs[key].passengers.PT) {
+      if (!jobs[key].passengers['Trip-Only']) {
+        jobs[key].passengers['Trip-Only'] = [];
+      }
+      for (const p of jobs[key].passengers.PT) {
+        p.PT = true;
+        jobs[key].passengers['Trip-Only'].push(p);
+      }
+      delete jobs[key].passengers.PT;
+    }
+  }
+  return jobs;
+}
 
 const storage = new Storage();
 
@@ -309,7 +325,9 @@ function App() {
   const [updatePopup, setUpdatePopup] = React.useState(false);
   const [settingsPopop, setSettingsPopup] = React.useState(false);
   const [creditsPopop, setCreditsPopup] = React.useState(false);
-  const [jobs, setJobs] = React.useState(storage.get('jobs', {}));
+  const [jobs, setJobs] = React.useState(() => {
+    return transformJobs(storage.get('jobs', {}));
+  });
   const [planes, setPlanes] = React.useState(() => {
     return transformPlanes(storage.get('planes', {}));
   });
@@ -672,7 +690,7 @@ function App() {
       <UpdatePopup
         open={updatePopup}
         setUpdatePopup={setUpdatePopup}
-        setJobs={setJobs}
+        setJobs={(jobs) => setJobs(transformJobs(jobs))}
         setPlanes={(planes) => setPlanes(transformPlanes(planes))}
         setFlight={setFlight}
         icaodata={icaodata}
