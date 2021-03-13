@@ -30,12 +30,16 @@ import Popover from '@material-ui/core/Popover';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import Checkbox from '@material-ui/core/Checkbox';
+import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
 
 import RoutingWorker from './routing.worker.js';
 import { hideAirport } from "./utility.js";
+
+import aircrafts from "./data/aircraft.json";
 
 const useStyles = makeStyles(theme => ({
   routing: {
@@ -114,16 +118,12 @@ const useStyles = makeStyles(theme => ({
   },
   formLabel: {
     marginBottom: theme.spacing(1.5),
-    marginTop: 0
-  },
-  moreSettings: {
-    marginTop: theme.spacing(4),
-    paddingTop: theme.spacing(4),
-    borderTop: "1px solid #ccc",
+    marginTop: theme.spacing(3)
   },
   typeButtons: {
-    marginBottom: theme.spacing(3),
-    marginTop: theme.spacing(4)
+    marginBottom: theme.spacing(1),
+    marginTop: theme.spacing(2),
+    width: '100%'
   },
   tlOp: {
     flex: 10
@@ -314,16 +314,23 @@ const Routing = React.memo((props) => {
   const [moreSettings, setMoreSettings] = React.useState(false);
   const [maxPax, setMaxPax] = React.useState('');
   const [maxKg, setMaxKg] = React.useState('');
+  const [speed, setSpeed] = React.useState(250);
+  const [consumption, setConsumption] = React.useState(60);
+  const [range, setRange] = React.useState(1800);
   const [fromIcao, setFromIcao] = React.useState('');
   const [toIcao, setToIcao] = React.useState('');
   const [maxHops, setMaxHops] = React.useState(4);
   const [maxStops, setMaxStops] = React.useState(1);
-  const [speed, setSpeed] = React.useState(250);
+  const [idleTime, setIdleTime] = React.useState(2);
+  const [fees, setFees] = React.useState(['Ground', 'Booking', 'Rental', 'Fuel']);
+  const [overheadLength, setOverheadLength] = React.useState(0);
   const [approachLength, setApproachLength] = React.useState(10);
+  const [vipOnly, setVipOnly] = React.useState(false);
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
   const [minLoad, setMinLoad] = React.useState(80);
   const [maxBadLegs, setMaxBadLegs] = React.useState(2);
+  const [maxEmptyLeg, setMaxEmptyLeg] = React.useState(20);
   const [sortBy, setSortBy] = React.useState('payTime');
   const [focus, setFocus] = React.useState(null);
   const [filterMenu, setFilterMenu] = React.useState(null);
@@ -417,38 +424,132 @@ const Routing = React.memo((props) => {
     }
   }, [filteredResults]);
 
-  const prepResults = (allResults, options) => {
+  const prepResults = (allResults) => {
     const approachSpeedRatio = 0.4;
     for (var i = 0; i < allResults.length; i++) {
-      const totalDistance = allResults[i].distance + approachLength*(allResults[i].icaos.length-1);
-      const time = allResults[i].distance/speed + approachLength*(allResults[i].icaos.length-1)/(speed*approachSpeedRatio) + 0.09*(allResults[i].icaos.length-2);
+      const aSpeed = type === 'rent' ? aircrafts[allResults[i].model].CruiseSpeed : speed;
+      const totalDistance =
+          allResults[i].distance
+        + allResults[i].distance * overheadLength / 100
+        + approachLength*(allResults[i].icaos.length-1);
+      let time =
+          allResults[i].distance/aSpeed
+        + allResults[i].distance * overheadLength / 100 / aSpeed
+        + approachLength*(allResults[i].icaos.length-1)/(aSpeed*approachSpeedRatio);
+      // Compute fuel usage
+      let fuelUsage = 0;
+      let fuelCost = 0;
+      if (type === 'rent') {
+        fuelUsage = time * aircrafts[allResults[i].model].GPH;
+        if (aircrafts[allResults[i].model].FuelType === 1) {
+          fuelCost = fuelUsage * 4.19;
+        }
+        else {
+          fuelCost = fuelUsage * 4.55;
+        }
+      }
+      else {
+        fuelUsage = time * consumption;
+        // Do not know if 100LL or Jet-A Fuel: use a mean price per gallon between the 2
+        fuelCost = fuelUsage * 4.37;
+      }
+      // Idle time at airport, added later because does not count for fuel usage
+      //time += (idleTime / 60)*(allResults[i].icaos.length-1);
       const h = Math.floor(time);
       const min = Math.round((time-h)*60);
       let pay = allResults[i].pay;
-
-      // If rented airplane, find plane with minimum bonus, and deduce bonus from route pay
-      if (type === 'rent') {
-        let minBonus = 0;
-        let minPlane = null;
-        const startIcao = allResults[i].icaos[0];
-        const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
-        for (const plane of props.options.planes[startIcao]) {
-          const bonus = Math.round(
-            (
-                convertDistance(getDistance(props.options.icaodata[endIcao], options.icaodata[plane.home]), 'sm')
-              -
-                convertDistance(getDistance(props.options.icaodata[startIcao], options.icaodata[plane.home]), 'sm')
-            )
-            * plane.bonus / 100);
-          if (!minPlane || bonus < minBonus) {
-            minPlane = plane;
-            minBonus = bonus;
+      // Compute ground fees: 10% for each assignment
+      // (could be 0 or 5% if there is no FBO at the originating or destination airport,
+      // but there is no way of knowing if that is the case, so 10% is always applied)
+      if (fees.includes('Ground')) {
+        pay -= pay*0.1;
+      }
+      // Compute booking fees : X%, where X is the number of PT assignments loaded in the
+      // plane (0 if less than 5 assignments)
+      if (fees.includes('Booking')) {
+        // Used to store previous fees, because we apply the highest fee of all hops
+        // that the assignment has traveled
+        const feeHistory = {};
+        for (var j = 0; j < allResults[i].icaos.length-1; j++) {
+          if (!allResults[i].cargos[j].TripOnly.length) { continue; }
+          // Compute the number of PT assignments in aircraft
+          let nbPT = allResults[i].cargos[j].TripOnly.reduce((acc, c) => acc + (c.PT ? 1 : 0), 0);
+          // No fee if less than 5 assignments
+          if (nbPT <= 5) { nbPT = 0; }
+          for (const c of allResults[i].cargos[j].TripOnly) {
+            if (c.PT) {
+              const key = c.from+'-'+c.to;
+              if (!feeHistory[key]) { feeHistory[key] = 0; }
+              feeHistory[key] = Math.max(feeHistory[key], nbPT);
+              // The assignment has reached is destination, get the highest fee and apply it
+              if (c.to === allResults[i].icaos[j+1]) {
+                pay -= c.pay * feeHistory[key] / 100;
+              }
+            }
+          }
+          // Ensure to clean fee history for the current destination
+          for (const key of Object.keys(feeHistory)) {
+            if (key.endsWith(allResults[i].icaos[j+1])) {
+              delete feeHistory[key];
+            }
           }
         }
-        allResults[i].plane = minPlane;
-        allResults[i].b = -minBonus;
-        pay -= minBonus;
       }
+      // Get plane reg, and compute rental cost and bonus
+      let planeReg = null;
+      let rentalType = 'dry';
+      let rentalCost = 0;
+      let bonus = 0;
+      if (type === 'rent') {
+        let lowestCost = null;
+        const startIcao = allResults[i].icaos[0];
+        const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
+        for (const p of props.options.planes[allResults[i].icaos[0]]) {
+          let cost = null;
+          let t = null;
+          let b = 0;
+          if (p.dry) {
+            cost = p.dry * time + fuelCost;
+            t = 'dry';
+          }
+          if (p.wet && (!cost || p.wet * time < cost)) {
+            cost = p.wet * time;
+            t = 'wet';
+          }
+          // Wet and dry price set to 0 = owned plane => we use this
+          if (!cost) {
+            cost = 0;
+            t = 'dry';
+          }
+          else {
+            // Compute bonus
+            b = Math.round(
+              (
+                  convertDistance(getDistance(props.options.icaodata[endIcao], props.options.icaodata[p.home]), 'sm')
+                -
+                  convertDistance(getDistance(props.options.icaodata[startIcao], props.options.icaodata[p.home]), 'sm')
+              )
+              * p.bonus / 100);
+            cost += b;
+          }
+          if (!lowestCost || cost < lowestCost) {
+            planeReg = p.reg;
+            lowestCost = cost;
+            rentalCost = p[t] * time;
+            rentalType = t;
+            bonus = -b;
+          }
+        }
+      }
+      // Subtract rental cost and bonus to total pay
+      if (fees.includes('Rental')) {
+        pay -= rentalCost - bonus;
+      }
+      // Subtract fuel usage to total pay
+      if (fees.includes('Fuel') && rentalType !== 'wet') {
+        pay -= fuelCost;
+      }
+
       allResults[i].payNM = pay/totalDistance;
       allResults[i].payLeg = pay/allResults[i].icaos.length;
       allResults[i].payTime = pay/time;
@@ -457,6 +558,10 @@ const Routing = React.memo((props) => {
       allResults[i].pay = Math.round(pay);
       allResults[i].distance = Math.round(totalDistance);
       allResults[i].id = i;
+      allResults[i].fuel = Math.ceil(fuelUsage);
+      allResults[i].reg = planeReg;
+      allResults[i].rentalType = rentalType;
+      allResults[i].b = bonus;
     }
     allResults.sort(sortFunctions[sortBy]);
 
@@ -469,6 +574,7 @@ const Routing = React.memo((props) => {
   const startSearch = () => {
     setProgress(0);
     setLoading(true);
+
     // Check ICAO if free mode
     if (type === 'free') {
       if (!props.options.icaodata[fromIcao]) {
@@ -482,6 +588,46 @@ const Routing = React.memo((props) => {
         return false;
       }
     }
+
+    // Compute aircraft specifications
+    let planeMaxKg = maxKg;
+    let planeMaxPax = maxPax;
+    let planesSpecs = {
+      free: {
+        maxKg: maxKg,
+        maxPax: maxPax,
+        range: range
+      }
+    };
+    if (type === "rent") {
+      planeMaxKg = 0;
+      planeMaxPax = 0;
+      for (const arr of Object.values(props.options.planes)) {
+        for (const p of arr) {
+          if (!planesSpecs[p.model]) {
+            const c = aircrafts[p.model];
+            const fuelCapacity = (
+              c.Ext1 + c.LTip + c.LAux + c.LMain + c.Center1
+                     + c.Center2 + c.Center3 + c.RMain + c.RAux
+                     + c.RTip + c.RExt2);
+            // Compute fuel weight in kg at 25% fuel load
+            const fuel = 0.25 * 2.68735 * fuelCapacity;
+            planesSpecs[p.model] = {
+              // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
+              maxKg: c.MTOW - c.EmptyWeight - 77*(1+c.Crew) - fuel,
+              // Total plane seats - 1 seat for pilot - 1 seat if additionnal crew
+              maxPax: c.Seats - (c.Crew > 0 ? 2 : 1),
+              // Plane range: maximum length of a single leg
+              range: fuelCapacity / c.GPH * c.CruiseSpeed
+            }
+            planeMaxKg = Math.max(planeMaxKg, planesSpecs[p.model].maxKg);
+            planeMaxPax = Math.max(planeMaxPax, planesSpecs[p.model].maxPax);
+          }
+        }
+      }
+    }
+    
+    // Build job list
     const jobs = {};
     for (const [k, v] of Object.entries(props.options.jobs)) {
       const [fr, to] = k.split('-');
@@ -495,30 +641,30 @@ const Routing = React.memo((props) => {
         direction: v.direction
       }
       if (v.kg) {
-        if (v.kg['Trip-Only']) {
+        if (v.kg['Trip-Only'] && !vipOnly) {
           for (const c of v.kg['Trip-Only']) {
-            if (c.nb > maxKg) { continue; }
-            obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to});
+            if (c.nb > planeMaxKg) { continue; }
+            obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
           }
         }
         if (v.kg['VIP']) {
           for (const c of v.kg['VIP']) {
-            if (c.nb > maxKg) { continue; }
-            obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to});
+            if (c.nb > planeMaxKg) { continue; }
+            obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
           }
         }
       }
       if (v.passengers) {
-        if (v.passengers['Trip-Only']) {
+        if (v.passengers['Trip-Only'] && !vipOnly) {
           for (const c of v.passengers['Trip-Only']) {
-            if (c.nb*77 > maxKg || c.nb > maxPax) { continue; }
-            obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to});
+            if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
+            obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
           }
         }
         if (v.passengers['VIP']) {
           for (const c of v.passengers['VIP']) {
-            if (c.nb*77 > maxKg || c.nb > maxPax) { continue; }
-            obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to});
+            if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
+            obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
           }
         }
       }
@@ -528,92 +674,77 @@ const Routing = React.memo((props) => {
       }
     }
 
-    const options = {
-      maxKg: maxKg,
-      maxPax: maxPax,
-      minPaxLoad: maxPax*minLoad/100,
-      minKgLoad: maxKg*minLoad/100,
-      maxStops: maxStops,
-      icaos: Object.keys(jobs),
-      icaodata: props.options.icaodata
-    }
-
+    // List of start points
+    let icaos = [fromIcao];
     if (type === "rent") {
-      const icaos = Object.keys(props.options.planes);
-      const totalIcaos = icaos.reduce((acc, elm) => acc + (jobs[elm] ? 1 : 0), 0);
-      const maxWorkers = navigator.hardwareConcurrency || 4;
-      const closeIcaosCache = {};
-      let done = 0;
-      let allResults = [];
-      const onmessage = ({data}, worker) => {
-        if (data.status === 'finished') {
-          allResults = allResults.concat(data.results);
-          const icao = icaos.pop();
-          if (icao) {
-            worker.postMessage({
-              fromIcao: icao,
-              toIcao: loop ? icao : null,
-              jobs: jobs,
-              options: options,
-              maxHops: maxHops,
-              maxBadLegs: maxBadLegs,
-              closeIcaosCache: closeIcaosCache
-            });
-          }
-          else {
-            worker.terminate();
-            done += 1;
-            if (done === maxWorkers) {
-              prepResults(allResults, options);
-            }
-          }
-        }
-        else if (data.status === 'progress') {
-          setProgress(prev => prev+(data.progress/totalIcaos));
-        }
-      };
-      const workers = [];
-      for (var i = 0; i < maxWorkers; i++) {
-        const worker = new RoutingWorker();
-        worker.onmessage = (evt) => onmessage(evt, worker);
-        let icao = icaos.pop();
-        if (!icao) { break; }
-        worker.postMessage({
-          fromIcao: icao,
-          toIcao: loop ? icao : null,
-          jobs: jobs,
-          options: options,
-          maxHops: maxHops,
-          maxBadLegs: maxBadLegs,
-          closeIcaosCache: closeIcaosCache
-        });
-        workers.push(worker);
-      }
-      setCancel(workers);
+      icaos = Object.keys(props.options.planes);
     }
-    else {
-      const worker = new RoutingWorker();
-      worker.onmessage = ({data}) => {
-        if (data.status === 'finished') {
-          prepResults(data.results, options);
-          worker.terminate();
-        }
-        else if (data.status === 'progress') {
-          setProgress(prev => prev+data.progress);
+    const total = icaos.length
+
+    const maxWorkers = navigator.hardwareConcurrency || 4;
+    const closeIcaosCache = {};
+    let done = 0;
+    let allResults = [];
+    const execute = (worker, icao) => {
+      let model = 'free';
+      // If renting a plane, consider the plane with the largest capacity in Kg available
+      if (type === 'rent') {
+        for (const p of props.options.planes[icao]) {
+          if (model === 'free' || planesSpecs[p.model].maxKg > planesSpecs[model].maxKg) {
+            model = p.model;
+          }
         }
       }
       worker.postMessage({
-        fromIcao: fromIcao,
-        toIcao: toIcao ? toIcao : null,
+        fromIcao: icao,
+        toIcao: type === 'rent' ? (loop ? icao : null) : (toIcao ? toIcao : null),
         jobs: jobs,
-        options: options,
+        options: {
+          maxKg: planesSpecs[model].maxKg,
+          maxPax: planesSpecs[model].maxPax,
+          minPaxLoad: planesSpecs[model].maxPax*minLoad/100,
+          minKgLoad: planesSpecs[model].maxKg*minLoad/100,
+          range: planesSpecs[model].range,
+          maxStops: maxStops,
+          maxEmptyLeg: maxEmptyLeg,
+          icaos: Object.keys(jobs),
+          icaodata: props.options.icaodata,
+          model: model
+        },
         maxHops: maxHops,
         maxBadLegs: maxBadLegs,
-        closeIcaosCache: {}
+        closeIcaosCache: closeIcaosCache
       });
-      setCancel([worker]);
+    };
+    const onmessage = ({data}, worker) => {
+      if (data.status === 'finished') {
+        allResults = allResults.concat(data.results);
+        done += 1;
+        const icao = icaos.pop();
+        if (icao) {
+          execute(worker, icao);
+        }
+        else {
+          worker.terminate();
+          if (done >= total) {
+            prepResults(allResults, planesSpecs);
+          }
+        }
+      }
+      else if (data.status === 'progress') {
+        setProgress(prev => prev+(data.progress/total));
+      }
+    };
+    const workers = [];
+    for (var i = 0; i < maxWorkers; i++) {
+      const worker = new RoutingWorker();
+      worker.onmessage = (evt) => onmessage(evt, worker);
+      let icao = icaos.pop();
+      if (!icao) { break; }
+      execute(worker, icao);
+      workers.push(worker);
     }
-
+    setCancel(workers);
   };
 
   const cancelWorkers = () => {
@@ -662,10 +793,15 @@ const Routing = React.memo((props) => {
                   return (
                     <TimelineItem key={i}>
                       <TimelineOppositeContent className={classes.tlOp}>
-                        { i === 0 && focus.plane &&
+                        { i === 0 && 
                           <React.Fragment>
-                            <Typography variant="body2">Rent {focus.plane.reg} (${focus.plane.dry}/${focus.plane.wet})</Typography>
-                            <Typography variant="body2" paragraph>Flight total bonus : ${focus.b}</Typography>
+                            { focus.reg &&
+                              <React.Fragment>
+                                <Typography variant="body2">Rent {focus.reg} {focus.rentalType}</Typography>
+                                <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
+                              </React.Fragment>
+                            }
+                            <Typography variant="body2" paragraph>Fuel usage : {focus.fuel} gallons</Typography>
                           </React.Fragment>
                         }
                         {i < focus.icaos.length-1 && focus.cargos[i].TripOnly.length > 0 &&
@@ -916,33 +1052,6 @@ const Routing = React.memo((props) => {
       :
 
         <div className={classes.content+' '+classes.form}>
-          <Typography variant="body1" className={classes.formLabel}>Maximum airplane capacity:</Typography>
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <TextField
-                label="Max passengers"
-                placeholder="10"
-                variant="outlined"
-                required
-                value={maxPax}
-                onChange={(evt) => setMaxPax(evt.target.value.replace(/[^0-9]/g, ''))}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Max weight"
-                variant="outlined"
-                placeholder="2000"
-                required
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
-                }}
-                value={maxKg}
-                onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
-              />
-            </Grid>
-          </Grid>
-
 
           <ToggleButtonGroup
             value={type}
@@ -957,14 +1066,15 @@ const Routing = React.memo((props) => {
             }}
             className={classes.typeButtons}
           >
-            <ToggleButton value="rent">Available planes</ToggleButton>
-            <ToggleButton value="free">Free search</ToggleButton>
+            <ToggleButton value="rent" style={{flexGrow:1}}>Available planes</ToggleButton>
+            <ToggleButton value="free" style={{flexGrow:1}}>Free search</ToggleButton>
           </ToggleButtonGroup>
 
           { type === "rent" ?
             <FormControlLabel
               control={<Switch checked={loop} onChange={(evt) => setLoop(evt.target.checked)} />}
               label="Return plane to starting airport"
+              className={classes.formLabel}
             />
           :
             <React.Fragment>
@@ -990,6 +1100,82 @@ const Routing = React.memo((props) => {
                   />
                 </Grid>
               </Grid>
+
+              <Typography variant="body1" className={classes.formLabel}>Aircraft specifications:</Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Max passengers"
+                    placeholder="10"
+                    variant="outlined"
+                    required
+                    value={maxPax}
+                    onChange={(evt) => setMaxPax(evt.target.value.replace(/[^0-9]/g, ''))}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Max weight"
+                    variant="outlined"
+                    placeholder="2000"
+                    required
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
+                    }}
+                    value={maxKg}
+                    onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
+                  />
+                </Grid>
+              </Grid>
+              <Grid container spacing={1} style={{marginTop:12}}>
+                <Grid item xs={6}>
+                  <Tooltip title="Used to compute an estimated flight duration.">
+                    <TextField
+                      label="Cruise speed"
+                      placeholder="250"
+                      variant="outlined"
+                      value={speed}
+                      onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">kts</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={6}>
+                  <Tooltip title="Used to compute an estimated fuel consumption cost.">
+                    <TextField
+                      label="Fuel consumption"
+                      placeholder="60"
+                      variant="outlined"
+                      value={consumption}
+                      onChange={(evt) => setConsumption(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">Gallons/Hour</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+              </Grid>
+              <Grid container spacing={1} style={{marginTop:12}}>
+                <Grid item xs={6}>
+                  <Tooltip title="Used to compute an estimated fuel consumption cost.">
+                    <TextField
+                      label="Max range"
+                      placeholder="1800"
+                      variant="outlined"
+                      value={range}
+                      onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+              </Grid>
             </React.Fragment>
           }
 
@@ -1002,106 +1188,205 @@ const Routing = React.memo((props) => {
 
           {moreSettings &&
             <div>
-              <div className={classes.moreSettings}>
-                <Typography variant="body1" className={classes.formLabel}>Change default algorithm parameters:</Typography>
-                <Grid container spacing={1}>
-                  <Grid item xs={6}>
-                    <Tooltip title="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops.">
-                      <TextField
-                        label="Iterations"
-                        placeholder="5"
-                        variant="outlined"
-                        value={maxHops}
-                        onChange={(evt) => setMaxHops(evt.target.value.replace(/[^0-9]/g, ''))}
-                        required
-                      />
-                    </Tooltip>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Tooltip title="Number of possible stops along a leg to drop passengers/cargo, in order to better fill the plane part of the leg.">
-                      <TextField
-                        label="Max stops"
-                        variant="outlined"
-                        placeholder="1"
-                        value={maxStops}
-                        onChange={(evt) => setMaxStops(evt.target.value.replace(/[^0-9]/g, ''))}
-                        required
-                      />
-                    </Tooltip>
-                  </Grid>
-                </Grid>
-                <Grid container spacing={1} style={{marginTop:12}}>
-                  <Grid item xs={6}>
-                    <Tooltip title="Try to always keep the plane at least this full.">
-                      <TextField
-                        label="Min plane load"
-                        placeholder="80"
-                        variant="outlined"
-                        value={minLoad}
-                        onChange={(evt) => setMinLoad(evt.target.value.replace(/[^0-9]/g, ''))}
-                        required
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                        }}
-                      />
-                    </Tooltip>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Tooltip title="Number of possible legs bellow the minimum plane load.">
-                      <TextField
-                        label="Max bad legs"
-                        variant="outlined"
-                        placeholder="2"
-                        value={maxBadLegs}
-                        onChange={(evt) => setMaxBadLegs(evt.target.value.replace(/[^0-9]/g, ''))}
-                        required
-                      />
-                    </Tooltip>
-                  </Grid>
-                </Grid>
-              </div>
 
-              <div className={classes.moreSettings}>
-                <Typography variant="body1" className={classes.formLabel}>Adjust airplane parameters:</Typography>
-                <Grid container spacing={1}>
-                  <Grid item xs={6}>
-                    <Tooltip title="Used to compute an estimated flight duration.">
-                      <TextField
-                        label="Airplane speed"
-                        placeholder="250"
-                        variant="outlined"
-                        value={speed}
-                        onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
-                        required
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">kts</InputAdornment>,
-                        }}
-                      />
-                    </Tooltip>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Tooltip title="Added to the leg straight distance, to account for approach circuits.">
-                      <TextField
-                        label="Approach distance"
-                        placeholder="10"
-                        variant="outlined"
-                        value={approachLength}
-                        onChange={(evt) => setApproachLength(evt.target.value.replace(/[^0-9]/g, ''))}
-                        required
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                        }}
-                      />
-                    </Tooltip>
-                  </Grid>
+              <Typography variant="body1" className={classes.formLabel}>Advanced algorithm parameters:</Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                  <Tooltip title="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops.">
+                    <TextField
+                      label="Iterations"
+                      placeholder="5"
+                      variant="outlined"
+                      value={maxHops}
+                      onChange={(evt) => setMaxHops(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                    />
+                  </Tooltip>
                 </Grid>
-              </div>
+                <Grid item xs={6}>
+                  <Tooltip title="Number of possible stops along a leg to drop passengers/cargo, in order to better fill the plane part of the leg.">
+                    <TextField
+                      label="Max stops"
+                      variant="outlined"
+                      placeholder="1"
+                      value={maxStops}
+                      onChange={(evt) => setMaxStops(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                    />
+                  </Tooltip>
+                </Grid>
+              </Grid>
+              <Grid container spacing={1} style={{marginTop:12}}>
+                <Grid item xs={6}>
+                  <Tooltip title="Try to always keep the plane at least this full.">
+                    <TextField
+                      label="Min plane load"
+                      placeholder="80"
+                      variant="outlined"
+                      value={minLoad}
+                      onChange={(evt) => setMinLoad(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={6}>
+                  <Tooltip title="Number of possible legs bellow the minimum plane load.">
+                    <TextField
+                      label="Max bad legs"
+                      variant="outlined"
+                      placeholder="2"
+                      value={maxBadLegs}
+                      onChange={(evt) => setMaxBadLegs(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                    />
+                  </Tooltip>
+                </Grid>
+              </Grid>
+              <Grid container spacing={1} style={{marginTop:12}}>
+                <Grid item xs={6}>
+                  <Tooltip title="Maximum length of entirely empty legs (no cargo/pax at all). Do not set this too high, it quickly becomes very computer intensive.">
+                    <TextField
+                      label="Max empty legs"
+                      variant="outlined"
+                      placeholder="2"
+                      value={maxEmptyLeg}
+                      onChange={(evt) => setMaxEmptyLeg(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+              </Grid>
+
+              <Typography variant="body1" className={classes.formLabel}>Route parameters:</Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                  <Tooltip title="Time spent on ground at each stop (flight checks, taxi, etc.)">
+                    <TextField
+                      label="Idle and taxi time"
+                      placeholder="2"
+                      variant="outlined"
+                      value={idleTime}
+                      onChange={(evt) => setIdleTime(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">min</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={6}>
+                  <Tooltip title="Added to the leg straight distance, to account for not straight routes.">
+                    <TextField
+                      label="Distance overhead"
+                      placeholder="0"
+                      variant="outlined"
+                      value={overheadLength}
+                      onChange={(evt) => setOverheadLength(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+              </Grid>
+              <Grid container spacing={1} style={{marginTop:12}}>
+                <Grid item xs={6}>
+                  <Tooltip title="Added to the leg straight distance, to account for approach circuits.">
+                    <TextField
+                      label="Approach distance"
+                      placeholder="10"
+                      variant="outlined"
+                      value={approachLength}
+                      onChange={(evt) => setApproachLength(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Net earnings"
+                    variant="outlined"
+                    placeholder="No"
+                    value={fees}
+                    onChange={(evt) => {
+                      const arr = evt.target.value;
+                      if (arr.length === 0) {
+                        arr.push('No');
+                      }
+                      else {
+                        const i = arr.indexOf('No');
+                        if (i > -1 && arr.length > 1) {
+                          arr.splice(i, 1);
+                        }
+                      }
+                      setFees(arr);
+                    }}
+                    select
+                    fullWidth
+                    SelectProps={{
+                      multiple: true,
+                      renderValue: (selected) => selected.join(', '),
+                      MenuProps: {
+                        getContentAnchorEl: null,
+                      }
+                    }}
+                  >
+                    <MenuItem value="No" style={{display:'none'}}>
+                      <Checkbox checked={fees.indexOf("No") > -1} />
+                      <ListItemText primary="No" />
+                    </MenuItem>
+                    <MenuItem value="Ground">
+                      <Checkbox checked={fees.indexOf("Ground") > -1} />
+                      <ListItemText primary="Ground crew fees" />
+                    </MenuItem>
+                    <MenuItem value="Booking">
+                      <Checkbox checked={fees.indexOf("Booking") > -1} />
+                      <ListItemText primary="Booking fees" />
+                    </MenuItem>
+                    <MenuItem value="Rental">
+                      <Checkbox checked={fees.indexOf("Rental") > -1} />
+                      <ListItemText primary="Rental cost & bonus" />
+                    </MenuItem>
+                    <MenuItem value="Fuel">
+                      <Checkbox checked={fees.indexOf("Fuel") > -1} />
+                      <ListItemText primary="Fuel cost" />
+                    </MenuItem>
+                  </TextField>
+                </Grid>
+              </Grid>
+
+              <FormControlLabel
+                control={<Switch checked={vipOnly} onChange={(evt) => setVipOnly(evt.target.checked)} />}
+                label="VIP jobs only"
+                className={classes.formLabel}
+              />
+
             </div>
           }
 
           <div className={classes.pButtons}>
             {!loading &&
-              <Button variant="contained" color="primary" size="large" onClick={startSearch} disabled={!maxPax || !maxKg || !maxHops || !maxStops || !minLoad || !maxBadLegs || !speed || !approachLength || (type === "free" && !fromIcao)}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={startSearch}
+                disabled={
+                  !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
+                           || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
+                           || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range))
+                }
+              >
                 Find best routes
               </Button>
             }

@@ -141,11 +141,11 @@ function cleanJobs(list, icaodata) {
     if (!jobs[key].hasOwnProperty(job.UnitType)) {
       jobs[key][job.UnitType] = {};
     }
-    if (!jobs[key][job.UnitType][job.Type]) {
-      jobs[key][job.UnitType][job.Type] = [];
+    const type = job.PtAssignment ? 'PT' : job.Type;
+    if (!jobs[key][job.UnitType][type]) {
+      jobs[key][job.UnitType][type] = [];
     }
-
-    jobs[key][job.UnitType][job.Type].push({
+    jobs[key][job.UnitType][type].push({
       nb: job.Amount,
       pay: job.Pay
     });

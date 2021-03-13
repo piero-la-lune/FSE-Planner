@@ -185,6 +185,9 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
       // If looping, only consider the same destination as before
       if (restrictNextHop && restrictNextHop !== to) { continue; }
 
+      // Do not consider destination if not within the plane range
+      if (j.distance > options.range) { continue; }
+
       // Compute best load
       const [pay, pax, kg, loadCargo, remainCargo] = maximizeCargo(j.cargos, options.maxPax, options.maxKg);
       if (pay <= 0) { continue; }
@@ -258,7 +261,7 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
 
     // Get close-by airports
     if (!closeIcaosCache[icao]) {
-      closeIcaosCache[icao] = closeIcaos(icao, options.icaos, options.icaodata);
+      closeIcaosCache[icao] = closeIcaos(icao, options.icaos, options.icaodata, options.maxEmptyLeg);
     }
 
     for (const [i, distance] of closeIcaosCache[icao]) {
@@ -298,7 +301,7 @@ function computeRemain(cargos, maxPax, maxKg) {
 
 
 onmessage = function({data}) {
-  const progressStep = 100 / (closeIcaos(data.fromIcao, data.options.icaos, data.options.icaodata).length + (data.jobs[data.fromIcao] ? data.jobs[data.fromIcao].size : 0) + 1);
+  const progressStep = 100 / (closeIcaos(data.fromIcao, data.options.icaos, data.options.icaodata, data.options.maxEmptyLeg).length + (data.jobs[data.fromIcao] ? data.jobs[data.fromIcao].size : 0) + 1);
 
   const options = {
     loop: data.fromIcao === data.toIcao,
@@ -316,6 +319,12 @@ onmessage = function({data}) {
     data.closeIcaosCache,
     progressStep
   );
+
+  // Add aircraft model to all routes
+  allResults = allResults.map(elm => {
+    elm.model = data.options.model;
+    return elm;
+  });
 
   // If destination is set
   if (data.toIcao) {
