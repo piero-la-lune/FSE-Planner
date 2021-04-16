@@ -101,6 +101,23 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.4.1 (2021-04-16)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Debug button: allow any user to easily export debug information, to help investigating bugs. The new button is accessible via the changelog & credits popup</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Behind the scenes: removed proxy, thanks to a welcomed change on FSE side regarding CORS headers</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Bug in "From ICAO" and "To ICAO" filters, that would wrongly hide some jobs</ListItem>
+              <ListItem>Bug in Route Finder, that would prevent the search from finishing</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.4.0 (2021-03-13)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
