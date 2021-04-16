@@ -38,6 +38,7 @@ import { getDistance, convertDistance, getBounds } from "geolib";
 
 import RoutingWorker from './routing.worker.js';
 import { hideAirport } from "./utility.js";
+import log from "./util/logger.js";
 
 import aircrafts from "./data/aircraft.json";
 
@@ -739,6 +740,18 @@ const Routing = React.memo((props) => {
         setProgress(prev => prev + (data.progress/total));
       }
     };
+    log.info("Executing Route Finder", {
+      type: type,
+      loop: loop,
+      fromIcao: fromIcao,
+      toIcao: toIcao,
+      jobs: jobs,
+      planesSpecs: planesSpecs,
+      maxStops: maxStops,
+      maxEmptyLeg: maxEmptyLeg,
+      maxHops: maxHops,
+      maxBadLegs: maxBadLegs
+    });
     const workers = [];
     for (var i = 0; i < maxWorkers; i++) {
       const worker = new RoutingWorker();

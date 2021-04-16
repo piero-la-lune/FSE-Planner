@@ -13,6 +13,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
+import log from '../util/logger.js';
 
 
 const useStyles = makeStyles(theme => ({
@@ -57,6 +58,15 @@ function CreditsPopup(props) {
       handleClose();
       props.openTutorial();
     }
+    else if (newValue === 3) {
+      const data = JSON.stringify({logs: log.export(), localStorage: localStorage});
+      const blob = new Blob([data], {type: 'text/json'});
+      const a = document.createElement('a');
+      a.download = 'debug.json';
+      a.href = window.URL.createObjectURL(blob)
+      a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':');
+      a.click();
+    }
     else {
       setExpanded(newValue);
     }
@@ -82,6 +92,7 @@ function CreditsPopup(props) {
           <Tab label="Changelog" />
           <Tab label="Credits" />
           <Tab label="Tutorial" />
+          <Tab label="Debug" />
         </Tabs>
         <IconButton className={classes.closeButton} onClick={handleClose}>
           <CloseIcon />
