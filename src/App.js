@@ -35,6 +35,7 @@ import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';
 import Tour from './Tour.js';
 import Storage from './Storage.js';
+import log from './util/logger.js';
 
 import icaodataSrc from "./data/icaodata-with-zones.json";
 const icaodataSrcArr = Object.values(icaodataSrc);
@@ -374,6 +375,7 @@ function App() {
   }, [settings.display.map.center]);
 
   React.useEffect(() => {
+    // Display changelog if new version
     const last = storage.get('tutorial');
     if (last && last !== process.env.REACT_APP_VERSION) {
       setCreditsPopup(true);
@@ -386,6 +388,17 @@ function App() {
     if (icao) {
       setSearch(icao);
     }
+
+    // Register error logging
+    window.onerror = (message, file, line, column, errorObject) => {
+      log.error(message, {
+        file: file,
+        line: line,
+        column: column,
+        obj: errorObject,
+      });
+    }
+
   }, []);
 
   // Create goTo function, to allow panning to given ICAO

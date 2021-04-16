@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.4.1] - 2021-04-16
+
+### Added
+- Debug button: allow any user to easily export debug information, to help investigating bugs. The new button is accessible via the changelog & credits popup
+
+### Changed
+- Behind the scenes: removed proxy, thanks to a welcomed change on FSE side regarding CORS headers
+
+### Fixed
+- Bug in "From ICAO" and "To ICAO" filters, that would wrongly hide some jobs
+- Bug in Route Finder, that would prevent the search from finishing
+
+
+
 ## [1.4.0] - 2021-03-13
 
 ### Added

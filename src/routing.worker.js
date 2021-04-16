@@ -220,7 +220,7 @@ function getLegStopsReverse(fr, to, jobs, maxPax, maxKg, maxStops, icaodata, job
     routes.push({
       icaos: icaos,
       cargos: cargos,
-      pay: (i > 0 ? routes[i].pay : 0) + pay,
+      pay: (i > 0 ? routes[i-1].pay : 0) + pay,
       distance: distance
     });
 
