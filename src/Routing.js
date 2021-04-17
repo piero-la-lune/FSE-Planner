@@ -506,6 +506,7 @@ const Routing = React.memo((props) => {
         const startIcao = allResults[i].icaos[0];
         const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
         for (const p of props.options.planes[allResults[i].icaos[0]]) {
+          if (p.model !== allResults[i].model) { continue; }
           let cost = null;
           let t = null;
           let b = 0;
@@ -603,6 +604,8 @@ const Routing = React.memo((props) => {
     if (type === "rent") {
       planeMaxKg = 0;
       planeMaxPax = 0;
+      // Go through every available planes, to build an objetc
+      // with the specifications of all plane models available
       for (const arr of Object.values(props.options.planes)) {
         for (const p of arr) {
           if (!planesSpecs[p.model]) {
@@ -738,6 +741,9 @@ const Routing = React.memo((props) => {
       }
       else if (data.status === 'progress') {
         setProgress(prev => prev + (data.progress/total));
+      }
+      else {
+        console.log(data);
       }
     };
     log.info("Executing Route Finder", {
@@ -1178,7 +1184,7 @@ const Routing = React.memo((props) => {
               </Grid>
               <Grid container spacing={1} style={{marginTop:12}}>
                 <Grid item xs={6}>
-                  <Tooltip title="Used to compute an estimated fuel consumption cost.">
+                  <Tooltip title="Used to prevent legs longer than this distance.">
                     <TextField
                       label="Max range"
                       placeholder="1800"

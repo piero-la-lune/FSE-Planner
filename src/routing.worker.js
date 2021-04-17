@@ -28,15 +28,15 @@ function maximizeTripOnly(i, cargos, maxPax, maxKg, cache) {
   }
   return cache[i+'/'+maxPax+'/'+maxKg] = [pay1, pax1, kg1, cargos1, [...remain1, elm]];
 }
-function maximizeVIP(cargos) {
+function maximizeVIP(cargos, maxPax, maxKg) {
   if (cargos.length === 0) {
     return [0, 0, 0, [], []];
   }
   const elm = cargos[0];
   const newCargos = cargos.slice(1);
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeVIP(newCargos);
+  const [pay1, pax1, kg1, cargos1, remain1] = maximizeVIP(newCargos, maxPax, maxKg);
   const [pay2, pax2, kg2, cargos2, remain2] = [elm.pay, elm.pax, elm.kg, [elm], newCargos];
-  if (pay1 > pay2) {
+  if (pay1 > pay2 || pax2 > maxPax || kg2 > maxKg) {
     remain1.push(elm);
     return [pay1, pax1, kg1, cargos1, remain1];
   }
@@ -44,7 +44,7 @@ function maximizeVIP(cargos) {
 }
 function maximizeCargo(cargos, maxPax, maxKg) {
   const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(cargos.TripOnly.length, cargos.TripOnly, maxPax, maxKg, {});
-  const [pay2, pax2, kg2, cargos2, remain2] = maximizeVIP(cargos.VIP);
+  const [pay2, pax2, kg2, cargos2, remain2] = maximizeVIP(cargos.VIP, maxPax, maxKg);
   const remain = {TripOnly: remain1, VIP: remain2};
   if (pay1 >= pay2) {
     if (cargos2.length > 0) { remain.VIP = remain.VIP.concat(cargos2); }
