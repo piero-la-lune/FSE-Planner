@@ -7,6 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -32,6 +33,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemText from '@material-ui/core/ListItemText';
+import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
@@ -344,6 +346,8 @@ const Routing = React.memo((props) => {
   const [nbDisplay, setNbDisplay] = React.useState(20);
   const [progress, setProgress] = React.useState(0);
   const [cancel, setCancel] = React.useState(null);
+  const [availableModels, setAvailableModels] = React.useState([]);
+  const [aircraftModels, setAircraftModels] = React.useState([]);
   const classes = useStyles();
 
   const sortFunctions = {
@@ -424,6 +428,19 @@ const Routing = React.memo((props) => {
       setNbDisplay(20);
     }
   }, [filteredResults]);
+
+  // Update list of available aircraft models
+  React.useEffect(() => {
+    // Build a list of all available aircraft models
+    const set = new Set();
+    for (const icao of Object.keys(props.options.planes)) {
+      for (const p of props.options.planes[icao]) {
+        set.add(p.model);
+      }
+    }
+    setAvailableModels([...set].sort());
+    setAircraftModels((oldAircraftModels) => oldAircraftModels.filter(elm => set.has(elm)));
+  }, [props.options.planes]);
 
   const prepResults = (allResults) => {
     const approachSpeedRatio = 0.4;
@@ -606,28 +623,24 @@ const Routing = React.memo((props) => {
       planeMaxPax = 0;
       // Go through every available planes, to build an objetc
       // with the specifications of all plane models available
-      for (const arr of Object.values(props.options.planes)) {
-        for (const p of arr) {
-          if (!planesSpecs[p.model]) {
-            const c = aircrafts[p.model];
-            const fuelCapacity = (
-              c.Ext1 + c.LTip + c.LAux + c.LMain + c.Center1
-                     + c.Center2 + c.Center3 + c.RMain + c.RAux
-                     + c.RTip + c.RExt2);
-            // Compute fuel weight in kg at 25% fuel load
-            const fuel = 0.25 * 2.68735 * fuelCapacity;
-            planesSpecs[p.model] = {
-              // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
-              maxKg: c.MTOW - c.EmptyWeight - 77*(1+c.Crew) - fuel,
-              // Total plane seats - 1 seat for pilot - 1 seat if additionnal crew
-              maxPax: c.Seats - (c.Crew > 0 ? 2 : 1),
-              // Plane range: maximum length of a single leg
-              range: fuelCapacity / c.GPH * c.CruiseSpeed
-            }
-            planeMaxKg = Math.max(planeMaxKg, planesSpecs[p.model].maxKg);
-            planeMaxPax = Math.max(planeMaxPax, planesSpecs[p.model].maxPax);
-          }
+      for (const model of aircraftModels.length ? aircraftModels : availableModels) {
+        const c = aircrafts[model];
+        const fuelCapacity = (
+          c.Ext1 + c.LTip + c.LAux + c.LMain + c.Center1
+                 + c.Center2 + c.Center3 + c.RMain + c.RAux
+                 + c.RTip + c.RExt2);
+        // Compute fuel weight in kg at 25% fuel load
+        const fuel = 0.25 * 2.68735 * fuelCapacity;
+        planesSpecs[model] = {
+          // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
+          maxKg: c.MTOW - c.EmptyWeight - 77*(1+c.Crew) - fuel,
+          // Total plane seats - 1 seat for pilot - 1 seat if additionnal crew
+          maxPax: c.Seats - (c.Crew > 0 ? 2 : 1),
+          // Plane range: maximum length of a single leg
+          range: fuelCapacity / c.GPH * c.CruiseSpeed
         }
+        planeMaxKg = Math.max(planeMaxKg, planesSpecs[model].maxKg);
+        planeMaxPax = Math.max(planeMaxPax, planesSpecs[model].maxPax);
       }
     }
     
@@ -684,7 +697,15 @@ const Routing = React.memo((props) => {
     // List of start points
     let icaos = [fromIcao];
     if (type === "rent") {
-      icaos = Object.keys(props.options.planes);
+      icaos = [];
+      for (const icao of Object.keys(props.options.planes)) {
+        for (const p of props.options.planes[icao]) {
+          if (!aircraftModels.length || aircraftModels.includes(p.model)) {
+            icaos.push(icao);
+            break;
+          }
+        }
+      }
     }
     const total = icaos.length
 
@@ -697,6 +718,7 @@ const Routing = React.memo((props) => {
       // If renting a plane, consider the plane with the largest capacity in Kg available
       if (type === 'rent') {
         for (const p of props.options.planes[icao]) {
+          if (!planesSpecs[p.model]) { continue; }
           if (model === 'free' || planesSpecs[p.model].maxKg > planesSpecs[model].maxKg) {
             model = p.model;
           }
@@ -1094,11 +1116,33 @@ const Routing = React.memo((props) => {
           </ToggleButtonGroup>
 
           { type === "rent" ?
-            <FormControlLabel
-              control={<Switch checked={loop} onChange={(evt) => setLoop(evt.target.checked)} />}
-              label="Return plane to starting airport"
-              className={classes.formLabel}
-            />
+            <React.Fragment>
+              {availableModels.length ?
+                <Autocomplete
+                  multiple
+                  options={availableModels}
+                  onChange={(evt, value) => setAircraftModels(value)}
+                  limitTags={2}
+                  value={aircraftModels}
+                  renderInput={(params) =>
+                    <TextField
+                      {...params}
+                      label='Aircraft model(s)'
+                      variant='outlined'
+                      helperText='Leave empty for all available models'
+                      className={classes.formLabel}
+                    />
+                  }
+                />
+              :
+                <Alert severity="error" className={classes.formLabel}>You first need to load planes.</Alert>
+              }
+              <FormControlLabel
+                control={<Switch checked={loop} onChange={(evt) => setLoop(evt.target.checked)} />}
+                label="Return plane to starting airport"
+                className={classes.formLabel}
+              />
+            </React.Fragment>
           :
             <React.Fragment>
               <Typography variant="body1" className={classes.formLabel}>Restrict search to specific route:</Typography>
@@ -1408,6 +1452,7 @@ const Routing = React.memo((props) => {
                   !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
                            || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
                            || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range))
+                           || (type === "rent" && (!availableModels.length))
                 }
               >
                 Find best routes
