@@ -320,6 +320,7 @@ const Routing = React.memo((props) => {
   const [speed, setSpeed] = React.useState(250);
   const [consumption, setConsumption] = React.useState(60);
   const [range, setRange] = React.useState(1800);
+  const [fuelType, setFuelType] = React.useState(1);
   const [fromIcao, setFromIcao] = React.useState('');
   const [toIcao, setToIcao] = React.useState('');
   const [maxHops, setMaxHops] = React.useState(4);
@@ -348,6 +349,8 @@ const Routing = React.memo((props) => {
   const [cancel, setCancel] = React.useState(null);
   const [availableModels, setAvailableModels] = React.useState([]);
   const [aircraftModels, setAircraftModels] = React.useState([]);
+  const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
+  const [editSpecs, setEditSpecs] = React.useState(false);
   const classes = useStyles();
 
   const sortFunctions = {
@@ -468,8 +471,12 @@ const Routing = React.memo((props) => {
       }
       else {
         fuelUsage = time * consumption;
-        // Do not know if 100LL or Jet-A Fuel: use a mean price per gallon between the 2
-        fuelCost = fuelUsage * 4.37;
+        if (fuelType === 1) {
+          fuelCost = fuelUsage * 4.19;
+        }
+        else {
+          fuelCost = fuelUsage * 4.55;
+        }
       }
       // Idle time at airport, added later because does not count for fuel usage
       //time += (idleTime / 60)*(allResults[i].icaos.length-1);
@@ -1169,83 +1176,133 @@ const Routing = React.memo((props) => {
               </Grid>
 
               <Typography variant="body1" className={classes.formLabel}>Aircraft specifications:</Typography>
-              <Grid container spacing={1}>
-                <Grid item xs={6}>
+              <Autocomplete
+                options={Object.keys(aircrafts)}
+                onChange={(evt, model) => {
+                  if (!model || !aircrafts[model]) { return; }
+                  const c = aircrafts[model];
+                  const fuelCapacity = (
+                    c.Ext1 + c.LTip + c.LAux + c.LMain + c.Center1
+                           + c.Center2 + c.Center3 + c.RMain + c.RAux
+                           + c.RTip + c.RExt2);
+                  // Compute fuel weight in kg at 25% fuel load
+                  const fuel = 0.25 * 2.68735 * fuelCapacity;
+                  setMaxKg(Math.round(c.MTOW - c.EmptyWeight - 77*(1+c.Crew) - fuel));
+                  // Total plane seats - 1 seat for pilot - 1 seat if additionnal crew
+                  setMaxPax(Math.round(c.Seats - (c.Crew > 0 ? 2 : 1)));
+                  // Plane range: maximum length of a single leg
+                  setRange(Math.round(fuelCapacity / c.GPH * c.CruiseSpeed));
+                  setSpeed(c.CruiseSpeed);
+                  setConsumption(c.GPH);
+                  setFuelType(c.FuelType);
+                  setAircraftSpecsModel(model);
+                }}
+                value={aircraftSpecsModel}
+                renderInput={(params) =>
                   <TextField
-                    label="Max passengers"
-                    placeholder="10"
-                    variant="outlined"
+                    {...params}
+                    label='Aircraft model'
+                    variant='outlined'
                     required
-                    value={maxPax}
-                    onChange={(evt) => setMaxPax(evt.target.value.replace(/[^0-9]/g, ''))}
                   />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    label="Max weight"
-                    variant="outlined"
-                    placeholder="2000"
-                    required
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
-                    }}
-                    value={maxKg}
-                    onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
-                  />
-                </Grid>
-              </Grid>
-              <Grid container spacing={1} style={{marginTop:12}}>
-                <Grid item xs={6}>
-                  <Tooltip title="Used to compute an estimated flight duration.">
-                    <TextField
-                      label="Cruise speed"
-                      placeholder="250"
-                      variant="outlined"
-                      value={speed}
-                      onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
-                      required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">kts</InputAdornment>,
-                      }}
-                    />
-                  </Tooltip>
-                </Grid>
-                <Grid item xs={6}>
-                  <Tooltip title="Used to compute an estimated fuel consumption cost.">
-                    <TextField
-                      label="Fuel consumption"
-                      placeholder="60"
-                      variant="outlined"
-                      value={consumption}
-                      onChange={(evt) => setConsumption(evt.target.value.replace(/[^0-9]/g, ''))}
-                      required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">Gallons/Hour</InputAdornment>,
-                      }}
-                    />
-                  </Tooltip>
-                </Grid>
-              </Grid>
-              <Grid container spacing={1} style={{marginTop:12}}>
-                <Grid item xs={6}>
-                  <Tooltip title="Used to prevent legs longer than this distance.">
-                    <TextField
-                      label="Max range"
-                      placeholder="1800"
-                      variant="outlined"
-                      value={range}
-                      onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
-                      required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                      }}
-                    />
-                  </Tooltip>
-                </Grid>
-              </Grid>
+                }
+              />
+
+              {editSpecs ? 
+                <React.Fragment>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Max passengers"
+                        placeholder="10"
+                        variant="outlined"
+                        required
+                        value={maxPax}
+                        onChange={(evt) => setMaxPax(evt.target.value.replace(/[^0-9]/g, ''))}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Max weight"
+                        variant="outlined"
+                        placeholder="2000"
+                        required
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
+                        }}
+                        value={maxKg}
+                        onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <Tooltip title="Used to compute an estimated flight duration.">
+                        <TextField
+                          label="Cruise speed"
+                          placeholder="250"
+                          variant="outlined"
+                          value={speed}
+                          onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">kts</InputAdornment>,
+                          }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Tooltip title="Used to prevent legs longer than this distance.">
+                        <TextField
+                          label="Max range"
+                          placeholder="1800"
+                          variant="outlined"
+                          value={range}
+                          onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                          }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <Tooltip title="Used to compute an estimated fuel consumption cost.">
+                        <TextField
+                          label="Fuel consumption"
+                          placeholder="60"
+                          variant="outlined"
+                          value={consumption}
+                          onChange={(evt) => setConsumption(evt.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">Gallons/Hour</InputAdornment>,
+                          }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Fuel type"
+                        variant="outlined"
+                        value={fuelType}
+                        onChange={(evt) => setFuelType(parseInt(evt.target.value))}
+                        select
+                        fullWidth
+                      >
+                        <MenuItem value="0">100LL</MenuItem>
+                        <MenuItem value="1">Jet-A</MenuItem>
+                      </TextField>
+                    </Grid>
+                  </Grid>
+                </React.Fragment>
+              :
+                <Link href="#" onClick={(e) => { e.preventDefault(); setEditSpecs(true)}}>Edit aircraf specifications</Link>
+              }
             </React.Fragment>
           }
-
 
           {!moreSettings &&
             <Typography variant="body1" className={classes.pMore}>
