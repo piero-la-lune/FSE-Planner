@@ -30,6 +30,8 @@ import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
 import Popover from '@material-ui/core/Popover';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import AssignmentIcon from '@material-ui/icons/Assignment';
+import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -37,9 +39,11 @@ import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
+import { pdf } from '@react-pdf/renderer';
 
 import RoutingWorker from './routing.worker.js';
-import { hideAirport } from "./utility.js";
+import PDFRoute from './PDFRoute.js';
+import { hideAirport, Plane } from "./utility.js";
 import log from "./util/logger.js";
 
 import aircrafts from "./data/aircraft.json";
@@ -143,7 +147,7 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: theme.spacing(1)
   },
   tlGrid: {
-    marginTop: theme.spacing(3)
+    marginTop: theme.spacing(1)
   },
   tlGridText: {
     display: "flex",
@@ -224,6 +228,13 @@ const useStyles = makeStyles(theme => ({
   progressBar: {
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
+  },
+  focusActions: {
+    textAlign: 'center',
+  },
+  focusAction: {
+    marginTop: theme.spacing(2),
+    margin: '0 6px 0 6px'
   }
 }));
 
@@ -351,6 +362,7 @@ const Routing = React.memo((props) => {
   const [aircraftModels, setAircraftModels] = React.useState([]);
   const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
   const [editSpecs, setEditSpecs] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
   const classes = useStyles();
 
   const sortFunctions = {
@@ -445,81 +457,70 @@ const Routing = React.memo((props) => {
     setAircraftModels((oldAircraftModels) => oldAircraftModels.filter(elm => set.has(elm)));
   }, [props.options.planes]);
 
-  const prepResults = (allResults) => {
+  const prepResults = (allResults, planesSpecs) => {
     const approachSpeedRatio = 0.4;
     for (var i = 0; i < allResults.length; i++) {
-      const aSpeed = type === 'rent' ? aircrafts[allResults[i].model].CruiseSpeed : speed;
+      const plane = planesSpecs[allResults[i].model];
       const totalDistance =
           allResults[i].distance
         + allResults[i].distance * overheadLength / 100
         + approachLength*(allResults[i].icaos.length-1);
       let time =
-          allResults[i].distance/aSpeed
-        + allResults[i].distance * overheadLength / 100 / aSpeed
-        + approachLength*(allResults[i].icaos.length-1)/(aSpeed*approachSpeedRatio);
+          allResults[i].distance/plane.speed
+        + allResults[i].distance * overheadLength / 100 / plane.speed
+        + approachLength*(allResults[i].icaos.length-1)/(plane.speed*approachSpeedRatio);
       // Compute fuel usage
-      let fuelUsage = 0;
-      let fuelCost = 0;
-      if (type === 'rent') {
-        fuelUsage = time * aircrafts[allResults[i].model].GPH;
-        if (aircrafts[allResults[i].model].FuelType === 1) {
-          fuelCost = fuelUsage * 4.19;
-        }
-        else {
-          fuelCost = fuelUsage * 4.55;
-        }
-      }
-      else {
-        fuelUsage = time * consumption;
-        if (fuelType === 1) {
-          fuelCost = fuelUsage * 4.19;
-        }
-        else {
-          fuelCost = fuelUsage * 4.55;
-        }
-      }
+      let fuelUsage = time * plane.GPH;
+      let fuelCost = fuelUsage * (plane.fuelType === 1 ? 4.19 : 4.55);
       // Idle time at airport, added later because does not count for fuel usage
-      //time += (idleTime / 60)*(allResults[i].icaos.length-1);
+      time += (idleTime / 60)*(allResults[i].icaos.length-1);
       const h = Math.floor(time);
       const min = Math.round((time-h)*60);
+      const grossPay = allResults[i].pay;
       let pay = allResults[i].pay;
+
       // Compute ground fees: 10% for each assignment
       // (could be 0 or 5% if there is no FBO at the originating or destination airport,
       // but there is no way of knowing if that is the case, so 10% is always applied)
+      const feeGround = pay*0.1;
       if (fees.includes('Ground')) {
-        pay -= pay*0.1;
+        pay -= feeGround;
       }
+
       // Compute booking fees : X%, where X is the number of PT assignments loaded in the
       // plane (0 if less than 5 assignments)
-      if (fees.includes('Booking')) {
-        // Used to store previous fees, because we apply the highest fee of all hops
-        // that the assignment has traveled
-        const feeHistory = {};
-        for (var j = 0; j < allResults[i].icaos.length-1; j++) {
-          if (!allResults[i].cargos[j].TripOnly.length) { continue; }
-          // Compute the number of PT assignments in aircraft
-          let nbPT = allResults[i].cargos[j].TripOnly.reduce((acc, c) => acc + (c.PT ? 1 : 0), 0);
-          // No fee if less than 5 assignments
-          if (nbPT <= 5) { nbPT = 0; }
-          for (const c of allResults[i].cargos[j].TripOnly) {
-            if (c.PT) {
-              const key = c.from+'-'+c.to;
-              if (!feeHistory[key]) { feeHistory[key] = 0; }
-              feeHistory[key] = Math.max(feeHistory[key], nbPT);
-              // The assignment has reached is destination, get the highest fee and apply it
-              if (c.to === allResults[i].icaos[j+1]) {
-                pay -= c.pay * feeHistory[key] / 100;
-              }
-            }
-          }
-          // Ensure to clean fee history for the current destination
-          for (const key of Object.keys(feeHistory)) {
-            if (key.endsWith(allResults[i].icaos[j+1])) {
-              delete feeHistory[key];
+      let feeBooking = 0;
+      // Used to store previous fees, because we apply the highest fee of all hops
+      // that the assignment has traveled
+      const feeHistory = {};
+      for (var j = 0; j < allResults[i].icaos.length-1; j++) {
+        if (!allResults[i].cargos[j].TripOnly.length) { continue; }
+        // Compute the number of PT assignments in aircraft
+        let nbPT = allResults[i].cargos[j].TripOnly.reduce((acc, c) => acc + (c.PT ? 1 : 0), 0);
+        // No fee if less than 5 assignments
+        if (nbPT <= 5) { nbPT = 0; }
+        for (const c of allResults[i].cargos[j].TripOnly) {
+          if (c.PT) {
+            const key = c.from+'-'+c.to;
+            if (!feeHistory[key]) { feeHistory[key] = 0; }
+            feeHistory[key] = Math.max(feeHistory[key], nbPT);
+            // The assignment has reached is destination, get the highest fee and apply it
+            if (c.to === allResults[i].icaos[j+1]) {
+              feeBooking += c.pay * feeHistory[key] / 100;
             }
           }
         }
+        // Ensure to clean fee history for the current destination
+        for (const key of Object.keys(feeHistory)) {
+          if (key.endsWith(allResults[i].icaos[j+1])) {
+            delete feeHistory[key];
+          }
+        }
       }
+      if (fees.includes('Booking')) {
+        pay -= feeBooking;
+      }
+
       // Get plane reg, and compute rental cost and bonus
       let planeReg = null;
       let rentalType = 'dry';
@@ -530,7 +531,7 @@ const Routing = React.memo((props) => {
         const startIcao = allResults[i].icaos[0];
         const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
         for (const p of props.options.planes[allResults[i].icaos[0]]) {
-          if (p.model !== allResults[i].model) { continue; }
+          if (p.model !== plane.model) { continue; }
           let cost = null;
           let t = null;
           let b = 0;
@@ -587,7 +588,13 @@ const Routing = React.memo((props) => {
       allResults[i].fuel = Math.ceil(fuelUsage);
       allResults[i].reg = planeReg;
       allResults[i].rentalType = rentalType;
-      allResults[i].b = bonus;
+      allResults[i].b = Math.round(bonus);
+      allResults[i].grossPay = grossPay;
+      allResults[i].feeGround = Math.ceil(feeGround);
+      allResults[i].feeBooking = Math.ceil(feeBooking);
+      allResults[i].rentalCost = Math.ceil(rentalCost);
+      allResults[i].fuelCost = Math.ceil(fuelCost);
+      allResults[i].plane = plane;
     }
     allResults.sort(sortFunctions[sortBy]);
 
@@ -618,37 +625,27 @@ const Routing = React.memo((props) => {
     // Compute aircraft specifications
     let planeMaxKg = maxKg;
     let planeMaxPax = maxPax;
-    let planesSpecs = {
-      free: {
-        maxKg: maxKg,
-        maxPax: maxPax,
-        range: range
-      }
-    };
+    let planesSpecs = {};
     if (type === "rent") {
       planeMaxKg = 0;
       planeMaxPax = 0;
       // Go through every available planes, to build an objetc
       // with the specifications of all plane models available
       for (const model of aircraftModels.length ? aircraftModels : availableModels) {
-        const c = aircrafts[model];
-        const fuelCapacity = (
-          c.Ext1 + c.LTip + c.LAux + c.LMain + c.Center1
-                 + c.Center2 + c.Center3 + c.RMain + c.RAux
-                 + c.RTip + c.RExt2);
-        // Compute fuel weight in kg at 25% fuel load
-        const fuel = 0.25 * 2.68735 * fuelCapacity;
-        planesSpecs[model] = {
-          // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
-          maxKg: c.MTOW - c.EmptyWeight - 77*(1+c.Crew) - fuel,
-          // Total plane seats - 1 seat for pilot - 1 seat if additionnal crew
-          maxPax: c.Seats - (c.Crew > 0 ? 2 : 1),
-          // Plane range: maximum length of a single leg
-          range: fuelCapacity / c.GPH * c.CruiseSpeed
-        }
+        planesSpecs[model] = new Plane(model);
         planeMaxKg = Math.max(planeMaxKg, planesSpecs[model].maxKg);
         planeMaxPax = Math.max(planeMaxPax, planesSpecs[model].maxPax);
       }
+    }
+    else {
+      planesSpecs['free'] = new Plane(aircraftSpecsModel, {
+        maxPax: maxPax,
+        maxKg: maxKg,
+        speed: speed,
+        GPH: consumption,
+        fuelType: fuelType,
+        range: range
+      });
     }
     
     // Build job list
@@ -828,6 +825,44 @@ const Routing = React.memo((props) => {
             </div>
 
             <div className={classes.content}>
+              <div className={classes.focusActions}>
+                <Tooltip title={copied ? 'Copied!' : 'Copy route to clipboard'}>
+                  <IconButton
+                    className={classes.focusAction}
+                    onClick={() => {
+                      navigator.clipboard.writeText(focus.icaos.join(' '));
+                      setTimeout(() => setCopied(false), 1000);
+                      setCopied(true);
+                    }}
+                  >
+                    <AssignmentIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Export route to PDF document">
+                  <IconButton
+                    className={classes.focusAction}
+                    onClick={() => {
+                      const blob = pdf(
+                        <PDFRoute
+                          route={focus}
+                          icaodata={props.options.icaodata}
+                          routeParams={{
+                            idleTime: idleTime,
+                            overheadLength: overheadLength,
+                            approachLength: approachLength
+                          }}
+                        />
+                      ).toBlob();
+                      blob.then((file) => {
+                        var fileURL = URL.createObjectURL(file);
+                        window.open(fileURL);
+                      });
+                    }}
+                  >
+                    <PictureAsPdfIcon />
+                  </IconButton>
+                </Tooltip>
+              </div>
               <Grid container spacing={1} className={classes.tlGrid}>
                 <Grid item xs={4}>
                   <Typography variant="body1" className={classes.tlGridText}><MonetizationOnIcon className={classes.icon} />{focus.pay}</Typography>
@@ -849,7 +884,7 @@ const Routing = React.memo((props) => {
                           <React.Fragment>
                             { focus.reg &&
                               <React.Fragment>
-                                <Typography variant="body2">Rent {focus.reg} {focus.rentalType}</Typography>
+                                <Typography variant="body2">Rent {focus.reg} {focus.rentalType} ({focus.plane.model})</Typography>
                                 <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
                               </React.Fragment>
                             }
@@ -1180,21 +1215,13 @@ const Routing = React.memo((props) => {
                 options={Object.keys(aircrafts)}
                 onChange={(evt, model) => {
                   if (!model || !aircrafts[model]) { return; }
-                  const c = aircrafts[model];
-                  const fuelCapacity = (
-                    c.Ext1 + c.LTip + c.LAux + c.LMain + c.Center1
-                           + c.Center2 + c.Center3 + c.RMain + c.RAux
-                           + c.RTip + c.RExt2);
-                  // Compute fuel weight in kg at 25% fuel load
-                  const fuel = 0.25 * 2.68735 * fuelCapacity;
-                  setMaxKg(Math.round(c.MTOW - c.EmptyWeight - 77*(1+c.Crew) - fuel));
-                  // Total plane seats - 1 seat for pilot - 1 seat if additionnal crew
-                  setMaxPax(Math.round(c.Seats - (c.Crew > 0 ? 2 : 1)));
-                  // Plane range: maximum length of a single leg
-                  setRange(Math.round(fuelCapacity / c.GPH * c.CruiseSpeed));
-                  setSpeed(c.CruiseSpeed);
-                  setConsumption(c.GPH);
-                  setFuelType(c.FuelType);
+                  const p = new Plane(model);
+                  setMaxKg(p.maxKg);
+                  setMaxPax(p.maxPax);
+                  setRange(p.range);
+                  setSpeed(p.speed);
+                  setConsumption(p.GPH);
+                  setFuelType(p.fuelType);
                   setAircraftSpecsModel(model);
                 }}
                 value={aircraftSpecsModel}
@@ -1299,7 +1326,7 @@ const Routing = React.memo((props) => {
                   </Grid>
                 </React.Fragment>
               :
-                <Link href="#" onClick={(e) => { e.preventDefault(); setEditSpecs(true)}}>Edit aircraf specifications</Link>
+                <Link href="#" onClick={(e) => { e.preventDefault(); setEditSpecs(true)}}>Edit aircraft specifications</Link>
               }
             </React.Fragment>
           }
@@ -1508,7 +1535,7 @@ const Routing = React.memo((props) => {
                 disabled={
                   !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
                            || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
-                           || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range))
+                           || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range || !aircraftSpecsModel))
                            || (type === "rent" && (!availableModels.length))
                 }
               >
