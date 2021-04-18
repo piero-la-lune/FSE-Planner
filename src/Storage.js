@@ -16,6 +16,9 @@ class Storage {
       if (oldVersion < '1.1.0') {
         this.remove('settings');
       }
+      if (oldVersion < '1.5.0') {
+        this.remove('flight');
+      }
       localStorage.setItem('version', version);
     }
   }

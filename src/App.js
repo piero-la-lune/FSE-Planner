@@ -26,7 +26,8 @@ import DirectionsIcon from '@material-ui/icons/Directions';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { default as _clone } from 'lodash/cloneDeep';
-import { default as _defaultsDeep } from 'lodash/defaultsDeep';
+import { default as _mergeWith } from 'lodash/mergeWith';
+import { default as _isArray } from 'lodash/isArray';
 
 import FSEMap from './Map.js';
 import Routing from './Routing.js';
@@ -106,6 +107,17 @@ const defaultSettings = {
     surface: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     runway: [0, 30000],
     onlyMSFS: false
+  },
+  routeFinder: {
+    maxHops: 4,
+    maxStops: 1,
+    minLoad: 80,
+    maxBadLegs: 2,
+    maxEmptyLeg: 20,
+    idleTime: 2,
+    fees: ['Ground', 'Booking', 'Rental', 'Fuel'],
+    overheadLength: 0,
+    approachLength: 10
   }
 };
 
@@ -332,9 +344,18 @@ function App() {
   const [planes, setPlanes] = React.useState(() => {
     return transformPlanes(storage.get('planes', {}));
   });
-  const [flight, setFlight] = React.useState(storage.get('flight', {}));
+  const [flight, setFlight] = React.useState(() => {
+    return transformJobs(storage.get('flight', {}));
+  });
   const [settings, setSettings] = React.useState(() => {
-    return _defaultsDeep(storage.get('settings', {}), defaultSettings);
+    const obj = {};
+    // Cannot use _defaultsDeep, because it messes up with array
+    [defaultSettings, storage.get('settings', {})].forEach(item => {
+      _mergeWith(obj, item, (objectValue, sourceValue) => {
+        return _isArray(sourceValue) ? sourceValue : undefined;
+      });
+    });
+    return obj;
   });
   const [search, setSearch] = React.useState(null);
   const [searchInput, setSearchInput] = React.useState('');

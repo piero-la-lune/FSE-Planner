@@ -7,6 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -29,15 +30,21 @@ import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
 import Popover from '@material-ui/core/Popover';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import AssignmentIcon from '@material-ui/icons/Assignment';
+import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemText from '@material-ui/core/ListItemText';
+import Alert from '@material-ui/lab/Alert';
+import Popper from '@material-ui/core/Popper';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
+import { pdf } from '@react-pdf/renderer';
 
 import RoutingWorker from './routing.worker.js';
-import { hideAirport } from "./utility.js";
+import PDFRoute from './PDFRoute.js';
+import { hideAirport, Plane } from "./utility.js";
 import log from "./util/logger.js";
 
 import aircrafts from "./data/aircraft.json";
@@ -141,7 +148,7 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: theme.spacing(1)
   },
   tlGrid: {
-    marginTop: theme.spacing(3)
+    marginTop: theme.spacing(1)
   },
   tlGridText: {
     display: "flex",
@@ -222,9 +229,46 @@ const useStyles = makeStyles(theme => ({
   progressBar: {
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
-  }
+  },
+  focusActions: {
+    textAlign: 'center',
+  },
+  focusAction: {
+    marginTop: theme.spacing(2),
+    margin: '0 6px 0 6px'
+  },
+  searchOption: {
+    display: 'flex',
+    alignItems: 'center',
+    overflow: 'hidden'
+  },
+  searchInfos: {
+    display: 'flex',
+    flexDirection: 'column',
+    marginLeft: theme.spacing(2),
+    overflow: 'hidden',
+  },
+  searchLocation: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    color: '#aaa'
+  },
+  searchName: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap'
+  },
+  searchIcao: {
+    minWidth: 40,
+    textAlign: 'center'
+  },
 }));
 
+const filter = createFilterOptions({limit: 5});
+const PopperMy = function (props) {
+  return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
+}
 
 
 function textTotalCargo(cargos, kgPax = true) {
@@ -318,20 +362,23 @@ const Routing = React.memo((props) => {
   const [speed, setSpeed] = React.useState(250);
   const [consumption, setConsumption] = React.useState(60);
   const [range, setRange] = React.useState(1800);
-  const [fromIcao, setFromIcao] = React.useState('');
-  const [toIcao, setToIcao] = React.useState('');
-  const [maxHops, setMaxHops] = React.useState(4);
-  const [maxStops, setMaxStops] = React.useState(1);
-  const [idleTime, setIdleTime] = React.useState(2);
-  const [fees, setFees] = React.useState(['Ground', 'Booking', 'Rental', 'Fuel']);
-  const [overheadLength, setOverheadLength] = React.useState(0);
-  const [approachLength, setApproachLength] = React.useState(10);
+  const [fuelType, setFuelType] = React.useState(1);
+  const [fromIcao, setFromIcao] = React.useState(null);
+  const [fromIcaoInput, setFromIcaoInput] = React.useState('');
+  const [toIcao, setToIcao] = React.useState(null);
+  const [toIcaoInput, setToIcaoInput] = React.useState('');
+  const [maxHops, setMaxHops] = React.useState(props.options.settings.routeFinder.maxHops);
+  const [maxStops, setMaxStops] = React.useState(props.options.settings.routeFinder.maxStops);
+  const [idleTime, setIdleTime] = React.useState(props.options.settings.routeFinder.idleTime);
+  const [fees, setFees] = React.useState(props.options.settings.routeFinder.fees.length ? props.options.settings.routeFinder.fees : ['No']);
+  const [overheadLength, setOverheadLength] = React.useState(props.options.settings.routeFinder.overheadLength);
+  const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
   const [vipOnly, setVipOnly] = React.useState(false);
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
-  const [minLoad, setMinLoad] = React.useState(80);
-  const [maxBadLegs, setMaxBadLegs] = React.useState(2);
-  const [maxEmptyLeg, setMaxEmptyLeg] = React.useState(20);
+  const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
+  const [maxBadLegs, setMaxBadLegs] = React.useState(props.options.settings.routeFinder.maxBadLegs);
+  const [maxEmptyLeg, setMaxEmptyLeg] = React.useState(props.options.settings.routeFinder.maxEmptyLeg);
   const [sortBy, setSortBy] = React.useState('payTime');
   const [focus, setFocus] = React.useState(null);
   const [filterMenu, setFilterMenu] = React.useState(null);
@@ -341,9 +388,17 @@ const Routing = React.memo((props) => {
   const [maxPay, setMaxPay] = React.useState('');
   const [minTime, setMinTime] = React.useState('');
   const [maxTime, setMaxTime] = React.useState('');
+  const [filterIcaos, setFilterIcaos] = React.useState([]);
+  const [filterIcaosInput, setFilterIcaosInput] = React.useState('');
   const [nbDisplay, setNbDisplay] = React.useState(20);
   const [progress, setProgress] = React.useState(0);
   const [cancel, setCancel] = React.useState(null);
+  const [availableModels, setAvailableModels] = React.useState([]);
+  const [aircraftModels, setAircraftModels] = React.useState([]);
+  const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
+  const [editSpecs, setEditSpecs] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+  const icaodataArr = React.useMemo(() => Object.values(props.options.icaodata), [props.options.icaodata]);
   const classes = useStyles();
 
   const sortFunctions = {
@@ -392,6 +447,7 @@ const Routing = React.memo((props) => {
           || (maxPay && elm.pay > maxPay)
           || (minTimeNb && elm.timeNb < minTimeNb)
           || (maxTimeNb && elm.timeNb > maxTimeNb)
+          || (filterIcaos.length && !filterIcaos.every(x => elm.icaos.includes(x.icao)))
         );
       })
       r.sort(sortFunctions[sortBy]);
@@ -425,77 +481,83 @@ const Routing = React.memo((props) => {
     }
   }, [filteredResults]);
 
-  const prepResults = (allResults) => {
+  // Update list of available aircraft models
+  React.useEffect(() => {
+    // Build a list of all available aircraft models
+    const set = new Set();
+    for (const icao of Object.keys(props.options.planes)) {
+      for (const p of props.options.planes[icao]) {
+        set.add(p.model);
+      }
+    }
+    setAvailableModels([...set].sort());
+    setAircraftModels((oldAircraftModels) => oldAircraftModels.filter(elm => set.has(elm)));
+  }, [props.options.planes]);
+
+  const prepResults = (allResults, planesSpecs) => {
     const approachSpeedRatio = 0.4;
     for (var i = 0; i < allResults.length; i++) {
-      const aSpeed = type === 'rent' ? aircrafts[allResults[i].model].CruiseSpeed : speed;
+      const plane = planesSpecs[allResults[i].model];
       const totalDistance =
           allResults[i].distance
         + allResults[i].distance * overheadLength / 100
         + approachLength*(allResults[i].icaos.length-1);
       let time =
-          allResults[i].distance/aSpeed
-        + allResults[i].distance * overheadLength / 100 / aSpeed
-        + approachLength*(allResults[i].icaos.length-1)/(aSpeed*approachSpeedRatio);
+          allResults[i].distance/plane.speed
+        + allResults[i].distance * overheadLength / 100 / plane.speed
+        + approachLength*(allResults[i].icaos.length-1)/(plane.speed*approachSpeedRatio);
       // Compute fuel usage
-      let fuelUsage = 0;
-      let fuelCost = 0;
-      if (type === 'rent') {
-        fuelUsage = time * aircrafts[allResults[i].model].GPH;
-        if (aircrafts[allResults[i].model].FuelType === 1) {
-          fuelCost = fuelUsage * 4.19;
-        }
-        else {
-          fuelCost = fuelUsage * 4.55;
-        }
-      }
-      else {
-        fuelUsage = time * consumption;
-        // Do not know if 100LL or Jet-A Fuel: use a mean price per gallon between the 2
-        fuelCost = fuelUsage * 4.37;
-      }
+      let fuelUsage = time * plane.GPH;
+      let fuelCost = fuelUsage * (plane.fuelType === 1 ? 4.19 : 4.55);
       // Idle time at airport, added later because does not count for fuel usage
-      //time += (idleTime / 60)*(allResults[i].icaos.length-1);
+      time += (idleTime / 60)*(allResults[i].icaos.length-1);
       const h = Math.floor(time);
       const min = Math.round((time-h)*60);
+      const grossPay = allResults[i].pay;
       let pay = allResults[i].pay;
+
       // Compute ground fees: 10% for each assignment
       // (could be 0 or 5% if there is no FBO at the originating or destination airport,
       // but there is no way of knowing if that is the case, so 10% is always applied)
+      const feeGround = pay*0.1;
       if (fees.includes('Ground')) {
-        pay -= pay*0.1;
+        pay -= feeGround;
       }
+
       // Compute booking fees : X%, where X is the number of PT assignments loaded in the
       // plane (0 if less than 5 assignments)
-      if (fees.includes('Booking')) {
-        // Used to store previous fees, because we apply the highest fee of all hops
-        // that the assignment has traveled
-        const feeHistory = {};
-        for (var j = 0; j < allResults[i].icaos.length-1; j++) {
-          if (!allResults[i].cargos[j].TripOnly.length) { continue; }
-          // Compute the number of PT assignments in aircraft
-          let nbPT = allResults[i].cargos[j].TripOnly.reduce((acc, c) => acc + (c.PT ? 1 : 0), 0);
-          // No fee if less than 5 assignments
-          if (nbPT <= 5) { nbPT = 0; }
-          for (const c of allResults[i].cargos[j].TripOnly) {
-            if (c.PT) {
-              const key = c.from+'-'+c.to;
-              if (!feeHistory[key]) { feeHistory[key] = 0; }
-              feeHistory[key] = Math.max(feeHistory[key], nbPT);
-              // The assignment has reached is destination, get the highest fee and apply it
-              if (c.to === allResults[i].icaos[j+1]) {
-                pay -= c.pay * feeHistory[key] / 100;
-              }
-            }
-          }
-          // Ensure to clean fee history for the current destination
-          for (const key of Object.keys(feeHistory)) {
-            if (key.endsWith(allResults[i].icaos[j+1])) {
-              delete feeHistory[key];
+      let feeBooking = 0;
+      // Used to store previous fees, because we apply the highest fee of all hops
+      // that the assignment has traveled
+      const feeHistory = {};
+      for (var j = 0; j < allResults[i].icaos.length-1; j++) {
+        if (!allResults[i].cargos[j].TripOnly.length) { continue; }
+        // Compute the number of PT assignments in aircraft
+        let nbPT = allResults[i].cargos[j].TripOnly.reduce((acc, c) => acc + (c.PT ? 1 : 0), 0);
+        // No fee if less than 5 assignments
+        if (nbPT <= 5) { nbPT = 0; }
+        for (const c of allResults[i].cargos[j].TripOnly) {
+          if (c.PT) {
+            const key = c.from+'-'+c.to;
+            if (!feeHistory[key]) { feeHistory[key] = 0; }
+            feeHistory[key] = Math.max(feeHistory[key], nbPT);
+            // The assignment has reached is destination, get the highest fee and apply it
+            if (c.to === allResults[i].icaos[j+1]) {
+              feeBooking += c.pay * feeHistory[key] / 100;
             }
           }
         }
+        // Ensure to clean fee history for the current destination
+        for (const key of Object.keys(feeHistory)) {
+          if (key.endsWith(allResults[i].icaos[j+1])) {
+            delete feeHistory[key];
+          }
+        }
       }
+      if (fees.includes('Booking')) {
+        pay -= feeBooking;
+      }
+
       // Get plane reg, and compute rental cost and bonus
       let planeReg = null;
       let rentalType = 'dry';
@@ -506,7 +568,7 @@ const Routing = React.memo((props) => {
         const startIcao = allResults[i].icaos[0];
         const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
         for (const p of props.options.planes[allResults[i].icaos[0]]) {
-          if (p.model !== allResults[i].model) { continue; }
+          if (p.model !== plane.model) { continue; }
           let cost = null;
           let t = null;
           let b = 0;
@@ -563,7 +625,13 @@ const Routing = React.memo((props) => {
       allResults[i].fuel = Math.ceil(fuelUsage);
       allResults[i].reg = planeReg;
       allResults[i].rentalType = rentalType;
-      allResults[i].b = bonus;
+      allResults[i].b = Math.round(bonus);
+      allResults[i].grossPay = grossPay;
+      allResults[i].feeGround = Math.ceil(feeGround);
+      allResults[i].feeBooking = Math.ceil(feeBooking);
+      allResults[i].rentalCost = Math.ceil(rentalCost);
+      allResults[i].fuelCost = Math.ceil(fuelCost);
+      allResults[i].plane = plane;
     }
     allResults.sort(sortFunctions[sortBy]);
 
@@ -594,47 +662,33 @@ const Routing = React.memo((props) => {
     // Compute aircraft specifications
     let planeMaxKg = maxKg;
     let planeMaxPax = maxPax;
-    let planesSpecs = {
-      free: {
-        maxKg: maxKg,
-        maxPax: maxPax,
-        range: range
-      }
-    };
+    let planesSpecs = {};
     if (type === "rent") {
       planeMaxKg = 0;
       planeMaxPax = 0;
       // Go through every available planes, to build an objetc
       // with the specifications of all plane models available
-      for (const arr of Object.values(props.options.planes)) {
-        for (const p of arr) {
-          if (!planesSpecs[p.model]) {
-            const c = aircrafts[p.model];
-            const fuelCapacity = (
-              c.Ext1 + c.LTip + c.LAux + c.LMain + c.Center1
-                     + c.Center2 + c.Center3 + c.RMain + c.RAux
-                     + c.RTip + c.RExt2);
-            // Compute fuel weight in kg at 25% fuel load
-            const fuel = 0.25 * 2.68735 * fuelCapacity;
-            planesSpecs[p.model] = {
-              // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
-              maxKg: c.MTOW - c.EmptyWeight - 77*(1+c.Crew) - fuel,
-              // Total plane seats - 1 seat for pilot - 1 seat if additionnal crew
-              maxPax: c.Seats - (c.Crew > 0 ? 2 : 1),
-              // Plane range: maximum length of a single leg
-              range: fuelCapacity / c.GPH * c.CruiseSpeed
-            }
-            planeMaxKg = Math.max(planeMaxKg, planesSpecs[p.model].maxKg);
-            planeMaxPax = Math.max(planeMaxPax, planesSpecs[p.model].maxPax);
-          }
-        }
+      for (const model of aircraftModels.length ? aircraftModels : availableModels) {
+        planesSpecs[model] = new Plane(model);
+        planeMaxKg = Math.max(planeMaxKg, planesSpecs[model].maxKg);
+        planeMaxPax = Math.max(planeMaxPax, planesSpecs[model].maxPax);
       }
+    }
+    else {
+      planesSpecs['free'] = new Plane(aircraftSpecsModel, {
+        maxPax: maxPax,
+        maxKg: maxKg,
+        speed: speed,
+        GPH: consumption,
+        fuelType: fuelType,
+        range: range
+      });
     }
     
     // Build job list
     const jobs = {};
     const jobsReverse = {};
-    for (const [k, v] of Object.entries(props.options.jobs)) {
+    for (const k of [...new Set([...Object.keys(props.options.jobs), ...Object.keys(props.options.flight)])]) {
       const [fr, to] = k.split('-');
       if (hideAirport(fr, props.options.settings.airport) || hideAirport(to, props.options.settings.airport)) { continue; }
       const obj = {
@@ -642,36 +696,44 @@ const Routing = React.memo((props) => {
           TripOnly: [],
           VIP: []
         },
-        distance: v.distance,
-        direction: v.direction
+        distance: props.options.jobs[k] ? props.options.jobs[k].distance : props.options.flight[k].distance,
+        direction: props.options.jobs[k] ? props.options.jobs[k].direction : props.options.flight[k].direction,
       }
-      if (v.kg) {
-        if (v.kg['Trip-Only'] && !vipOnly) {
-          for (const c of v.kg['Trip-Only']) {
-            if (c.nb > planeMaxKg) { continue; }
-            obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+      const append = (v, obj) => {
+        if (v.kg) {
+          if (v.kg['Trip-Only'] && !vipOnly) {
+            for (const c of v.kg['Trip-Only']) {
+              if (c.nb > planeMaxKg) { continue; }
+              obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+            }
+          }
+          if (v.kg['VIP']) {
+            for (const c of v.kg['VIP']) {
+              if (c.nb > planeMaxKg) { continue; }
+              obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+            }
           }
         }
-        if (v.kg['VIP']) {
-          for (const c of v.kg['VIP']) {
-            if (c.nb > planeMaxKg) { continue; }
-            obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+        if (v.passengers) {
+          if (v.passengers['Trip-Only'] && !vipOnly) {
+            for (const c of v.passengers['Trip-Only']) {
+              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
+              obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
+            }
+          }
+          if (v.passengers['VIP']) {
+            for (const c of v.passengers['VIP']) {
+              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
+              obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
+            }
           }
         }
       }
-      if (v.passengers) {
-        if (v.passengers['Trip-Only'] && !vipOnly) {
-          for (const c of v.passengers['Trip-Only']) {
-            if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-            obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
-          }
-        }
-        if (v.passengers['VIP']) {
-          for (const c of v.passengers['VIP']) {
-            if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-            obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
-          }
-        }
+      if (props.options.jobs[k]) {
+        append(props.options.jobs[k], obj);
+      }
+      if (props.options.flight[k]) {
+        append(props.options.flight[k], obj);
       }
       if (obj.cargos.TripOnly || obj.cargos.VIP) {
         if (!jobs[fr]) { jobs[fr] = new Map(); }
@@ -684,7 +746,15 @@ const Routing = React.memo((props) => {
     // List of start points
     let icaos = [fromIcao];
     if (type === "rent") {
-      icaos = Object.keys(props.options.planes);
+      icaos = [];
+      for (const icao of Object.keys(props.options.planes)) {
+        for (const p of props.options.planes[icao]) {
+          if (!aircraftModels.length || aircraftModels.includes(p.model)) {
+            icaos.push(icao);
+            break;
+          }
+        }
+      }
     }
     const total = icaos.length
 
@@ -697,6 +767,7 @@ const Routing = React.memo((props) => {
       // If renting a plane, consider the plane with the largest capacity in Kg available
       if (type === 'rent') {
         for (const p of props.options.planes[icao]) {
+          if (!planesSpecs[p.model]) { continue; }
           if (model === 'free' || planesSpecs[p.model].maxKg > planesSpecs[model].maxKg) {
             model = p.model;
           }
@@ -799,6 +870,44 @@ const Routing = React.memo((props) => {
             </div>
 
             <div className={classes.content}>
+              <div className={classes.focusActions}>
+                <Tooltip title={copied ? 'Copied!' : 'Copy route to clipboard'}>
+                  <IconButton
+                    className={classes.focusAction}
+                    onClick={() => {
+                      navigator.clipboard.writeText(focus.icaos.join(' '));
+                      setTimeout(() => setCopied(false), 1000);
+                      setCopied(true);
+                    }}
+                  >
+                    <AssignmentIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Export route to PDF document">
+                  <IconButton
+                    className={classes.focusAction}
+                    onClick={() => {
+                      const blob = pdf(
+                        <PDFRoute
+                          route={focus}
+                          icaodata={props.options.icaodata}
+                          routeParams={{
+                            idleTime: idleTime,
+                            overheadLength: overheadLength,
+                            approachLength: approachLength
+                          }}
+                        />
+                      ).toBlob();
+                      blob.then((file) => {
+                        var fileURL = URL.createObjectURL(file);
+                        window.open(fileURL);
+                      });
+                    }}
+                  >
+                    <PictureAsPdfIcon />
+                  </IconButton>
+                </Tooltip>
+              </div>
               <Grid container spacing={1} className={classes.tlGrid}>
                 <Grid item xs={4}>
                   <Typography variant="body1" className={classes.tlGridText}><MonetizationOnIcon className={classes.icon} />{focus.pay}</Typography>
@@ -820,7 +929,7 @@ const Routing = React.memo((props) => {
                           <React.Fragment>
                             { focus.reg &&
                               <React.Fragment>
-                                <Typography variant="body2">Rent {focus.reg} {focus.rentalType}</Typography>
+                                <Typography variant="body2">Rent {focus.reg} {focus.rentalType} ({focus.plane.model})</Typography>
                                 <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
                               </React.Fragment>
                             }
@@ -1019,6 +1128,53 @@ const Routing = React.memo((props) => {
                         className={classes.filtersInput}
                       />
                     </Grid>
+                    <Grid item xs={12}>
+                      <Autocomplete
+                        options={icaodataArr}
+                        getOptionLabel={(a) => a.icao ? a.icao : ''}
+                        renderOption={(a) =>
+                          <span className={classes.searchOption}>
+                            <b className={classes.searchIcao}>{a.icao}</b>
+                            <span className={classes.searchInfos}>
+                              <span className={classes.searchName}>{a.name}</span>
+                              <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                            </span>
+                          </span>
+                        }
+                        filterOptions={(options, params) => {
+                          // Search for ICAO
+                          let filtered = filter(options, { inputValue: filterIcaosInput, getOptionLabel: (a) => a.icao });
+                          // If not enough results, search for city name
+                          if (filtered.length < 5) {
+                            const add = filter(options, { inputValue: filterIcaosInput, getOptionLabel: (a) => a.name });
+                            filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                          }
+                          return filtered;
+                        }}
+                        renderInput={(params) =>
+                          <TextField
+                            {...params}
+                            label="Include ICAO(s)"
+                            variant="outlined"
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
+                            margin="dense"
+                            className={classes.filtersInput}
+                          />
+                        }
+                        PopperComponent={PopperMy}
+                        onChange={(evt, value) => {
+                          setFilterIcaos(value);
+                        }}
+                        value={filterIcaos}
+                        inputValue={filterIcaosInput}
+                        onInputChange={(evt, value) => setFilterIcaosInput(value)}
+                        autoHighlight={true}
+                        selectOnFocus={false}
+                        multiple
+                      />
+                    </Grid>
                   </Grid>
                   <Button variant="contained" color="primary" onClick={filterResults} className={classes.filtersApply}>Apply</Button>
                 </Popover>
@@ -1094,114 +1250,257 @@ const Routing = React.memo((props) => {
           </ToggleButtonGroup>
 
           { type === "rent" ?
-            <FormControlLabel
-              control={<Switch checked={loop} onChange={(evt) => setLoop(evt.target.checked)} />}
-              label="Return plane to starting airport"
-              className={classes.formLabel}
-            />
+            <React.Fragment>
+              {availableModels.length ?
+                <Autocomplete
+                  multiple
+                  options={availableModels}
+                  onChange={(evt, value) => setAircraftModels(value)}
+                  limitTags={2}
+                  value={aircraftModels}
+                  renderInput={(params) =>
+                    <TextField
+                      {...params}
+                      label='Aircraft model(s)'
+                      variant='outlined'
+                      helperText='Leave empty for all available models'
+                      className={classes.formLabel}
+                    />
+                  }
+                />
+              :
+                <Alert severity="error" className={classes.formLabel}>You first need to load planes.</Alert>
+              }
+              <FormControlLabel
+                control={<Switch checked={loop} onChange={(evt) => setLoop(evt.target.checked)} />}
+                label="Return plane to starting airport"
+                className={classes.formLabel}
+              />
+            </React.Fragment>
           :
             <React.Fragment>
               <Typography variant="body1" className={classes.formLabel}>Restrict search to specific route:</Typography>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
-                  <TextField
-                    label="From"
-                    placeholder="ICAO"
-                    variant="outlined"
-                    value={fromIcao}
-                    onChange={(evt) => setFromIcao(evt.target.value.toUpperCase())}
-                    required
+                  <Autocomplete
+                    options={icaodataArr}
+                    getOptionLabel={(a) => a.icao ? a.icao : ''}
+                    renderOption={(a) =>
+                      <span className={classes.searchOption}>
+                        <b className={classes.searchIcao}>{a.icao}</b>
+                        <span className={classes.searchInfos}>
+                          <span className={classes.searchName}>{a.name}</span>
+                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                        </span>
+                      </span>
+                    }
+                    filterOptions={(options, params) => {
+                      // Search for ICAO
+                      let filtered = filter(options, { inputValue: fromIcaoInput, getOptionLabel: (a) => a.icao });
+                      // If not enough results, search for city name
+                      if (filtered.length < 5) {
+                        const add = filter(options, { inputValue: fromIcaoInput, getOptionLabel: (a) => a.name });
+                        filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                      }
+                      return filtered;
+                    }}
+                    renderInput={(params) =>
+                      <TextField
+                        {...params}
+                        label="From"
+                        variant="outlined"
+                        placeholder="ICAO"
+                        required
+                      />
+                    }
+                    PopperComponent={PopperMy}
+                    onChange={(evt, value) => {
+                      if (value) {
+                        setFromIcao(value.icao);
+                      }
+                      else {
+                        setFromIcao(null);
+                      }
+                    }}
+                    value={fromIcao ? props.options.icaodata[fromIcao] : null}
+                    inputValue={fromIcaoInput}
+                    onInputChange={(evt, value) => setFromIcaoInput(value)}
+                    autoHighlight={true}
+                    autoSelect={true}
+                    selectOnFocus={false}
                   />
                 </Grid>
                 <Grid item xs={6}>
-                  <TextField
-                    label="To"
-                    variant="outlined"
-                    placeholder="ICAO"
-                    value={toIcao}
-                    onChange={(evt) => setToIcao(evt.target.value.toUpperCase())}
+                  <Autocomplete
+                    options={icaodataArr}
+                    getOptionLabel={(a) => a.icao ? a.icao : ''}
+                    renderOption={(a) =>
+                      <span className={classes.searchOption}>
+                        <b className={classes.searchIcao}>{a.icao}</b>
+                        <span className={classes.searchInfos}>
+                          <span className={classes.searchName}>{a.name}</span>
+                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                        </span>
+                      </span>
+                    }
+                    filterOptions={(options, params) => {
+                      // Search for ICAO
+                      let filtered = filter(options, { inputValue: toIcaoInput, getOptionLabel: (a) => a.icao });
+                      // If not enough results, search for city name
+                      if (filtered.length < 5) {
+                        const add = filter(options, { inputValue: toIcaoInput, getOptionLabel: (a) => a.name });
+                        filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                      }
+                      return filtered;
+                    }}
+                    renderInput={(params) =>
+                      <TextField
+                        {...params}
+                        label="To"
+                        variant="outlined"
+                        placeholder="ICAO"
+                        required
+                      />
+                    }
+                    PopperComponent={PopperMy}
+                    onChange={(evt, value) => {
+                      if (value) {
+                        setToIcao(value.icao);
+                      }
+                      else {
+                        setToIcao(null);
+                      }
+                    }}
+                    value={toIcao ? props.options.icaodata[toIcao] : null}
+                    inputValue={toIcaoInput}
+                    onInputChange={(evt, value) => setToIcaoInput(value)}
+                    autoHighlight={true}
+                    autoSelect={true}
+                    selectOnFocus={false}
                   />
                 </Grid>
               </Grid>
 
               <Typography variant="body1" className={classes.formLabel}>Aircraft specifications:</Typography>
-              <Grid container spacing={1}>
-                <Grid item xs={6}>
+              <Autocomplete
+                options={Object.keys(aircrafts)}
+                onChange={(evt, model) => {
+                  if (!model || !aircrafts[model]) { return; }
+                  const p = new Plane(model);
+                  setMaxKg(p.maxKg);
+                  setMaxPax(p.maxPax);
+                  setRange(p.range);
+                  setSpeed(p.speed);
+                  setConsumption(p.GPH);
+                  setFuelType(p.fuelType);
+                  setAircraftSpecsModel(model);
+                }}
+                value={aircraftSpecsModel}
+                renderInput={(params) =>
                   <TextField
-                    label="Max passengers"
-                    placeholder="10"
-                    variant="outlined"
+                    {...params}
+                    label='Aircraft model'
+                    variant='outlined'
                     required
-                    value={maxPax}
-                    onChange={(evt) => setMaxPax(evt.target.value.replace(/[^0-9]/g, ''))}
                   />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    label="Max weight"
-                    variant="outlined"
-                    placeholder="2000"
-                    required
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
-                    }}
-                    value={maxKg}
-                    onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
-                  />
-                </Grid>
-              </Grid>
-              <Grid container spacing={1} style={{marginTop:12}}>
-                <Grid item xs={6}>
-                  <Tooltip title="Used to compute an estimated flight duration.">
-                    <TextField
-                      label="Cruise speed"
-                      placeholder="250"
-                      variant="outlined"
-                      value={speed}
-                      onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
-                      required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">kts</InputAdornment>,
-                      }}
-                    />
-                  </Tooltip>
-                </Grid>
-                <Grid item xs={6}>
-                  <Tooltip title="Used to compute an estimated fuel consumption cost.">
-                    <TextField
-                      label="Fuel consumption"
-                      placeholder="60"
-                      variant="outlined"
-                      value={consumption}
-                      onChange={(evt) => setConsumption(evt.target.value.replace(/[^0-9]/g, ''))}
-                      required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">Gallons/Hour</InputAdornment>,
-                      }}
-                    />
-                  </Tooltip>
-                </Grid>
-              </Grid>
-              <Grid container spacing={1} style={{marginTop:12}}>
-                <Grid item xs={6}>
-                  <Tooltip title="Used to prevent legs longer than this distance.">
-                    <TextField
-                      label="Max range"
-                      placeholder="1800"
-                      variant="outlined"
-                      value={range}
-                      onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
-                      required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                      }}
-                    />
-                  </Tooltip>
-                </Grid>
-              </Grid>
+                }
+              />
+
+              {editSpecs ? 
+                <React.Fragment>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Max passengers"
+                        placeholder="10"
+                        variant="outlined"
+                        required
+                        value={maxPax}
+                        onChange={(evt) => setMaxPax(evt.target.value.replace(/[^0-9]/g, ''))}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Max weight"
+                        variant="outlined"
+                        placeholder="2000"
+                        required
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
+                        }}
+                        value={maxKg}
+                        onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <Tooltip title="Used to compute an estimated flight duration.">
+                        <TextField
+                          label="Cruise speed"
+                          placeholder="250"
+                          variant="outlined"
+                          value={speed}
+                          onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">kts</InputAdornment>,
+                          }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Tooltip title="Used to prevent legs longer than this distance.">
+                        <TextField
+                          label="Max range"
+                          placeholder="1800"
+                          variant="outlined"
+                          value={range}
+                          onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                          }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <Tooltip title="Used to compute an estimated fuel consumption cost.">
+                        <TextField
+                          label="Fuel consumption"
+                          placeholder="60"
+                          variant="outlined"
+                          value={consumption}
+                          onChange={(evt) => setConsumption(evt.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">Gallons/Hour</InputAdornment>,
+                          }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Fuel type"
+                        variant="outlined"
+                        value={fuelType}
+                        onChange={(evt) => setFuelType(parseInt(evt.target.value))}
+                        select
+                        fullWidth
+                      >
+                        <MenuItem value="0">100LL</MenuItem>
+                        <MenuItem value="1">Jet-A</MenuItem>
+                      </TextField>
+                    </Grid>
+                  </Grid>
+                </React.Fragment>
+              :
+                <Link href="#" onClick={(e) => { e.preventDefault(); setEditSpecs(true)}}>Edit aircraft specifications</Link>
+              }
             </React.Fragment>
           }
-
 
           {!moreSettings &&
             <Typography variant="body1" className={classes.pMore}>
@@ -1407,7 +1706,8 @@ const Routing = React.memo((props) => {
                 disabled={
                   !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
                            || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
-                           || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range))
+                           || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range || !aircraftSpecsModel))
+                           || (type === "rent" && (!availableModels.length))
                 }
               >
                 Find best routes

@@ -26,6 +26,7 @@ import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
+import log from '../util/logger.js';
 
 import aircrafts from "../data/aircraft.json";
 
@@ -126,26 +127,29 @@ function cleanJobs(list, icaodata) {
   for (const job of list) {
     // Do not keep non paying jobs
     if (!job.Pay) { continue; }
+    // Because Airport jobs and My Flight datafeeds do not use the same property names...
+    const toIcao = job.ToIcao ? job.ToIcao : job.Destination;
+    const unit = job.UnitType ? job.UnitType : job.Units;
 
-    const key = job.Location+"-"+job.ToIcao;
+    const key = job.Location+"-"+toIcao;
 
     // Ensure leg exist in jobs object
     if (!jobs.hasOwnProperty(key)) {
       const fr = { latitude: icaodata[job.Location].lat, longitude: icaodata[job.Location].lon };
-      const to = { latitude: icaodata[job.ToIcao].lat, longitude: icaodata[job.ToIcao].lon };
+      const to = { latitude: icaodata[toIcao].lat, longitude: icaodata[toIcao].lon };
       jobs[key] = {
         direction: Math.round(getRhumbLineBearing(fr, to)),
         distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
       };
     }
-    if (!jobs[key].hasOwnProperty(job.UnitType)) {
-      jobs[key][job.UnitType] = {};
+    if (!jobs[key].hasOwnProperty(unit)) {
+      jobs[key][unit] = {};
     }
     const type = job.PtAssignment ? 'PT' : job.Type;
-    if (!jobs[key][job.UnitType][type]) {
-      jobs[key][job.UnitType][type] = [];
+    if (!jobs[key][unit][type]) {
+      jobs[key][unit][type] = [];
     }
-    jobs[key][job.UnitType][type].push({
+    jobs[key][unit][type].push({
       nb: job.Amount,
       pay: job.Pay
     });
@@ -265,6 +269,7 @@ function UpdatePopup(props) {
       updateJobsRequest(icaosList, [...jobs, ...parse.data], callback);
     })
     .catch(function(error) {
+      log.error("Error while updating Jobs", error);
       console.log(error);
       alert('Could not get data. Check your read access key and ensure you have not reached your quota limit.');
       setLoading(false);
@@ -332,6 +337,7 @@ function UpdatePopup(props) {
       updateRentablePlanesRequest(models, [...planes, ...parse.data], callback);
     })
     .catch(function(error) {
+      log.error("Error while updating Rentable Planes", error);
       console.log(error);
       alert('Could not get data. Check your read access key and ensure you have not reached your quota limit.');
       setLoading(false);
@@ -361,6 +367,7 @@ function UpdatePopup(props) {
       updateRentablePlanesRequest(usernames, [...planes, ...parse.data], callback);
     })
     .catch(function(error) {
+      log.error("Error while updating User Planes", error);
       console.log(error);
       alert('Could not get data.\n\nPossible cause #1: specified user or group does not exist.\n\nPossible cause #2: wrong read access key or quota limit reached.');
       setLoading(false);
@@ -424,11 +431,7 @@ function UpdatePopup(props) {
       if (parse.errors.length > 0) {
         throw new Error("Parsing error");
       }
-      // Convert array to object
-      let jobs = parse.data.reduce((obj, item) => {
-        obj[item.Id] = item;
-        return obj;
-      }, {});
+      const jobs = cleanJobs(parse.data, props.icaodata);
       // Update flight
       storage.set('flight', jobs);
       props.setFlight(jobs);
@@ -441,6 +444,8 @@ function UpdatePopup(props) {
       handleClose();
     })
     .catch(function(error) {
+      log.error("Error while updating My Flight", error);
+      console.log(error);
       alert('Could not get data. Check your read access key.');
       setLoading(false);
     });

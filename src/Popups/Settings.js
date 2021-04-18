@@ -18,10 +18,13 @@ import FlightLandIcon from '@material-ui/icons/FlightLand';
 import ExploreIcon from '@material-ui/icons/Explore';
 import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import BusinessIcon from '@material-ui/icons/Business';
+import DirectionsIcon from '@material-ui/icons/Directions';
 import Grid from '@material-ui/core/Grid';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import MenuItem from '@material-ui/core/MenuItem';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
 
 import {default as _set} from 'lodash/set';
@@ -41,11 +44,15 @@ const useStyles = makeStyles(theme => ({
   },
   dialog: {
     padding: theme.spacing(3)
+  },
+  formLabel: {
+    marginTop: theme.spacing(3),
+    marginBottom: theme.spacing(2)
   }
 }));
 
 
-function Setting({xs, setting, s, setS, ...props}) {
+function Setting({xs, setting, s, setS, end, ...props}) {
   return (
     <Grid item xs={xs || 6}>
       <TextField
@@ -58,6 +65,9 @@ function Setting({xs, setting, s, setS, ...props}) {
           const obj = Object.assign({}, s);
           _set(obj, setting, evt.target.value)
           setS(obj);
+        }}
+        InputProps={{
+          endAdornment: end ? <InputAdornment position="end">{end}</InputAdornment> : null,
         }}
       />
     </Grid>
@@ -151,7 +161,7 @@ function SettingSlider3({xs, setting, s, setS, label, ...props}) {
     </Grid>
   );
 }
-function SettingSelect({xs, setting, s, setS, ...props}) {
+function SettingSelect({xs, setting, s, setS, options, ...props}) {
   return (
     <Grid item xs={xs || 6}>
       <TextField
@@ -168,17 +178,7 @@ function SettingSelect({xs, setting, s, setS, ...props}) {
           setS(obj);
         }}
       >
-        <MenuItem value={1}>Asphalt</MenuItem>
-        <MenuItem value={2}>Concrete</MenuItem>
-        <MenuItem value={3}>Coral</MenuItem>
-        <MenuItem value={4}>Dirt</MenuItem>
-        <MenuItem value={5}>Grass</MenuItem>
-        <MenuItem value={6}>Gravel</MenuItem>
-        <MenuItem value={7}>Helipad</MenuItem>
-        <MenuItem value={8}>Oil Treated</MenuItem>
-        <MenuItem value={9}>Snow</MenuItem>
-        <MenuItem value={10}>Steel Mats</MenuItem>
-        <MenuItem value={11}>Water</MenuItem>
+        { options.map(([value, label]) => <MenuItem key={value} value={value}>{label}</MenuItem>) }
       </TextField>
     </Grid>
   );}
@@ -192,6 +192,26 @@ function SettingsPopup(props) {
   };
   const [s, setS] = React.useState(() => _clone(props.settings));
   const classes = useStyles();
+
+  const surfaceOptions = [
+    [1, 'Asphalt'],
+    [2, 'Concrete'],
+    [3, 'Coral'],
+    [4, 'Dirt'],
+    [5, 'Grass'],
+    [6, 'Gravel'],
+    [7, 'Helipad'],
+    [8, 'Oil Treated'],
+    [9, 'Snow'],
+    [10, 'Steel Mats'],
+    [11, 'Water']
+  ];
+  const earningsOptions = [
+    ['Ground', 'Ground crew fees'],
+    ['Booking', 'Booking fees'],
+    ['Rental', 'Rental cost & bonus'],
+    ['Fuel', 'Fuel cost'],
+  ];
 
   const handleClose = () => {
     // Cancel change
@@ -307,9 +327,34 @@ function SettingsPopup(props) {
             <Grid container spacing={3}>
               <SettingSlider2 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
               <SettingSlider3 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
-              <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" xs={12} />
+              <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} xs={12} />
               <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use MSFS compatible airports" setting="airport.onlyMSFS" xs={12} />
             </Grid>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion expanded={expanded === 'panel7'} onChange={handleChange('panel7')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <DirectionsIcon />&nbsp;<Typography>Route Finder default parameters</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <div>
+              <Alert severity="warning" className={classes.alert}>After saving, you will need to refresh the app in order to see the changes in Route Finder.</Alert>
+              <Typography variant="body1" className={classes.formLabel}>Advanced algorithm parameters:</Typography>
+              <Grid container spacing={3}>
+                <Setting s={s} setS={setS} label="Iterations" setting='routeFinder.maxHops' xs={6} helperText="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops." />
+                <Setting s={s} setS={setS} label="Max stops" setting='routeFinder.maxStops' xs={6} helperText="Number of possible stops along a leg to drop passengers/cargo, in order to better fill the plane part of the leg." />
+                <Setting s={s} setS={setS} label="Min plane load" setting='routeFinder.minLoad' xs={6} end="%" helperText="Try to always keep the plane at least this full." />
+                <Setting s={s} setS={setS} label="Max bad legs" setting='routeFinder.maxBadLegs' xs={6} helperText="Number of possible legs bellow the minimum plane load." />
+                <Setting s={s} setS={setS} label="Max empty legs" setting='routeFinder.maxEmptyLeg' xs={6} end="NM" helperText="Maximum length of entirely empty legs (no cargo/pax at all). Do not set this too high, it quickly becomes very computer intensive."/>
+              </Grid>
+              <Typography variant="body1" className={classes.formLabel}>Route parameters:</Typography>
+              <Grid container spacing={3}>
+                <Setting s={s} setS={setS} label="Idle and taxi time" setting='routeFinder.idleTime' end="min" xs={6} helperText="Time spent on ground at each stop (flight checks, taxi, etc.)" />
+                <Setting s={s} setS={setS} label="Distance overhead" setting='routeFinder.overheadLength' end="%" xs={6} helperText="Added to the leg straight distance, to account for not straight routes." />
+                <Setting s={s} setS={setS} label="Approach distance" setting='routeFinder.approachLength' end="NM" xs={6} helperText="Added to the leg straight distance, to account for approach circuits."/>
+                <SettingSelect s={s} setS={setS} label="Net earnings" setting='routeFinder.fees' xs={6} options={earningsOptions} />
+              </Grid>
+            </div>
           </AccordionDetails>
         </Accordion>
       </DialogContent>
