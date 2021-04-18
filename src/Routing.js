@@ -388,6 +388,8 @@ const Routing = React.memo((props) => {
   const [maxPay, setMaxPay] = React.useState('');
   const [minTime, setMinTime] = React.useState('');
   const [maxTime, setMaxTime] = React.useState('');
+  const [filterIcaos, setFilterIcaos] = React.useState([]);
+  const [filterIcaosInput, setFilterIcaosInput] = React.useState('');
   const [nbDisplay, setNbDisplay] = React.useState(20);
   const [progress, setProgress] = React.useState(0);
   const [cancel, setCancel] = React.useState(null);
@@ -445,6 +447,7 @@ const Routing = React.memo((props) => {
           || (maxPay && elm.pay > maxPay)
           || (minTimeNb && elm.timeNb < minTimeNb)
           || (maxTimeNb && elm.timeNb > maxTimeNb)
+          || (filterIcaos.length && !filterIcaos.every(x => elm.icaos.includes(x.icao)))
         );
       })
       r.sort(sortFunctions[sortBy]);
@@ -1115,6 +1118,53 @@ const Routing = React.memo((props) => {
                         }}
                         margin="dense"
                         className={classes.filtersInput}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Autocomplete
+                        options={icaodataArr}
+                        getOptionLabel={(a) => a.icao ? a.icao : ''}
+                        renderOption={(a) =>
+                          <span className={classes.searchOption}>
+                            <b className={classes.searchIcao}>{a.icao}</b>
+                            <span className={classes.searchInfos}>
+                              <span className={classes.searchName}>{a.name}</span>
+                              <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                            </span>
+                          </span>
+                        }
+                        filterOptions={(options, params) => {
+                          // Search for ICAO
+                          let filtered = filter(options, { inputValue: filterIcaosInput, getOptionLabel: (a) => a.icao });
+                          // If not enough results, search for city name
+                          if (filtered.length < 5) {
+                            const add = filter(options, { inputValue: filterIcaosInput, getOptionLabel: (a) => a.name });
+                            filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                          }
+                          return filtered;
+                        }}
+                        renderInput={(params) =>
+                          <TextField
+                            {...params}
+                            label="Include ICAO(s)"
+                            variant="outlined"
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
+                            margin="dense"
+                            className={classes.filtersInput}
+                          />
+                        }
+                        PopperComponent={PopperMy}
+                        onChange={(evt, value) => {
+                          setFilterIcaos(value);
+                        }}
+                        value={filterIcaos}
+                        inputValue={filterIcaosInput}
+                        onInputChange={(evt, value) => setFilterIcaosInput(value)}
+                        autoHighlight={true}
+                        selectOnFocus={false}
+                        multiple
                       />
                     </Grid>
                   </Grid>
