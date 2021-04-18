@@ -7,7 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -36,6 +36,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemText from '@material-ui/core/ListItemText';
 import Alert from '@material-ui/lab/Alert';
+import Popper from '@material-ui/core/Popper';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
@@ -235,9 +236,39 @@ const useStyles = makeStyles(theme => ({
   focusAction: {
     marginTop: theme.spacing(2),
     margin: '0 6px 0 6px'
-  }
+  },
+  searchOption: {
+    display: 'flex',
+    alignItems: 'center',
+    overflow: 'hidden'
+  },
+  searchInfos: {
+    display: 'flex',
+    flexDirection: 'column',
+    marginLeft: theme.spacing(2),
+    overflow: 'hidden',
+  },
+  searchLocation: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    color: '#aaa'
+  },
+  searchName: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap'
+  },
+  searchIcao: {
+    minWidth: 40,
+    textAlign: 'center'
+  },
 }));
 
+const filter = createFilterOptions({limit: 5});
+const PopperMy = function (props) {
+  return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
+}
 
 
 function textTotalCargo(cargos, kgPax = true) {
@@ -332,8 +363,10 @@ const Routing = React.memo((props) => {
   const [consumption, setConsumption] = React.useState(60);
   const [range, setRange] = React.useState(1800);
   const [fuelType, setFuelType] = React.useState(1);
-  const [fromIcao, setFromIcao] = React.useState('');
-  const [toIcao, setToIcao] = React.useState('');
+  const [fromIcao, setFromIcao] = React.useState(null);
+  const [fromIcaoInput, setFromIcaoInput] = React.useState('');
+  const [toIcao, setToIcao] = React.useState(null);
+  const [toIcaoInput, setToIcaoInput] = React.useState('');
   const [maxHops, setMaxHops] = React.useState(4);
   const [maxStops, setMaxStops] = React.useState(1);
   const [idleTime, setIdleTime] = React.useState(2);
@@ -363,6 +396,7 @@ const Routing = React.memo((props) => {
   const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
   const [editSpecs, setEditSpecs] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+  const icaodataArr = React.useMemo(() => Object.values(props.options.icaodata), [props.options.icaodata]);
   const classes = useStyles();
 
   const sortFunctions = {
@@ -1190,22 +1224,101 @@ const Routing = React.memo((props) => {
               <Typography variant="body1" className={classes.formLabel}>Restrict search to specific route:</Typography>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
-                  <TextField
-                    label="From"
-                    placeholder="ICAO"
-                    variant="outlined"
-                    value={fromIcao}
-                    onChange={(evt) => setFromIcao(evt.target.value.toUpperCase())}
-                    required
+                  <Autocomplete
+                    options={icaodataArr}
+                    getOptionLabel={(a) => a.icao ? a.icao : ''}
+                    renderOption={(a) =>
+                      <span className={classes.searchOption}>
+                        <b className={classes.searchIcao}>{a.icao}</b>
+                        <span className={classes.searchInfos}>
+                          <span className={classes.searchName}>{a.name}</span>
+                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                        </span>
+                      </span>
+                    }
+                    filterOptions={(options, params) => {
+                      // Search for ICAO
+                      let filtered = filter(options, { inputValue: fromIcaoInput, getOptionLabel: (a) => a.icao });
+                      // If not enough results, search for city name
+                      if (filtered.length < 5) {
+                        const add = filter(options, { inputValue: fromIcaoInput, getOptionLabel: (a) => a.name });
+                        filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                      }
+                      return filtered;
+                    }}
+                    renderInput={(params) =>
+                      <TextField
+                        {...params}
+                        label="From"
+                        variant="outlined"
+                        placeholder="ICAO"
+                        required
+                      />
+                    }
+                    PopperComponent={PopperMy}
+                    onChange={(evt, value) => {
+                      if (value) {
+                        setFromIcao(value.icao);
+                      }
+                      else {
+                        setFromIcao(null);
+                      }
+                    }}
+                    value={fromIcao ? props.options.icaodata[fromIcao] : null}
+                    inputValue={fromIcaoInput}
+                    onInputChange={(evt, value) => setFromIcaoInput(value)}
+                    autoHighlight={true}
+                    autoSelect={true}
+                    selectOnFocus={false}
                   />
                 </Grid>
                 <Grid item xs={6}>
-                  <TextField
-                    label="To"
-                    variant="outlined"
-                    placeholder="ICAO"
-                    value={toIcao}
-                    onChange={(evt) => setToIcao(evt.target.value.toUpperCase())}
+                  <Autocomplete
+                    options={icaodataArr}
+                    getOptionLabel={(a) => a.icao ? a.icao : ''}
+                    renderOption={(a) =>
+                      <span className={classes.searchOption}>
+                        <b className={classes.searchIcao}>{a.icao}</b>
+                        <span className={classes.searchInfos}>
+                          <span className={classes.searchName}>{a.name}</span>
+                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                        </span>
+                      </span>
+                    }
+                    filterOptions={(options, params) => {
+                      // Search for ICAO
+                      let filtered = filter(options, { inputValue: toIcaoInput, getOptionLabel: (a) => a.icao });
+                      // If not enough results, search for city name
+                      if (filtered.length < 5) {
+                        const add = filter(options, { inputValue: toIcaoInput, getOptionLabel: (a) => a.name });
+                        filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                      }
+                      return filtered;
+                    }}
+                    renderInput={(params) =>
+                      <TextField
+                        {...params}
+                        label="To"
+                        variant="outlined"
+                        placeholder="ICAO"
+                        required
+                      />
+                    }
+                    PopperComponent={PopperMy}
+                    onChange={(evt, value) => {
+                      if (value) {
+                        setToIcao(value.icao);
+                      }
+                      else {
+                        setToIcao(null);
+                      }
+                    }}
+                    value={toIcao ? props.options.icaodata[toIcao] : null}
+                    inputValue={toIcaoInput}
+                    onInputChange={(evt, value) => setToIcaoInput(value)}
+                    autoHighlight={true}
+                    autoSelect={true}
+                    selectOnFocus={false}
                   />
                 </Grid>
               </Grid>
