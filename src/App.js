@@ -344,7 +344,9 @@ function App() {
   const [planes, setPlanes] = React.useState(() => {
     return transformPlanes(storage.get('planes', {}));
   });
-  const [flight, setFlight] = React.useState(storage.get('flight', {}));
+  const [flight, setFlight] = React.useState(() => {
+    return transformJobs(storage.get('flight', {}));
+  });
   const [settings, setSettings] = React.useState(() => {
     const obj = {};
     // Cannot use _defaultsDeep, because it messes up with array

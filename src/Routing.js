@@ -688,7 +688,7 @@ const Routing = React.memo((props) => {
     // Build job list
     const jobs = {};
     const jobsReverse = {};
-    for (const [k, v] of Object.entries(props.options.jobs)) {
+    for (const k of [...new Set([...Object.keys(props.options.jobs), ...Object.keys(props.options.flight)])]) {
       const [fr, to] = k.split('-');
       if (hideAirport(fr, props.options.settings.airport) || hideAirport(to, props.options.settings.airport)) { continue; }
       const obj = {
@@ -696,36 +696,44 @@ const Routing = React.memo((props) => {
           TripOnly: [],
           VIP: []
         },
-        distance: v.distance,
-        direction: v.direction
+        distance: props.options.jobs[k] ? props.options.jobs[k].distance : props.options.flight[k].distance,
+        direction: props.options.jobs[k] ? props.options.jobs[k].direction : props.options.flight[k].direction,
       }
-      if (v.kg) {
-        if (v.kg['Trip-Only'] && !vipOnly) {
-          for (const c of v.kg['Trip-Only']) {
-            if (c.nb > planeMaxKg) { continue; }
-            obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+      const append = (v, obj) => {
+        if (v.kg) {
+          if (v.kg['Trip-Only'] && !vipOnly) {
+            for (const c of v.kg['Trip-Only']) {
+              if (c.nb > planeMaxKg) { continue; }
+              obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+            }
+          }
+          if (v.kg['VIP']) {
+            for (const c of v.kg['VIP']) {
+              if (c.nb > planeMaxKg) { continue; }
+              obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+            }
           }
         }
-        if (v.kg['VIP']) {
-          for (const c of v.kg['VIP']) {
-            if (c.nb > planeMaxKg) { continue; }
-            obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+        if (v.passengers) {
+          if (v.passengers['Trip-Only'] && !vipOnly) {
+            for (const c of v.passengers['Trip-Only']) {
+              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
+              obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
+            }
+          }
+          if (v.passengers['VIP']) {
+            for (const c of v.passengers['VIP']) {
+              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
+              obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
+            }
           }
         }
       }
-      if (v.passengers) {
-        if (v.passengers['Trip-Only'] && !vipOnly) {
-          for (const c of v.passengers['Trip-Only']) {
-            if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-            obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
-          }
-        }
-        if (v.passengers['VIP']) {
-          for (const c of v.passengers['VIP']) {
-            if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-            obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
-          }
-        }
+      if (props.options.jobs[k]) {
+        append(props.options.jobs[k], obj);
+      }
+      if (props.options.flight[k]) {
+        append(props.options.flight[k], obj);
       }
       if (obj.cargos.TripOnly || obj.cargos.VIP) {
         if (!jobs[fr]) { jobs[fr] = new Map(); }
