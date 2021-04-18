@@ -278,7 +278,7 @@ function UpdatePopup(props) {
   // Jobs Update button clicked
   const updateJobs = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel2');
     // Compute ICAO list
     const icaosList = getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos);
     updateJobsRequest(icaosList, [], (list) => {
@@ -301,7 +301,7 @@ function UpdatePopup(props) {
   // Jobs Clicked button clicked
   const clearJobs = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel2');
     // Update planes
     props.setJobs({});
     storage.remove('jobs');
@@ -376,7 +376,7 @@ function UpdatePopup(props) {
   // Planes Update button clicked
   const updatePlanes = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel3');
     updateRentablePlanesRequest(planeModel.slice(), [], (list1) => {
       updateOwnedPlanesRequest(planeUser.slice(), [], (list2) => {
         // Transform to object
@@ -400,7 +400,7 @@ function UpdatePopup(props) {
   // Planes Clear button clicked
   const clearPlanes = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel3');
     // Update planes
     props.setPlanes({});
     storage.remove('planes');
@@ -414,7 +414,7 @@ function UpdatePopup(props) {
   // My Flight Update button clicked
   const updateFlight = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel4');
     // Build URL
     const url = 'data?userkey='+key+'&format=csv&query=assignments&search=key&readaccesskey='+key
     // Fetch job list
@@ -453,7 +453,7 @@ function UpdatePopup(props) {
   // My Flight Clear button clicked
   const clearFlight = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel4');
     // Update planes
     props.setFlight({});
     storage.remove('flight');
@@ -467,7 +467,7 @@ function UpdatePopup(props) {
   // Custom markers button clicked
   const updateCustom = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel5');
     const elms = customIcaosVal.split(/[ ,\n]+/);
     const icaos = [];
     // Keep only existing ICAO
@@ -486,7 +486,7 @@ function UpdatePopup(props) {
   }
   const clearCustom = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel5');
     setCustomIcaosVal('');
     props.setCustomIcaos([]);
     storage.remove('customIcaos');
@@ -541,7 +541,7 @@ function UpdatePopup(props) {
               <span>
                 <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading || !key || !jobsAreas.length || jobsRequests > 10}>
                   Update
-                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                  {loading === 'panel2' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
               </span>
             </Tooltip>
@@ -605,7 +605,7 @@ function UpdatePopup(props) {
               <span>
                 <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
                   Update
-                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                  {loading === 'panel3' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
               </span>
             </Tooltip>
@@ -681,7 +681,7 @@ function UpdatePopup(props) {
               <span>
                 <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading || !key}>
                   Update
-                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                  {loading === 'panel4' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
               </span>
             </Tooltip>
@@ -697,12 +697,13 @@ function UpdatePopup(props) {
             &nbsp;
             <span>
               <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading}>
-                Update
-                {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                Apply
+                {loading === 'panel5' && <CircularProgress size={24} className={classes.buttonProgress} />}
               </Button>
             </span>
           </AccordionSummary>
           <AccordionDetails className={classes.accDetails}>
+            <Alert severity="info" style={{marginBottom: 32}}>These airports will form an highlighted route on the map (you can hide the path to only highlight the aiports in the display settings). You may add new aiports directly on the map with a right click.</Alert>
             <TextField
               label="List of FSE ICAOs"
               multiline
