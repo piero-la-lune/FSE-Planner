@@ -17,6 +17,7 @@ import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { readString } from 'react-papaparse';
@@ -94,17 +95,20 @@ function getIcaoList(countries, bounds, icaodata, icaos) {
 }
 
 
-function cleanPlanes(list, rentable = true) {
+function cleanPlanes(list, username, rentable = true) {
   const planes = {};
   for (const obj of list) {
     // Exclude broken airplanes
     if (obj.NeedsRepair === 1) { continue; }
-    // Ensure plane can be rented
-    if (obj.Location === 'In Flight') { continue; }
-    if (obj.RentedBy !== 'Not rented.') { continue; }
+    // Rented planes discarded, unless rented by current user
+    if (obj.RentedBy !== 'Not rented.' && obj.RentedBy !== username) { continue; }
+    // If searching for rentable planes, discard planes without
+    // dry and web rental price (except planes owned by FSE, because
+    // those are reserved for All-In jobs)
     if (rentable && !obj.RentalDry && !obj.RentalWet) {
       if (obj.Owner !== 'Bank of FSE') { continue; }
     }
+    // Planes with fee owned are discarded
     if (obj.FeeOwed) { continue; }
 
     // Ensure location exist in planes object
@@ -226,6 +230,7 @@ function UpdatePopup(props) {
   const [expanded, setExpanded] = React.useState(key ? false : 'panel1');
   const [customIcaosVal, setCustomIcaosVal] = React.useState(props.customIcaos.join(' '));
   const [userList, setUserList] = React.useState([]);
+  const [username, setUsername] = React.useState(storage.get('username', ''));
   const classes = useStyles();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
@@ -392,7 +397,7 @@ function UpdatePopup(props) {
     updateRentablePlanesRequest(planeModel.slice(), [], (list1) => {
       updateOwnedPlanesRequest(planeUser.slice(), [], (list2) => {
         // Transform to object
-        const planes = {...cleanPlanes(list1, true), ...cleanPlanes(list2, false)};
+        const planes = {...cleanPlanes(list1, username, true), ...cleanPlanes(list2, username, false)};
         // Update planes
         storage.set('planes', planes);
         props.setPlanes(planes);
@@ -523,22 +528,41 @@ function UpdatePopup(props) {
 
         <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')} data-tour="Step4">
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>FSE read access key</Typography>
+            <Typography>FSE information</Typography>
           </AccordionSummary>
           <AccordionDetails className={classes.accDetails}>
-            <TextField
-              label="Read Access Key"
-              type="text"
-              onChange={(evt) => {
-                let k = evt.target.value;
-                setKey(k);
-                storage.set('key', k);
-              }}
-              value={key}
-              helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}
-              variant='outlined'
-              fullWidth
-            />
+            <Grid container spacing={3}>
+              <Grid item xs={6}>
+                <TextField
+                  label="Read Access Key"
+                  type="text"
+                  onChange={(evt) => {
+                    let k = evt.target.value;
+                    setKey(k);
+                    storage.set('key', k);
+                  }}
+                  value={key}
+                  helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}
+                  variant='outlined'
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Username"
+                  type="text"
+                  onChange={(evt) => {
+                    let u = evt.target.value;
+                    setUsername(u);
+                    storage.set('username', u);
+                  }}
+                  value={username}
+                  variant='outlined'
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
           </AccordionDetails>
         </Accordion>
 
@@ -645,9 +669,9 @@ function UpdatePopup(props) {
               options={userList}
               renderInput={(params) => (
                 ownedPlanesRequests > 1 ?
-                  <TextField {...params} label='Owned planes: user or group names' variant='outlined' error helperText={ownedPlanesRequests+' users/groups selected, it will require '+ownedPlanesRequests+' requests (10 max)'} />
+                  <TextField {...params} label='Owned & leased planes: user or group names' variant='outlined' error helperText={ownedPlanesRequests+' users/groups selected, it will require '+ownedPlanesRequests+' requests (10 max)'} />
                 :
-                  <TextField {...params} label='Owned planes: user or group name' variant='outlined' />
+                  <TextField {...params} label='Owned & leased planes: user or group name' variant='outlined' />
               )}
               onChange={(evt, value) => {
                 setPlaneUser(value);
