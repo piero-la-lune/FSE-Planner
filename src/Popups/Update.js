@@ -17,12 +17,14 @@ import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { readString } from 'react-papaparse';
 import { isPointInPolygon } from "geolib";
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
+import he from 'he';
 
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
@@ -93,17 +95,20 @@ function getIcaoList(countries, bounds, icaodata, icaos) {
 }
 
 
-function cleanPlanes(list, rentable = true) {
+function cleanPlanes(list, username, rentable = true) {
   const planes = {};
   for (const obj of list) {
     // Exclude broken airplanes
     if (obj.NeedsRepair === 1) { continue; }
-    // Ensure plane can be rented
-    if (obj.Location === 'In Flight') { continue; }
-    if (obj.RentedBy !== 'Not rented.') { continue; }
+    // Rented planes discarded, unless rented by current user
+    if (obj.RentedBy !== 'Not rented.' && obj.RentedBy !== username) { continue; }
+    // If searching for rentable planes, discard planes without
+    // dry and web rental price (except planes owned by FSE, because
+    // those are reserved for All-In jobs)
     if (rentable && !obj.RentalDry && !obj.RentalWet) {
       if (obj.Owner !== 'Bank of FSE') { continue; }
     }
+    // Planes with fee owned are discarded
     if (obj.FeeOwed) { continue; }
 
     // Ensure location exist in planes object
@@ -200,6 +205,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const filter = createFilterOptions();
+const filter10 = createFilterOptions({limit: 10});
 
 
 function UpdatePopup(props) {
@@ -223,6 +229,8 @@ function UpdatePopup(props) {
   const [openCustom, setOpenCustom] = React.useState(false);
   const [expanded, setExpanded] = React.useState(key ? false : 'panel1');
   const [customIcaosVal, setCustomIcaosVal] = React.useState(props.customIcaos.join(' '));
+  const [userList, setUserList] = React.useState([]);
+  const [username, setUsername] = React.useState(storage.get('username', ''));
   const classes = useStyles();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
@@ -232,12 +240,21 @@ function UpdatePopup(props) {
     props.setUpdatePopup(false);
   }
 
-  // Open popup on loading if no FSE key
   const setUpdatePopupRef = React.useRef(props.setUpdatePopup);
   React.useEffect(() => {
+    // Open popup on loading if no FSE key
     if (!storage.get('key')) {
       setUpdatePopupRef.current(true);
     }
+
+    // Load user and group list
+    fetch('https://piero-la-lune.fr/fseplanner/data/users.json').then(response => {
+      if (response.ok) {
+        response.json().then(arr => {
+          setUserList(arr.sort());
+        });
+      }
+    });
   }, []);
 
   // Update Custom markers input
@@ -278,7 +295,7 @@ function UpdatePopup(props) {
   // Jobs Update button clicked
   const updateJobs = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel2');
     // Compute ICAO list
     const icaosList = getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos);
     updateJobsRequest(icaosList, [], (list) => {
@@ -301,7 +318,7 @@ function UpdatePopup(props) {
   // Jobs Clicked button clicked
   const clearJobs = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel2');
     // Update planes
     props.setJobs({});
     storage.remove('jobs');
@@ -318,7 +335,7 @@ function UpdatePopup(props) {
       callback(planes);
       return;
     }
-    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURI(models.pop());
+    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURIComponent(models.pop());
     // Fetch plane list
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
@@ -348,7 +365,7 @@ function UpdatePopup(props) {
       callback(planes);
       return;
     }
-    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=ownername&ownername='+encodeURI(usernames.pop());
+    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=ownername&ownername='+encodeURIComponent(usernames.pop());
     // Fetch plane list
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
@@ -376,11 +393,11 @@ function UpdatePopup(props) {
   // Planes Update button clicked
   const updatePlanes = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel3');
     updateRentablePlanesRequest(planeModel.slice(), [], (list1) => {
       updateOwnedPlanesRequest(planeUser.slice(), [], (list2) => {
         // Transform to object
-        const planes = {...cleanPlanes(list1, true), ...cleanPlanes(list2, false)};
+        const planes = {...cleanPlanes(list1, username, true), ...cleanPlanes(list2, username, false)};
         // Update planes
         storage.set('planes', planes);
         props.setPlanes(planes);
@@ -400,7 +417,7 @@ function UpdatePopup(props) {
   // Planes Clear button clicked
   const clearPlanes = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel3');
     // Update planes
     props.setPlanes({});
     storage.remove('planes');
@@ -414,7 +431,7 @@ function UpdatePopup(props) {
   // My Flight Update button clicked
   const updateFlight = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel4');
     // Build URL
     const url = 'data?userkey='+key+'&format=csv&query=assignments&search=key&readaccesskey='+key
     // Fetch job list
@@ -453,7 +470,7 @@ function UpdatePopup(props) {
   // My Flight Clear button clicked
   const clearFlight = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel4');
     // Update planes
     props.setFlight({});
     storage.remove('flight');
@@ -467,7 +484,7 @@ function UpdatePopup(props) {
   // Custom markers button clicked
   const updateCustom = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel5');
     const elms = customIcaosVal.split(/[ ,\n]+/);
     const icaos = [];
     // Keep only existing ICAO
@@ -486,7 +503,7 @@ function UpdatePopup(props) {
   }
   const clearCustom = (evt) => {
     evt.stopPropagation();
-    setLoading(true);
+    setLoading('panel5');
     setCustomIcaosVal('');
     props.setCustomIcaos([]);
     storage.remove('customIcaos');
@@ -511,22 +528,41 @@ function UpdatePopup(props) {
 
         <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')} data-tour="Step4">
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>FSE read access key</Typography>
+            <Typography>FSE information</Typography>
           </AccordionSummary>
           <AccordionDetails className={classes.accDetails}>
-            <TextField
-              label="Read Access Key"
-              type="text"
-              onChange={(evt) => {
-                let k = evt.target.value;
-                setKey(k);
-                storage.set('key', k);
-              }}
-              value={key}
-              helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}
-              variant='outlined'
-              fullWidth
-            />
+            <Grid container spacing={3}>
+              <Grid item xs={6}>
+                <TextField
+                  label="Read Access Key"
+                  type="text"
+                  onChange={(evt) => {
+                    let k = evt.target.value;
+                    setKey(k);
+                    storage.set('key', k);
+                  }}
+                  value={key}
+                  helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}
+                  variant='outlined'
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Username"
+                  type="text"
+                  onChange={(evt) => {
+                    let u = evt.target.value;
+                    setUsername(u);
+                    storage.set('username', u);
+                  }}
+                  value={username}
+                  variant='outlined'
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
           </AccordionDetails>
         </Accordion>
 
@@ -539,9 +575,9 @@ function UpdatePopup(props) {
             &nbsp;
             <Tooltip title={<span>Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading || !key || !jobsAreas.length || jobsRequests > 10}>
+                <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading !== false || !key || !jobsAreas.length || jobsRequests > 10}>
                   Update
-                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                  {loading === 'panel2' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
               </span>
             </Tooltip>
@@ -603,9 +639,9 @@ function UpdatePopup(props) {
             &nbsp;
             <Tooltip title={<span>Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
+                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading !== false || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
                   Update
-                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                  {loading === 'panel3' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
               </span>
             </Tooltip>
@@ -629,41 +665,20 @@ function UpdatePopup(props) {
             />
             <Autocomplete
               multiple
-              freeSolo
-              options={[]}
+              limitTags={2}
+              options={userList}
               renderInput={(params) => (
                 ownedPlanesRequests > 1 ?
-                  <TextField {...params} label='Owned planes: user or group names' variant='outlined' error helperText={ownedPlanesRequests+' users/groups selected, it will require '+ownedPlanesRequests+' requests (10 max)'} />
+                  <TextField {...params} label='Owned & leased planes: user or group names' variant='outlined' error helperText={ownedPlanesRequests+' users/groups selected, it will require '+ownedPlanesRequests+' requests (10 max)'} />
                 :
-                  <TextField {...params} label='Owned planes: user or group name' variant='outlined' />
+                  <TextField {...params} label='Owned & leased planes: user or group name' variant='outlined' />
               )}
               onChange={(evt, value) => {
-                const arr = [];
-                for (const v of value) {
-                  if (typeof v === 'string') {
-                    arr.push(v);
-                  }
-                  else {
-                    arr.push(v.inputValue);
-                  }
-                }
-                setPlaneUser(arr);
+                setPlaneUser(value);
                 setOwnedPlanesRequests(value.length);
               }}
-              filterOptions={(options, params) => {
-                return params.inputValue === '' ? [] : [{
-                  inputValue: params.inputValue,
-                  title: `Owned by "${params.inputValue}"`,
-                }];
-              }}
-              getOptionLabel={(option) => {
-                // Value selected with enter, right from the input
-                if (typeof option === 'string') {
-                  return option;
-                }
-                // Owned by "xxx" option created dynamically
-                return option.title;
-              }}
+              filterOptions={(options, params) => filter10(options, params)}
+              getOptionLabel={option => he.decode(option)}
               value={planeUser}
               className={classes.ownedPlanes}
             />
@@ -679,9 +694,9 @@ function UpdatePopup(props) {
             &nbsp;
             <Tooltip title={<span>Last update : {flightTime ? ((new Date(flightTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading || !key}>
+                <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading !== false || !key}>
                   Update
-                  {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                  {loading === 'panel4' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
               </span>
             </Tooltip>
@@ -696,13 +711,14 @@ function UpdatePopup(props) {
             </Button>
             &nbsp;
             <span>
-              <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading}>
-                Update
-                {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+              <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading !== false}>
+                Apply
+                {loading === 'panel5' && <CircularProgress size={24} className={classes.buttonProgress} />}
               </Button>
             </span>
           </AccordionSummary>
           <AccordionDetails className={classes.accDetails}>
+            <Alert severity="info" style={{marginBottom: 32}}>These airports will form an highlighted route on the map (you can hide the path to only highlight the aiports in the display settings). You may add new aiports directly on the map with a right click.</Alert>
             <TextField
               label="List of FSE ICAOs"
               multiline
