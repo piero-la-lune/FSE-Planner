@@ -23,6 +23,7 @@ import { readString } from 'react-papaparse';
 import { isPointInPolygon } from "geolib";
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
+import he from 'he';
 
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
@@ -200,6 +201,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const filter = createFilterOptions();
+const filter10 = createFilterOptions({limit: 10});
 
 
 function UpdatePopup(props) {
@@ -223,6 +225,7 @@ function UpdatePopup(props) {
   const [openCustom, setOpenCustom] = React.useState(false);
   const [expanded, setExpanded] = React.useState(key ? false : 'panel1');
   const [customIcaosVal, setCustomIcaosVal] = React.useState(props.customIcaos.join(' '));
+  const [userList, setUserList] = React.useState([]);
   const classes = useStyles();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
@@ -232,12 +235,21 @@ function UpdatePopup(props) {
     props.setUpdatePopup(false);
   }
 
-  // Open popup on loading if no FSE key
   const setUpdatePopupRef = React.useRef(props.setUpdatePopup);
   React.useEffect(() => {
+    // Open popup on loading if no FSE key
     if (!storage.get('key')) {
       setUpdatePopupRef.current(true);
     }
+
+    // Load user and group list
+    fetch('https://piero-la-lune.fr/fseplanner/data/users.json').then(response => {
+      if (response.ok) {
+        response.json().then(arr => {
+          setUserList(arr.sort());
+        });
+      }
+    });
   }, []);
 
   // Update Custom markers input
@@ -318,7 +330,7 @@ function UpdatePopup(props) {
       callback(planes);
       return;
     }
-    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURI(models.pop());
+    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=makemodel&makemodel='+encodeURIComponent(models.pop());
     // Fetch plane list
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
@@ -348,7 +360,7 @@ function UpdatePopup(props) {
       callback(planes);
       return;
     }
-    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=ownername&ownername='+encodeURI(usernames.pop());
+    const url = 'data?userkey='+key+'&format=csv&query=aircraft&search=ownername&ownername='+encodeURIComponent(usernames.pop());
     // Fetch plane list
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
@@ -539,7 +551,7 @@ function UpdatePopup(props) {
             &nbsp;
             <Tooltip title={<span>Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading || !key || !jobsAreas.length || jobsRequests > 10}>
+                <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading !== false || !key || !jobsAreas.length || jobsRequests > 10}>
                   Update
                   {loading === 'panel2' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
@@ -603,7 +615,7 @@ function UpdatePopup(props) {
             &nbsp;
             <Tooltip title={<span>Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
+                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading !== false || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
                   Update
                   {loading === 'panel3' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
@@ -629,8 +641,8 @@ function UpdatePopup(props) {
             />
             <Autocomplete
               multiple
-              freeSolo
-              options={[]}
+              limitTags={2}
+              options={userList}
               renderInput={(params) => (
                 ownedPlanesRequests > 1 ?
                   <TextField {...params} label='Owned planes: user or group names' variant='outlined' error helperText={ownedPlanesRequests+' users/groups selected, it will require '+ownedPlanesRequests+' requests (10 max)'} />
@@ -638,32 +650,11 @@ function UpdatePopup(props) {
                   <TextField {...params} label='Owned planes: user or group name' variant='outlined' />
               )}
               onChange={(evt, value) => {
-                const arr = [];
-                for (const v of value) {
-                  if (typeof v === 'string') {
-                    arr.push(v);
-                  }
-                  else {
-                    arr.push(v.inputValue);
-                  }
-                }
-                setPlaneUser(arr);
+                setPlaneUser(value);
                 setOwnedPlanesRequests(value.length);
               }}
-              filterOptions={(options, params) => {
-                return params.inputValue === '' ? [] : [{
-                  inputValue: params.inputValue,
-                  title: `Owned by "${params.inputValue}"`,
-                }];
-              }}
-              getOptionLabel={(option) => {
-                // Value selected with enter, right from the input
-                if (typeof option === 'string') {
-                  return option;
-                }
-                // Owned by "xxx" option created dynamically
-                return option.title;
-              }}
+              filterOptions={(options, params) => filter10(options, params)}
+              getOptionLabel={option => he.decode(option)}
               value={planeUser}
               className={classes.ownedPlanes}
             />
@@ -679,7 +670,7 @@ function UpdatePopup(props) {
             &nbsp;
             <Tooltip title={<span>Last update : {flightTime ? ((new Date(flightTime)).toLocaleString()) : "never"}</span>}>
               <span>
-                <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading || !key}>
+                <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading !== false || !key}>
                   Update
                   {loading === 'panel4' && <CircularProgress size={24} className={classes.buttonProgress} />}
                 </Button>
@@ -696,7 +687,7 @@ function UpdatePopup(props) {
             </Button>
             &nbsp;
             <span>
-              <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading}>
+              <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading !== false}>
                 Apply
                 {loading === 'panel5' && <CircularProgress size={24} className={classes.buttonProgress} />}
               </Button>
