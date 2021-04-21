@@ -101,6 +101,36 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.5.0 (2021-04-21)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Many additions/improvements to the Route Finder:</ListItem>
+              <List dense className={classes.level2}>
+                <ListItem>You can now export a route to a PDF document!</ListItem>
+                <ListItem>You can now copy a route to clipboard, to paste it in external tools</ListItem>
+                <ListItem>You can now change the default routing parameters (in the app settings), so that you do not need to change them each time you run the Route Finder</ListItem>
+                <ListItem>Available planes: you can now choose a specific model(s) for the search, instead off all loaded models</ListItem>
+                <ListItem>Free search: you can now select a plane model, instead of manually entering aircraft specifications</ListItem>
+                <ListItem>Free search: the ICAO inputs now offer suggestions and search capabilities</ListItem>
+                <ListItem>Route filter: you can now filter the results to only show routes stopping at a given ICAO (thanks icykoneko)</ListItem>
+                <ListItem>The Route Finder now includes "My flight" jobs in its search</ListItem>
+              </List>
+              <ListItem>FSX and X-Plane airport information is now included (show missing/renamed airports, display all airports on map, etc.). You can switch between simulators in the app settings</ListItem>
+              <ListItem>Elevation info: show elevation in airport popup</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Improved "Update" buttons in the "Load data from FSE" popup to make their behavior clearer</ListItem>
+              <ListItem>Planes rented by yourself are now loaded and displayed on the map (you need to enter your FSE username for it to works)</ListItem>
+              <ListItem>Min/max filter values are now kept when switching between pax and cargo</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Bug in Route Finder, that would suggest routes with pax/cargo heavier than what the plane could carry (<IssueLink id={47} />&nbsp;&&nbsp;<IssueLink id={51} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.4.1 (2021-04-16)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>

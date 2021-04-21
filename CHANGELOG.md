@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.5.0] - 2021-04-21
+
+### Added
+- Many additions/improvements to the Route Finder:
+  - You can now export a route to a PDF document!
+  - You can now copy a route to clipboard, to paste it in external tools
+  - You can now change the default routing parameters (in the app settings), so that you do not need to change them each time you run the Route Finder
+  - Available planes: you can now choose a specific model(s) for the search, instead off all loaded models
+  - Free search: you can now select a plane model, instead of manually entering aircraft specifications
+  - Free search: the ICAO inputs now offer suggestions and search capabilities
+  - Route filter: you can now filter the results to only show routes stopping at a given ICAO (thanks icykoneko)
+  - The Route Finder now includes "My flight" jobs in its search
+- FSX and X-Plane airport information is now included (show missing/renamed airports, display all airports on map, etc.). You can switch between simulators in the app settings
+- Elevation info: show elevation in airport popup
+
+### Changed
+- Improved "Update" buttons in the "Load data from FSE" popup to make their behavior clearer
+- Planes rented by yourself are now loaded and displayed on the map (you need to enter your FSE username for it to works)
+- Min/max filter values are now kept when switching between pax and cargo
+
+### Fixed
+- Bug in Route Finder, that would suggest routes with pax/cargo heavier than what the plane could carry ([#47](https://github.com/piero-la-lune/FSE-Planner/issues/47) & [#51](https://github.com/piero-la-lune/FSE-Planner/issues/51))
+
+
+
 ## [1.4.1] - 2021-04-16
 
 ### Added
