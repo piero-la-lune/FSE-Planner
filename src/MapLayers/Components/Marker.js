@@ -185,8 +185,8 @@ function Popup(props) {
         <Typography variant="body2" className={classes.name}>{icaodata[icao].name}</Typography>
       </div>
       <div className={classes.popupPart}>
-        <Typography variant="body2" className={classes.popupLabel}>Surface: {airportSurface(icaodata[icao].surface)}</Typography>
-        <Typography variant="body2" className={classes.popupLabel}>Longest runway: {icaodata[icao].runway} feet</Typography>
+        <Typography variant="body2" className={classes.popupLabel}>Position: {Math.abs(icaodata[icao].lat)}{icaodata[icao].lat >= 0 ? 'N' : 'S'} {Math.abs(icaodata[icao].lon)}{icaodata[icao].lon >= 0 ? 'E' : 'W'}, {icaodata[icao].elev} feet</Typography>
+        <Typography variant="body2" className={classes.popupLabel}>Runway: {airportSurface(icaodata[icao].surface)}, {icaodata[icao].runway} feet</Typography>
         {
           icaodata[icao][siminfo].length > 1 &&
             <React.Fragment>
