@@ -896,6 +896,7 @@ const Routing = React.memo((props) => {
                             overheadLength: overheadLength,
                             approachLength: approachLength
                           }}
+                          settings={props.options.settings}
                         />
                       ).toBlob();
                       blob.then((file) => {
@@ -1359,7 +1360,6 @@ const Routing = React.memo((props) => {
                         label="To"
                         variant="outlined"
                         placeholder="ICAO"
-                        required
                       />
                     }
                     PopperComponent={PopperMy}
