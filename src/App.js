@@ -330,8 +330,10 @@ function App() {
   const [fromIcao, setFromIcao] = React.useState(null);
   const [toIcaoInput, setToIcaoInput] = React.useState('');
   const [toIcao, setToIcao] = React.useState(null);
-  const [min, setMin] = React.useState('');
-  const [max, setMax] = React.useState('');
+  const [minPax, setMinPax] = React.useState('');
+  const [minKg, setMinKg] = React.useState('');
+  const [maxPax, setMaxPax] = React.useState('');
+  const [maxKg, setMaxKg] = React.useState('');
   const [minDist, setMinDist] = React.useState('');
   const [maxDist, setMaxDist] = React.useState('');
   const [direction, setDirection] = React.useState('');
@@ -369,8 +371,8 @@ function App() {
   const classes = useStyles();
 
   const options = React.useMemo(() => ({
-    min: min,
-    max: max,
+    min: cargo === 'passengers' ? minPax : minKg,
+    max: cargo === 'passengers' ? maxPax : maxKg,
     minDist: minDist,
     maxDist: maxDist,
     direction: direction,
@@ -383,7 +385,7 @@ function App() {
     flight: flight,
     settings: settings,
     icaodata: icaodata
-  }), [type, cargo, fromIcao, toIcao, min, max, minDist, maxDist, direction, jobs, planes, flight, settings, icaodata]);
+  }), [type, cargo, fromIcao, toIcao, minPax, minKg, maxPax, maxKg, minDist, maxDist, direction, jobs, planes, flight, settings, icaodata]);
 
   React.useEffect(() => {
     const obj = _clone(icaodataSrc);
@@ -630,7 +632,7 @@ function App() {
                 <FlightIcon />
               </TooltipToggleButton>
             </ToggleButtonGroup>
-            <ToggleButtonGroup value={cargo} onChange={(evt, val) => {setCargo(val);setMin('');setMax('');}} className={classes.box} exclusive>
+            <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} className={classes.box} exclusive>
               <TooltipToggleButton value="passengers" title="Passengers" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
                 <PeopleIcon />
               </TooltipToggleButton>
@@ -640,28 +642,51 @@ function App() {
             </ToggleButtonGroup>
             <div className={classes.boxBorder}>
               {cargo === 'passengers' ?
-                <PeopleIcon className={min === '' && max === '' ? classes.tgBtn : null}/>
+                <React.Fragment>
+                  <PeopleIcon className={minPax === '' && maxPax === '' ? classes.tgBtn : null} />
+                  &nbsp;
+                  <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                    <InputBase
+                      placeholder="min"
+                      className={classes.inputNb}
+                      value={minPax}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinPax(nb); }}
+                    />
+                  </Tooltip>
+                  -
+                  <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                    <InputBase
+                      placeholder="max"
+                      className={classes.inputNb}
+                      value={maxPax}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxPax(nb); }}
+                    />
+                  </Tooltip>
+                </React.Fragment>
               :
-                <BusinessCenterIcon className={min === '' && max === '' ? classes.tgBtn : null} />
+                <React.Fragment>
+                  <BusinessCenterIcon className={minKg === '' && maxKg === '' ? classes.tgBtn : null} />
+                  &nbsp;
+                  <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                    <InputBase
+                      placeholder="min"
+                      className={classes.inputNb}
+                      value={minKg}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinKg(nb); }}
+                    />
+                  </Tooltip>
+                  -
+                  <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                    <InputBase
+                      placeholder="max"
+                      className={classes.inputNb}
+                      value={maxKg}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxKg(nb); }}
+                    />
+                  </Tooltip>
+                </React.Fragment>
               }
-              &nbsp;
-              <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                <InputBase
-                  placeholder="min"
-                  className={classes.inputNb}
-                  value={min}
-                  onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMin(nb); }}
-                />
-              </Tooltip>
-              -
-              <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                <InputBase
-                  placeholder="max"
-                  className={classes.inputNb}
-                  value={max}
-                  onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMax(nb); }}
-                />
-              </Tooltip>
+
             </div>
             <div className={classes.boxBorder}>
               <SettingsEthernetIcon className={minDist === '' && maxDist === '' ? classes.tgBtn : null} />
