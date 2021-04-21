@@ -13,7 +13,7 @@ import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
-import { airportSurface } from "../../utility.js"
+import { airportSurface, simName } from "../../utility.js"
 
 const useStyles = makeStyles(theme => ({
   striked: {
@@ -190,7 +190,7 @@ function Popup(props) {
         {
           icaodata[icao][siminfo].length > 1 &&
             <React.Fragment>
-              <Typography variant="body2" className={classes.popupLabel}>MSFS alternatives:</Typography>
+              <Typography variant="body2" className={classes.popupLabel}>{ simName(siminfo) } alternatives:</Typography>
               <Breadcrumbs
                 separator={null}
                 maxItems={4}

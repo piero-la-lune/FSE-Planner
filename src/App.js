@@ -50,7 +50,7 @@ const defaultSettings = {
         rentable: 'red',
         selected: 'darkred',
         fse: 'black',
-        msfs: 'darkslateblue',
+        sim: 'darkslateblue',
         custom: 'darkcyan'
       },
       sizes: {
@@ -58,7 +58,7 @@ const defaultSettings = {
         rentable: '20',
         selected: '25',
         fse: '3',
-        msfs: '3',
+        sim: '3',
         custom: '20'
       }
     },
@@ -106,7 +106,7 @@ const defaultSettings = {
     size: [0, 23500],
     surface: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     runway: [0, 30000],
-    onlyMSFS: false
+    onlySim: false
   },
   routeFinder: {
     maxHops: 4,

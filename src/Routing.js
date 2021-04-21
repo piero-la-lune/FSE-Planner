@@ -690,7 +690,7 @@ const Routing = React.memo((props) => {
     const jobsReverse = {};
     for (const k of [...new Set([...Object.keys(props.options.jobs), ...Object.keys(props.options.flight)])]) {
       const [fr, to] = k.split('-');
-      if (hideAirport(fr, props.options.settings.airport) || hideAirport(to, props.options.settings.airport)) { continue; }
+      if (hideAirport(fr, props.options.settings.airport, props.options.settings.display.sim) || hideAirport(to, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
       const obj = {
         cargos: {
           TripOnly: [],
