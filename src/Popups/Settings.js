@@ -161,7 +161,7 @@ function SettingSlider3({xs, setting, s, setS, label, ...props}) {
     </Grid>
   );
 }
-function SettingSelect({xs, setting, s, setS, options, ...props}) {
+function SettingSelect({xs, setting, s, setS, options, multiple, ...props}) {
   return (
     <Grid item xs={xs || 6}>
       <TextField
@@ -171,7 +171,7 @@ function SettingSelect({xs, setting, s, setS, options, ...props}) {
         size="small"
         value={setting.split('.').reduce((a, b) => a[b], s)}
         select
-        SelectProps={{multiple: true}}
+        SelectProps={{multiple: multiple}}
         onChange={(evt) => {
           const obj = Object.assign({}, s);
           _set(obj, setting, evt.target.value)
@@ -212,6 +212,11 @@ function SettingsPopup(props) {
     ['Rental', 'Rental cost & bonus'],
     ['Fuel', 'Fuel cost'],
   ];
+  const simOptions = [
+    ['msfs', 'MSFS'],
+    ['xplane', 'X-Plane'],
+    ['fsx', 'FSX']
+  ];
 
   const handleClose = () => {
     // Cancel change
@@ -244,8 +249,8 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Highlighted airport size" setting='display.markers.sizes.selected' />
               <Setting s={s} setS={setS} label="FSE airport color" setting='display.markers.colors.fse' />
               <Setting s={s} setS={setS} label="FSE airport size" setting='display.markers.sizes.fse' />
-              <Setting s={s} setS={setS} label="MSFS airport color" setting='display.markers.colors.msfs' />
-              <Setting s={s} setS={setS} label="MSFS airport size" setting='display.markers.sizes.msfs' />
+              <Setting s={s} setS={setS} label="Simulator airport color" setting='display.markers.colors.sim' />
+              <Setting s={s} setS={setS} label="Simulator airport size" setting='display.markers.sizes.sim' />
               <Setting s={s} setS={setS} label="Custom marker airport color" setting='display.markers.colors.custom' />
               <Setting s={s} setS={setS} label="Custom marker airport size" setting='display.markers.sizes.custom' />
               <Setting s={s} setS={setS} label="Passenger leg color" setting='display.legs.colors.passengers' xs={4} />
@@ -256,6 +261,7 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="My Flight leg weight" setting='display.legs.weights.flight' xs={4} />
               <Setting s={s} setS={setS} label="Highlighted leg color" setting='display.legs.colors.highlight' />
               <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" />
+              <SettingSelect s={s} setS={setS} label="Simulator" setting='display.sim' xs={12} options={simOptions} />
               <SettingSlider s={s} setS={setS} label="Map center" setting='display.map.center' xs={12} />
               <SettingSwitch s={s} setS={setS} label="Join Custom markers with a line to form a route" setting="display.legs.display.custom" xs={12} />
             </Grid>
@@ -327,8 +333,8 @@ function SettingsPopup(props) {
             <Grid container spacing={3}>
               <SettingSlider2 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
               <SettingSlider3 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
-              <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} xs={12} />
-              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use MSFS compatible airports" setting="airport.onlyMSFS" xs={12} />
+              <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
+              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>
@@ -352,7 +358,7 @@ function SettingsPopup(props) {
                 <Setting s={s} setS={setS} label="Idle and taxi time" setting='routeFinder.idleTime' end="min" xs={6} helperText="Time spent on ground at each stop (flight checks, taxi, etc.)" />
                 <Setting s={s} setS={setS} label="Distance overhead" setting='routeFinder.overheadLength' end="%" xs={6} helperText="Added to the leg straight distance, to account for not straight routes." />
                 <Setting s={s} setS={setS} label="Approach distance" setting='routeFinder.approachLength' end="NM" xs={6} helperText="Added to the leg straight distance, to account for approach circuits."/>
-                <SettingSelect s={s} setS={setS} label="Net earnings" setting='routeFinder.fees' xs={6} options={earningsOptions} />
+                <SettingSelect s={s} setS={setS} label="Net earnings" setting='routeFinder.fees' xs={6} options={earningsOptions} multiple={true} />
               </Grid>
             </div>
           </AccordionDetails>

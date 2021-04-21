@@ -13,7 +13,7 @@ import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
-import { airportSurface } from "../../utility.js"
+import { airportSurface, simName } from "../../utility.js"
 
 const useStyles = makeStyles(theme => ({
   striked: {
@@ -185,12 +185,12 @@ function Popup(props) {
         <Typography variant="body2" className={classes.name}>{icaodata[icao].name}</Typography>
       </div>
       <div className={classes.popupPart}>
-        <Typography variant="body2" className={classes.popupLabel}>Surface: {airportSurface(icaodata[icao].surface)}</Typography>
-        <Typography variant="body2" className={classes.popupLabel}>Longest runway: {icaodata[icao].runway} feet</Typography>
+        <Typography variant="body2" className={classes.popupLabel}>Position: {Math.abs(icaodata[icao].lat)}{icaodata[icao].lat >= 0 ? 'N' : 'S'} {Math.abs(icaodata[icao].lon)}{icaodata[icao].lon >= 0 ? 'E' : 'W'}, {icaodata[icao].elev} feet</Typography>
+        <Typography variant="body2" className={classes.popupLabel}>Runway: {icaodata[icao].runway} feet of {airportSurface(icaodata[icao].surface)}</Typography>
         {
           icaodata[icao][siminfo].length > 1 &&
             <React.Fragment>
-              <Typography variant="body2" className={classes.popupLabel}>MSFS alternatives:</Typography>
+              <Typography variant="body2" className={classes.popupLabel}>{ simName(siminfo) } alternatives:</Typography>
               <Breadcrumbs
                 separator={null}
                 maxItems={4}

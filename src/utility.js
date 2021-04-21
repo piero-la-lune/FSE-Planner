@@ -1,7 +1,7 @@
 import icaodata from "./data/icaodata-with-zones.json";
 import aircrafts from "./data/aircraft.json";
 
-export function hideAirport(icao, s) {
+export function hideAirport(icao, s, sim) {
   return (
       s
     &&
@@ -17,9 +17,9 @@ export function hideAirport(icao, s) {
           !s.surface.includes(icaodata[icao].surface)
         ||
           (
-              s.onlyMSFS
+              s.onlySim
             &&
-              icaodata[icao].msfs[0] === null
+              icaodata[icao][sim][0] === null
           )
       )
   );
@@ -38,6 +38,14 @@ export function airportSurface(surface) {
     case 9: return "Snow"
     case 10: return "Steel Mats"
     default: return "Water"
+  }
+}
+
+export function simName(id) {
+  switch (id) {
+    case 'msfs': return "MSFS"
+    case 'xplane': return "X-Plane"
+    default: return "FSX"
   }
 }
 

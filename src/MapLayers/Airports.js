@@ -68,7 +68,7 @@ const AirportsLayer = React.memo(function AirportsLayer(props) {
 
     // Create markers
     for (const icao of props.icaos) {
-      if (hideAirport(icao, props.airportFilter)) { continue; }
+      if (hideAirport(icao, props.airportFilter, props.siminfo)) { continue; }
       Marker({
         position: [props.icaodata[icao].lat, props.icaodata[icao].lon],
         size: props.size,

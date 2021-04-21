@@ -21,7 +21,7 @@ function cleanLegs(jobs, opts) {
     const to = { latitude: opts.icaodata[toIcao].lat, longitude: opts.icaodata[toIcao].lon };
 
     // Filter out airports not meeting criterias
-    if (hideAirport(frIcao, opts.settings.airport) || hideAirport(toIcao, opts.settings.airport)) { continue; }
+    if (hideAirport(frIcao, opts.settings.airport, opts.settings.display.sim) || hideAirport(toIcao, opts.settings.airport, opts.settings.display.sim)) { continue; }
 
     // Filter out jobs based on distance
     if (opts.minDist && leg.distance < opts.minDist) { continue; }

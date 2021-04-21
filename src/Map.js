@@ -16,9 +16,6 @@ import ZonesLayer from "./MapLayers/Zones.js";
 import AirportsLayer from "./MapLayers/Airports.js";
 import Marker from "./MapLayers/Components/Marker.js";
 
-import msfs from "./data/msfs.json";
-const msfsIcaos = Object.keys(msfs);
-
 const useStyles = makeStyles(theme => ({
   contextMenu: {
     minWidth: 200
@@ -41,6 +38,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   const maxBounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
   const [contextMenu, setContextMenu] = React.useState(null);
   const [unbuiltFBOs, setUnbuildFBOs] = React.useState([]);
+  const [simIcaodata, setSimIcaodata] = React.useState({icaos: [], data: {}});
 
   // Display search marker
   const searchRef = React.useRef(null);
@@ -84,6 +82,17 @@ const FSEMap = React.memo(function FSEMap(props) {
     props.actions,
     mapRef
   ]);
+
+  // Load sim data
+  React.useEffect(() => {
+    fetch('sim/'+s.display.sim+'.json').then(response => {
+      if (response.ok) {
+        response.json().then(obj => {
+          setSimIcaodata({icaos: Object.keys(obj), data: obj});
+        });
+      }
+    });
+  }, [s.display.sim]);
 
   // Set search marker on top at each render
   React.useEffect(() => {
@@ -214,17 +223,17 @@ const FSEMap = React.memo(function FSEMap(props) {
             id="fbo"
           />
         </LayersControl.Overlay>
-        <LayersControl.Overlay name="MSFS airports" checked={false}>
+        <LayersControl.Overlay name="Simulator airports" checked={false}>
           <AirportsLayer
-            icaos={msfsIcaos}
-            icaodata={msfs}
+            icaos={simIcaodata.icaos}
+            icaodata={simIcaodata.data}
             fseicaodata={props.options.icaodata}
-            color={s.display.markers.colors.msfs}
-            size={s.display.markers.sizes.msfs}
+            color={s.display.markers.colors.sim}
+            size={s.display.markers.sizes.sim}
             siminfo={s.display.sim}
-            sim="msfs"
+            sim={s.display.sim}
             actions={props.actions}
-            id="msfs"
+            id="sim"
           />
         </LayersControl.Overlay>
         <LayersControl.Overlay name="FSE airports landing area" checked={false}>

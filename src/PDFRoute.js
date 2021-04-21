@@ -1,7 +1,7 @@
 import React from 'react';
 import { Page, Text, View, Document, Link, StyleSheet, Font } from '@react-pdf/renderer';
 import { getDistance, convertDistance, getRhumbLineBearing } from "geolib";
-import { airportSurface } from './utility.js';
+import { airportSurface, simName } from './utility.js';
 
 // Register font
 Font.register({
@@ -110,7 +110,7 @@ function toReadableTime(time) {
 }
 
 // Create Document Component
-function PDFRoute({route, icaodata, routeParams}) {
+function PDFRoute({route, icaodata, routeParams, settings}) {
   const legs = [];
   let lastMaxFuel = 9999999999;
   for (var i = route.icaos.length - 1; i > 0 ; i--) {
@@ -215,11 +215,33 @@ function PDFRoute({route, icaodata, routeParams}) {
                   <Text style={styles.boxtitle}>Depart: <Link src={'https://server.fseconomy.net/airport.jsp?icao='+leg.from}>{leg.from}</Link></Text>
                   <Text style={styles.item}>Runway: {icaodata[leg.from].runway} feet of {airportSurface(icaodata[leg.from].surface)}</Text>
                   <Text style={styles.item}>Coordinates: {Math.abs(icaodata[leg.from].lat)+(icaodata[leg.from].lat >= 0 ? 'N' : 'S')} {Math.abs(icaodata[leg.from].lon)+(icaodata[leg.from].lon >= 0 ? 'E' : 'W')}</Text>
+                  <Text style={styles.item}>Elevation: {icaodata[leg.from].elev}</Text>
+                  { icaodata[leg.from][settings.display.sim][0] !== leg.from &&
+                    <Text style={{fontWeight: 'bold', ...styles.item}}>
+                      {leg.from} does not exist in {simName(settings.display.sim)}.
+                      { icaodata[leg.from][settings.display.sim][0] === null && icaodata[leg.from][settings.display.sim].length === 1 ?
+                          ' There is no alternative airport in the simulator.'
+                        :
+                          ' You may instead take off from: '+icaodata[leg.from][settings.display.sim].filter(elm => elm !== null).join(' ')
+                      }
+                    </Text>
+                  }
                 </View>
                 <View style={{ flexGrow: 1, flexBasis: 0, flexDirection: 'column', marginLeft: 10, border: '1px solid black', paddingVertical: 10, paddingHorizontal: 12 }}>
                   <Text style={styles.boxtitle}>Arrival: <Link src={'https://server.fseconomy.net/airport.jsp?icao='+leg.to}>{leg.to}</Link></Text>
                   <Text style={styles.item}>Runway: {icaodata[leg.to].runway} feet of {airportSurface(icaodata[leg.to].surface)}</Text>
                   <Text style={styles.item}>Coordinates: {Math.abs(icaodata[leg.to].lat)+(icaodata[leg.to].lat >= 0 ? 'N' : 'S')} {Math.abs(icaodata[leg.to].lon)+(icaodata[leg.to].lon >= 0 ? 'E' : 'W')}</Text>
+                  <Text style={styles.item}>Elevation: {icaodata[leg.from].elev} feet</Text>
+                  { icaodata[leg.to][settings.display.sim][0] !== leg.to &&
+                    <Text style={{fontWeight: 'bold', ...styles.item}}>
+                      {leg.to} does not exist in {simName(settings.display.sim)}.
+                      { icaodata[leg.to][settings.display.sim][0] === null && icaodata[leg.to][settings.display.sim].length === 1 ?
+                          ' There is no alternative airport in the simulator.'
+                        :
+                          ' You may instead land at: '+icaodata[leg.to][settings.display.sim].filter(elm => elm !== null).join(' ')
+                      }
+                    </Text>
+                  }
                 </View>
               </View>
               <View style={{ flexDirection: 'row' }}>
