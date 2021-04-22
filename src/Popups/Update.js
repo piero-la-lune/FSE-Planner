@@ -397,7 +397,16 @@ function UpdatePopup(props) {
     updateRentablePlanesRequest(planeModel.slice(), [], (list1) => {
       updateOwnedPlanesRequest(planeUser.slice(), [], (list2) => {
         // Transform to object
-        const planes = {...cleanPlanes(list1, username, true), ...cleanPlanes(list2, username, false)};
+        const planes = cleanPlanes(list1, username, true);
+        const p2 = cleanPlanes(list2, username, false);
+        // Merge both objects
+        for (const model of Object.keys(p2)) {
+          if (!planes[model]) { planes[model] = {}; }
+          for (const icao of Object.keys(p2[model])) {
+            if (!planes[model][icao]) { planes[model][icao] = []; }
+            planes[model][icao] = planes[model][icao].concat(p2[model][icao]);
+          }
+        }
         // Update planes
         storage.set('planes', planes);
         props.setPlanes(planes);

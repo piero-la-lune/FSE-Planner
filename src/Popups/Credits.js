@@ -107,6 +107,15 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.5.2 (2021-04-22)</Typography>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Bug that would prevent the route PDF from showing</ListItem>
+              <ListItem>Bug that would not display all planes on map when loading both rentable and user planes</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.5.1 (2021-04-22)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
