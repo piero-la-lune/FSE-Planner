@@ -66,6 +66,12 @@ function CreditsPopup(props) {
       a.href = window.URL.createObjectURL(blob)
       a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':');
       a.click();
+      /* To reinject localstorage in browser
+      var data = JSON.parse(String.raw`MYDATA`);
+      Object.keys(data.localStorage).forEach(function (k) {
+        localStorage.setItem(k, data.localStorage[k]);
+      });
+      */
     }
     else {
       setExpanded(newValue);
@@ -100,6 +106,14 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
+          <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.5.1 (2021-04-22)</Typography>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Bug that would prevent the Route Finder from displaying the results in some rare cases</ListItem>
+            </List>
+          </Paper>
+
           <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.5.0 (2021-04-21)</Typography>
             <Typography variant="h6">Added</Typography>
