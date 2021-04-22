@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.5.1] - 2021-04-22
+
+### Fixed
+- Bug that would prevent the Route Finder from displaying the results in some rare cases
+
+
+
 ## [1.5.0] - 2021-04-21
 
 ### Added

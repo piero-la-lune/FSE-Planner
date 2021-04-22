@@ -427,12 +427,6 @@ onmessage = function({data}) {
     progressStep
   );
 
-  // Add aircraft model to all routes
-  allResults = allResults.map(elm => {
-    elm.model = data.options.model;
-    return elm;
-  });
-
   // If destination is set
   if (data.toIcao) {
     // If destination is equal to origin, only keep route terminating at the origin
@@ -510,6 +504,12 @@ onmessage = function({data}) {
       }
     }
   }
+
+  // Add aircraft model to all routes
+  allResults = allResults.map(elm => {
+    elm.model = data.options.model;
+    return elm;
+  });
 
   postMessage({
     status: 'finished',
