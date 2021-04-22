@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.5.5] - 2021-04-22
+
+### Fixed
+- Bug that would prevent the route PDF from showing
+- Bug that would not display all planes on map when loading both rentable and user planes
+
+
+
 ## [1.5.1] - 2021-04-22
 
 ### Fixed
