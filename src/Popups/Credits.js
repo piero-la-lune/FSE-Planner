@@ -13,7 +13,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
-import log from '../util/logger.js';
+import { downloadReport } from '../util/logger.js';
 
 
 const useStyles = makeStyles(theme => ({
@@ -59,19 +59,7 @@ function CreditsPopup(props) {
       props.openTutorial();
     }
     else if (newValue === 3) {
-      const data = JSON.stringify({logs: log.export(), localStorage: localStorage});
-      const blob = new Blob([data], {type: 'text/json'});
-      const a = document.createElement('a');
-      a.download = 'debug.json';
-      a.href = window.URL.createObjectURL(blob)
-      a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':');
-      a.click();
-      /* To reinject localstorage in browser
-      var data = JSON.parse(String.raw`MYDATA`);
-      Object.keys(data.localStorage).forEach(function (k) {
-        localStorage.setItem(k, data.localStorage[k]);
-      });
-      */
+      downloadReport();
     }
     else {
       setExpanded(newValue);
