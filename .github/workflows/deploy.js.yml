@@ -1,4 +1,4 @@
-name: Build and deploy in production to AWS
+name: Deploy to AWS
 
 on: [workflow_dispatch]
 
@@ -18,12 +18,13 @@ jobs:
     - name: npm build
       run: npm run build
     - name: Deploy to S3
-      uses: jakejarvis/s3-sync-action@master
+      uses: kefranabg/s3-sync-action@master
       with:
-        args: --acl public-read --delete
+        args: --acl public-read --delete --cache-control max-age=2629800
       env:
         AWS_S3_BUCKET: fse-planner
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: eu-west-3
+        DISTRIBUTION_ID: E8WTGRFVVZG67
         SOURCE_DIR: "build"
