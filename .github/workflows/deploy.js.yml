@@ -37,7 +37,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: eu-west-3
         SOURCE_DIR: "build/static"
-        DEST_DIR: "/static/"
+        DEST_DIR: "static/"
     - name: Deploy to S3 (3/3)
       uses: kefranabg/s3-sync-action@master
       with:
