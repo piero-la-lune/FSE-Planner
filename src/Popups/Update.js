@@ -383,7 +383,7 @@ function UpdatePopup(props) {
         throw new Error("Parsing error");
       }
       // Convert array to object
-      updateRentablePlanesRequest(usernames, [...planes, ...parse.data], callback);
+      updateOwnedPlanesRequest(usernames, [...planes, ...parse.data], callback);
     })
     .catch(function(error) {
       log.error("Error while updating User Planes", error);
