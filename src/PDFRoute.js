@@ -215,7 +215,7 @@ function PDFRoute({route, icaodata, routeParams, settings}) {
                   <Text style={styles.boxtitle}>Depart: <Link src={'https://server.fseconomy.net/airport.jsp?icao='+leg.from}>{leg.from}</Link></Text>
                   <Text style={styles.item}>Runway: {icaodata[leg.from].runway} feet of {airportSurface(icaodata[leg.from].surface)}</Text>
                   <Text style={styles.item}>Coordinates: {Math.abs(icaodata[leg.from].lat)+(icaodata[leg.from].lat >= 0 ? 'N' : 'S')} {Math.abs(icaodata[leg.from].lon)+(icaodata[leg.from].lon >= 0 ? 'E' : 'W')}</Text>
-                  <Text style={styles.item}>Elevation: {icaodata[leg.from].elev}</Text>
+                  <Text style={styles.item}>Elevation: {icaodata[leg.from].elev} feet</Text>
                   { icaodata[leg.from][settings.display.sim][0] !== leg.from &&
                     <Text style={{fontWeight: 'bold', ...styles.item}}>
                       {leg.from} does not exist in {simName(settings.display.sim)}.
