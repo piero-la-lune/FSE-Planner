@@ -110,6 +110,8 @@ function cleanPlanes(list, username, rentable = true) {
     }
     // Planes with fee owned are discarded
     if (obj.FeeOwed) { continue; }
+    // Planes in flight are discarded
+    if (obj.Location === 'In Flight') { continue; }
 
     // Ensure location exist in planes object
     if (!planes.hasOwnProperty(obj.MakeModel)) { planes[obj.MakeModel] = {}; }
