@@ -17,5 +17,11 @@ export function downloadReport() {
   a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':');
   a.click();
 }
+/* To reinject localstorage in browser
+var data = JSON.parse(String.raw`MYDATA`);
+Object.keys(data.localStorage).forEach(function (k) {
+  localStorage.setItem(k, data.localStorage[k]);
+});
+*/
 
 export default log;
