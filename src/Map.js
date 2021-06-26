@@ -132,7 +132,7 @@ const FSEMap = React.memo(function FSEMap(props) {
 
   // Load unbuilt lots
   React.useEffect(() => {
-    fetch('https://piero-la-lune.fr/fseplanner/data/unbuilt.json').then(response => {
+    fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'unbuilt.json').then(response => {
       if (response.ok) {
         response.json().then(arr => {
           setUnbuildFBOs(arr);

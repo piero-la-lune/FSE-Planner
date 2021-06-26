@@ -250,7 +250,7 @@ function UpdatePopup(props) {
     }
 
     // Load user and group list
-    fetch('https://piero-la-lune.fr/fseplanner/data/users.json').then(response => {
+    fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'users.json').then(response => {
       if (response.ok) {
         response.json().then(arr => {
           setUserList(arr.sort());
