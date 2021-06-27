@@ -24,7 +24,7 @@
     "react-dom": "^16.13.1",
     "react-leaflet": "^2.7.0",
     "react-papaparse": "^3.8.0",
-    "react-scripts": "3.4.3",
+    "react-scripts": "4.0.3",
     "reactour": "^1.18.0",
     "styled-components": "^5.2.0",
     "worker-loader": "^3.0.5"
