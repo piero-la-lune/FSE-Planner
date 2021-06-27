@@ -95,6 +95,24 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.6.0 (2021-06-27)</Typography>
+            <Typography variant="h6">New</Typography>
+            <List dense>
+              <ListItem>New airport filter: only display airports that sell building materials</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>FSE Planner URL (now&nbsp;<Link href="https://fse-planner.piero-la-lune.fr">https://fse-planner.piero-la-lune.fr</Link>) with better performances (new hosting)</ListItem>
+              <ListItem>Whenever a bug occurs, display an error message instead of a white screen</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Bug that would cause a white screen when loading an in-flight plane (<IssueLink id={64} />)</ListItem>
+              <ListItem>Bug that would not load all planes when entering two or more users/groups (<IssueLink id={69} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.5.2 (2021-04-22)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
