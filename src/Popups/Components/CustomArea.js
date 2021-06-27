@@ -41,7 +41,9 @@ function CustomAreaPopup(props) {
   const classes = useStyles();
   const [bounds, setBounds] = React.useState(() => startBounds);
 
-  const maxBounds=[[-90, props.settings.display.map.center-180], [90, props.settings.display.map.center+180]];
+  const maxBounds = React.useMemo(() => 
+    [[-90, props.settings.display.map.center-180], [90, props.settings.display.map.center+180]]
+  , [props.settings.display.map.center]);
 
   const mapRef = React.useCallback(node => {
     if (node !== null) {

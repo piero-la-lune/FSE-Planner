@@ -6,7 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
-## [1.5.5] - 2021-04-22
+## [1.6.0] - 2021-06-27
+
+### New
+- New airport filter: only display airports that sell building materials
+
+### Changed
+- FSE Planner URL (now [https://fse-planner.piero-la-lune.fr](https://fse-planner.piero-la-lune.fr)) with better performances (new hosting)
+- Whenever a bug occurs, display an error message instead of a white screen
+
+### Fixed
+- Bug that would cause a white screen when loading an in-flight plane ([#64](https://github.com/piero-la-lune/FSE-Planner/issues/64)
+- Bug that would not load all planes when entering two or more users/groups ([#69](https://github.com/piero-la-lune/FSE-Planner/issues/69)
+
+
+
+## [1.5.2] - 2021-04-22
 
 ### Fixed
 - Bug that would prevent the route PDF from showing

@@ -303,7 +303,7 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
           }
         }
         for (const legStop of legStopsReverse) {
-          for (var i = 0; i < legStop.cargos.length; i++) {
+          for (i = 0; i < legStop.cargos.length; i++) {
             legStop.cargos[i] = {TripOnly: [...legStop.cargos[i].TripOnly, ...loadCargo.TripOnly], VIP:[]};
           }
         }
@@ -489,7 +489,7 @@ onmessage = function({data}) {
     }
     // Otherwise, add last leg to complete route
     else {
-      for (var i = 0; i < allResults.length; i++) {
+      for (i = 0; i < allResults.length; i++) {
         // Add only last leg if route does not terminate to correct destination
         const lastIcao = allResults[i].icaos[allResults[i].icaos.length-1];
         if (lastIcao !== data.toIcao) {

@@ -107,7 +107,8 @@ const defaultSettings = {
     size: [0, 23500],
     surface: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     runway: [0, 30000],
-    onlySim: false
+    onlySim: false,
+    onlyBM: false
   },
   routeFinder: {
     maxHops: 4,
@@ -470,8 +471,6 @@ function App() {
     }
   }, [icaodata]);
   const isToIcao = React.useCallback((icao) => toIcao === icao, [toIcao]);
-  const addCustom = (icao) => setCustomIcaos(prev => [...prev, icao]);
-  const removeCustom = (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao));
   const isInCustom = React.useCallback((icao) => customIcaos.includes(icao), [customIcaos]);
   React.useEffect(() => {
     storage.set('customIcaos', customIcaos);
@@ -486,14 +485,14 @@ function App() {
       isFromIcao: isFromIcao,
       isToIcao: isToIcao,
       toIcao: setTo,
-      addCustom: addCustom,
-      removeCustom: removeCustom,
+      addCustom: (icao) => setCustomIcaos(prev => [...prev, icao]),
+      removeCustom: (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao)),
       isInCustom: isInCustom,
       contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined
     };
   }
   if (!actions.current) { setActions(); }
-  React.useEffect(setActions, [goTo, setFrom, isFromIcao, setTo, isToIcao, addCustom, removeCustom, isInCustom]);
+  React.useEffect(setActions, [goTo, setFrom, isFromIcao, setTo, isToIcao, isInCustom]);
 
 
   return (
