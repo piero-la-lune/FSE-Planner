@@ -334,6 +334,7 @@ function SettingsPopup(props) {
               <SettingSlider2 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
               <SettingSlider3 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
               <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
+              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="ILS Approach Available" setting="airport.needsILS" xs={12} />
               <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
               <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display airports that sell building materials" setting="airport.onlyBM" xs={12} />
             </Grid>

@@ -374,7 +374,6 @@ const Routing = React.memo((props) => {
   const [overheadLength, setOverheadLength] = React.useState(props.options.settings.routeFinder.overheadLength);
   const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
   const [vipOnly, setVipOnly] = React.useState(false);
-  const [ilsApproachAvailable, setIlsApproachAvailable] = React.useState(false);
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
@@ -691,7 +690,7 @@ const Routing = React.memo((props) => {
     const jobsReverse = {};
     for (const k of [...new Set([...Object.keys(props.options.jobs), ...Object.keys(props.options.flight)])]) {
       const [fr, to] = k.split('-');
-      if (hideAirport(fr, props.options.settings.airport, props.options.settings.display.sim, ilsApproachAvailable) || hideAirport(to, props.options.settings.airport, props.options.settings.display.sim, ilsApproachAvailable)) { continue; }
+      if (hideAirport(fr, props.options.settings.airport, props.options.settings.display.sim) || hideAirport(to, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
       const obj = {
         cargos: {
           TripOnly: [],
@@ -1691,12 +1690,6 @@ const Routing = React.memo((props) => {
               <FormControlLabel
                 control={<Switch checked={vipOnly} onChange={(evt) => setVipOnly(evt.target.checked)} />}
                 label="VIP jobs only"
-                className={classes.formLabel}
-              />
-
-              <FormControlLabel
-                control={<Switch checked={ilsApproachAvailable} onChange={(evt) => setIlsApproachAvailable(evt.target.checked)} />}
-                label="ILS Approach Available"
                 className={classes.formLabel}
               />
 
