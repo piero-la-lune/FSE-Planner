@@ -1,7 +1,7 @@
 import icaodata from "./data/icaodata-with-zones.json";
 import aircrafts from "./data/aircraft.json";
 
-export function hideAirport(icao, s, sim) {
+export function hideAirport(icao, s, sim, needsILS = false) {
   return (
       s
     &&
@@ -26,6 +26,12 @@ export function hideAirport(icao, s, sim) {
               s.onlyBM
             &&
               icaodata[icao].size < 5000
+          )
+        ||
+          (
+              needsILS
+            &&
+              (!icaodata[icao].hasILS || icaodata[icao].hasILS.length === 0)
           )
       )
   );
