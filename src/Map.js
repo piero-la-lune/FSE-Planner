@@ -133,6 +133,12 @@ const FSEMap = React.memo(function FSEMap(props) {
     }
   }, [props.route, props.options.icaodata, mapRef]);
 
+  // Change map bounds when map center changes
+  React.useEffect(() => {
+    if (!mapRef.current) { return; }
+    mapRef.current.setMaxBounds([[-90, s.display.map.center-180], [90, s.display.map.center+180]]);
+  }, [s.display.map.center, mapRef])
+
   // Load unbuilt lots
   React.useEffect(() => {
     fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'unbuilt.json').then(response => {
