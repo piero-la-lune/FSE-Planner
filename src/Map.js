@@ -212,7 +212,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         </LayersControl.BaseLayer>
         <LayersControl.BaseLayer name="Alternative map" checked={s.display.map.basemap === 1}>
           <TileLayer
-            url="https://api.maptiler.com/maps/topo/{z}/{x}/{y}.png?key=ALMxNLybtM0ft0wdVy4D"
+            url={"https://api.maptiler.com/maps/topo/{z}/{x}/{y}.png?key="+process.env.REACT_APP_MAPTILER_KEY}
           />
         </LayersControl.BaseLayer>
         <LayersControl.Overlay name="FSE airports" checked={true}>
