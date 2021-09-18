@@ -81,7 +81,8 @@ const defaultSettings = {
       }
     },
     map: {
-      center: 0
+      center: 0,
+      basemap: 0
     },
     sim: 'msfs'
   },

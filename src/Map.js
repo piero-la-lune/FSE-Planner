@@ -198,10 +198,17 @@ const FSEMap = React.memo(function FSEMap(props) {
           }
         </Popover>
       }
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
       <LayersControl position="topleft">
+        <LayersControl.BaseLayer name="Default map" checked={s.display.map.basemap === 0}>
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Alternative map" checked={s.display.map.basemap === 1}>
+          <TileLayer
+            url="https://api.maptiler.com/maps/topo/{z}/{x}/{y}.png?key=ALMxNLybtM0ft0wdVy4D"
+          />
+        </LayersControl.BaseLayer>
         <LayersControl.Overlay name="FSE airports" checked={true}>
           <AirportsLayer
             icaos={props.icaos}
