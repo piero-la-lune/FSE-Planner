@@ -1,13 +1,13 @@
 import React from 'react';
 
 import L from "leaflet";
-import { useLeaflet } from "react-leaflet";
+import { useLeafletContext } from "@react-leaflet/core";
 
 
 const ZonesLayer = React.memo(function ZonesLayer(props) {
 
   const groupRef = React.useRef(L.layerGroup());
-  const leaflet = React.useRef(useLeaflet());
+  const context = React.useRef(useLeafletContext());
   const added = React.useRef(false);
 
   // Display all airports on map
@@ -32,7 +32,7 @@ const ZonesLayer = React.memo(function ZonesLayer(props) {
 
     // Add layer to map
     if (!added.current) {
-      leaflet.current.layerContainer.addLayer(groupRef.current);
+      context.current.layerContainer.addLayer(groupRef.current);
       added.current = true;
     }
 

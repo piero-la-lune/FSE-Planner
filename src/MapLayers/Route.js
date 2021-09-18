@@ -2,7 +2,7 @@ import React from 'react';
 
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import L from "leaflet";
-import { useLeaflet } from "react-leaflet";
+import { useLeafletContext } from "@react-leaflet/core";
 
 import Marker from "./Components/Marker.js";
 import Job from "./Components/Job.js";
@@ -12,7 +12,7 @@ const Route = React.memo(function Route(props) {
 
   const s = props.options.settings;
   const groupRef = React.useRef(L.layerGroup());
-  const leaflet = React.useRef(useLeaflet());
+  const context = React.useRef(useLeafletContext());
   const added = React.useRef(false);
 
   React.useEffect(() => {
@@ -98,7 +98,7 @@ const Route = React.memo(function Route(props) {
 
     // Add layer to map
     if (!added.current) {
-      leaflet.current.layerContainer.addLayer(groupRef.current);
+      context.current.layerContainer.addLayer(groupRef.current);
       added.current = true;
     }
 

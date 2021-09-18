@@ -81,7 +81,8 @@ const defaultSettings = {
       }
     },
     map: {
-      center: 0
+      center: 0,
+      basemap: 0
     },
     sim: 'msfs'
   },
@@ -446,7 +447,8 @@ function App() {
 
   // Invalidate map size when routing toogled
   React.useEffect(() => {
-    mapRef.current.leafletElement.invalidateSize({pan:false});
+    if (!mapRef.current) { return; }
+    mapRef.current.invalidateSize({pan:false});
   }, [routeFinder]);
 
   const setFrom = React.useCallback((icao) => {
