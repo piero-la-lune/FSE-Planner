@@ -5,7 +5,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { Map, TileLayer, LayersControl } from "react-leaflet";
+import { MapContainer, TileLayer, LayersControl } from "react-leaflet";
 import { getBounds } from "geolib";
 import L from "leaflet";
 
@@ -44,6 +44,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   const searchRef = React.useRef(null);
   const prevSearchRef = React.useRef(null);
   React.useEffect(() => {
+    if (!mapRef.current) { return; }
 
     // If marker already exists remove it
     if (searchRef.current) {
@@ -64,7 +65,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         actions: props.actions,
         id: 'search'
       })
-        .addTo(mapRef.current.leafletElement);
+        .addTo(mapRef.current);
       // Only open popup if search ICAO has changed
       if (prevSearchRef.current !== props.search) {
         setTimeout(() => { searchRef.current && searchRef.current.openPopup() }, 10);
@@ -109,23 +110,25 @@ const FSEMap = React.memo(function FSEMap(props) {
 
   // Auto zoom map on jobs
   React.useEffect(() => {
+    if (!mapRef.current) { return; }
     const icaos = new Set();
     Object.keys(props.options.jobs).forEach(key => icaos.add(key.split('-')[0]));
     const points = [...icaos].map(elm => props.options.icaodata[elm]);
     if (points.length > 4) {
       const b = getBounds(points);
-      mapRef.current.leafletElement.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]], {animate:false});
+      mapRef.current.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]], {animate:false});
     }
   }, [props.options.jobs, props.options.icaodata, mapRef]);
 
   // Auto zoom on route
   React.useEffect(() => {
+    if (!mapRef.current) { return; }
     if (props.route) {
       const b = getBounds(props.route.icaos.map(elm => props.options.icaodata[elm]));
       const bounds = L.latLngBounds([b.minLat, b.minLng], [b.maxLat, b.maxLng]);
-      const mapBounds = mapRef.current.leafletElement.getBounds();
+      const mapBounds = mapRef.current.getBounds();
       if (!mapBounds.contains(bounds)) {
-        mapRef.current.leafletElement.fitBounds(mapBounds.extend(bounds));
+        mapRef.current.fitBounds(mapBounds.extend(bounds));
       }
     }
   }, [props.route, props.options.icaodata, mapRef]);
@@ -150,26 +153,28 @@ const FSEMap = React.memo(function FSEMap(props) {
 
 
   return (
-    <Map
+    <MapContainer
       center={[46.5344, 3.42167]}
       zoom={6}
-      ref={mapRef}
       maxBounds={maxBounds}
       attributionControl={false}
       minZoom={2}
       maxZoom={12}
       renderer={canvasRendererRef.current}
-      onContextMenu={(evt) => {
-        evt.originalEvent.stopPropagation();
-        evt.originalEvent.preventDefault();
-        const lat = Math.round((evt.latlng.lat + Number.EPSILON) * 10000) / 10000;
-        const lon = Math.round((evt.latlng.lng + Number.EPSILON) * 10000) / 10000;
-        setContextMenu({
-          mouseX: evt.originalEvent.clientX,
-          mouseY: evt.originalEvent.clientY,
-          title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
-          actions: []
+      whenCreated={(map) => {
+        map.on('contextmenu', (evt) => {
+          evt.originalEvent.stopPropagation();
+          evt.originalEvent.preventDefault();
+          const lat = Math.round((evt.latlng.lat + Number.EPSILON) * 10000) / 10000;
+          const lon = Math.round((evt.latlng.lng + Number.EPSILON) * 10000) / 10000;
+          setContextMenu({
+            mouseX: evt.originalEvent.clientX,
+            mouseY: evt.originalEvent.clientY,
+            title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
+            actions: []
+          });
         });
+        mapRef.current = map
       }}
     >
       {contextMenu &&
@@ -274,7 +279,7 @@ const FSEMap = React.memo(function FSEMap(props) {
           />
         </LayersControl.Overlay>
       </LayersControl>
-    </Map>
+    </MapContainer>
   );
 
 });

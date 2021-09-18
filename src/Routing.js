@@ -463,7 +463,7 @@ const Routing = React.memo((props) => {
     setRoute(result);
     // Center map on route
     const b = getBounds(result.icaos.map(elm => props.options.icaodata[elm]));
-    props.mapRef.current.leafletElement.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]]);
+    props.mapRef.current.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]]);
   }, [props.options.icaodata, props.mapRef, setRoute]);
 
   // Scroll back to previous position when returning to results list
