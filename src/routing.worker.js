@@ -1,9 +1,12 @@
 import { getDistance, convertDistance, getRhumbLineBearing } from "geolib";
 
+function dist(fr, to, src) {
+  return Math.round(convertDistance(getDistance(src[fr].c, src[to].c), 'sm'));
+}
 function closeIcaos(icao, src, maxDist = 20) {
   const cIcaos = [];
   for (let i of Object.keys(src)) {
-    const distance = Math.round(convertDistance(getDistance(src[icao].c, src[i].c), 'sm'));
+    const distance = dist(icao, i, src);
     if (distance < maxDist && i !== icao) {
       cIcaos.push([i, distance]);
     }
@@ -86,7 +89,7 @@ function getLegStops(fr, to, src, maxPax, maxKg, maxStops) {
     if (j.distance > maxDist) { continue; }
 
     // Compute total distance, and discard legs that stray too far away from source leg
-    const totalDistance = (j.distance + convertDistance(getDistance(src[i].c, src[to].c), 'sm'));
+    const totalDistance = (j.distance + dist(i, to, src));
     const ratio = maxDist / totalDistance;
     if (ratio < 0.7) { continue; }
 
@@ -133,7 +136,7 @@ function getLegStops(fr, to, src, maxPax, maxKg, maxStops) {
     // Compute legs distance
     let distance = src[fr].j.get(icaos[0]).distance;
     for (k = 1; k < icaos.length; k++) {
-      distance += Math.round(convertDistance(getDistance(src[icaos[k-1]].c, src[icaos[k]].c), 'sm'));
+      distance += dist(icaos[k-1], icaos[k], src);
     }
 
     routes.push({
@@ -166,7 +169,7 @@ function getLegStopsReverse(fr, to, src, maxPax, maxKg, maxStops) {
     if (j.distance > maxDist) { continue; }
 
     // Compute total distance, and discard legs that stray too far away from source leg
-    const totalDistance = (j.distance + convertDistance(getDistance(src[fr].c, src[i].c), 'sm'));
+    const totalDistance = (j.distance + dist(fr, i, src));
     const ratio = maxDist / totalDistance;
     if (ratio < 0.7) { continue; }
 
@@ -214,7 +217,7 @@ function getLegStopsReverse(fr, to, src, maxPax, maxKg, maxStops) {
     // Compute legs distance
     let distance = src[icaos[icaos.length-1]].j.get(to).distance;
     for (k = icaos.length-2; k >= 0; k--) {
-      distance += Math.round(convertDistance(getDistance(src[icaos[k]].c, src[icaos[k+1]].c), 'sm'));
+      distance += dist(icaos[k], icaos[k+1], src);
     }
 
     routes.push({
@@ -281,9 +284,9 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       }
       else if (dest && !options.loop) {
         // If a given destination is set (and different from origin), only keep legs going in the right direction
-        const dist = convertDistance(getDistance(src[to].c, src[dest].c), 'sm');
+        const d = dist(to, dest, src);
         const dir = getRhumbLineBearing(src[to].c, src[dest].c);
-        if ((180 - Math.abs(Math.abs(j.direction - dir) - 180)) > 30 || j.distance / dist > 1.2) {
+        if ((180 - Math.abs(Math.abs(j.direction - dir) - 180)) > 30 || j.distance / d > 1.2) {
           if (!badLegsCount) { continue; }
           newBadLegsCount -= 1;
         }
@@ -330,7 +333,7 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
           if (newRoute.icaos.filter(icao => legStop.icaos.includes(icao)).length) { continue; }
           let remainDist = j.distance;
           if (legStop.icaos.length) {
-            remainDist = Math.round(convertDistance(getDistance(src[legStop.icaos[legStop.icaos.length-1]].c, src[to].c), 'sm'));
+            remainDist = dist(legStop.icaos[legStop.icaos.length-1], to, src);
           }
           routes.push({
             icaos: [icao, ...legStop.icaos, ...newRoute.icaos],
@@ -343,7 +346,7 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
           // Do not include a route if it loops over an airport included via a stop
           if (newRoute.icaos.filter(icao => legStop.icaos.includes(icao)).length) { continue; }
           let remainDist = j.distance;
-          remainDist = Math.round(convertDistance(getDistance(src[icao].c, src[legStop.icaos[0]].c), 'sm'));
+          remainDist = dist(icao, legStop.icaos[0], src);
           routes.push({
             icaos: [icao, ...legStop.icaos, ...newRoute.icaos],
             cargos: [loadCargo, ...legStop.cargos, ...newRoute.cargos],
@@ -508,16 +511,18 @@ onmessage = function({data}) {
     }
     // Otherwise, add last leg to complete route
     else {
+      // Filter out legs that do not bring you closer enough
+      const minFinalDist = dist(data.fromIcao, data.toIcao, data.src)/3;
+      allResults = allResults.filter(elm => dist(elm.icaos[elm.icaos.length-1], data.toIcao, data.src) < minFinalDist);
       for (i = 0; i < allResults.length; i++) {
         // Add only last leg if route does not terminate to correct destination
         const lastIcao = allResults[i].icaos[allResults[i].icaos.length-1];
         if (lastIcao !== data.toIcao) {
-          const dist = Math.round(convertDistance(getDistance(data.src[lastIcao].c, data.src[data.toIcao].c), 'sm'));
           allResults[i] = {
             icaos: [...allResults[i].icaos, data.toIcao],
             cargos: [...allResults[i].cargos, {TripOnly: [], VIP: []}],
             pay: allResults[i].pay,
-            distance: allResults[i].distance + dist
+            distance: allResults[i].distance + dist(lastIcao, data.toIcao, data.src)
           }
         }
       }

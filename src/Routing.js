@@ -1435,6 +1435,17 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
 
+              { toIcao &&
+                <Alert severity="info" className={classes.formLabel}>
+                  Recommended algorithm parameters when setting a destination:
+                  <ul>
+                    <li><i>Iterations</i>: 10 or more</li>
+                    <li><i>Min plane load</i>: 20% or less</li>
+                    <li><i>Max empty legs</i>: 50NM or more</li>
+                  </ul>
+                </Alert>
+              }
+
               <Typography variant="body1" className={classes.formLabel}>Aircraft specifications:</Typography>
               <Autocomplete
                 options={Object.keys(aircrafts)}
