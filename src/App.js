@@ -120,7 +120,8 @@ const defaultSettings = {
     idleTime: 2,
     fees: ['Ground', 'Booking', 'Rental', 'Fuel'],
     overheadLength: 0,
-    approachLength: 10
+    approachLength: 10,
+    memory: 'normal'
   }
 };
 

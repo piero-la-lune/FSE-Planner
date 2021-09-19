@@ -356,6 +356,7 @@ const Routing = React.memo((props) => {
   const resultsDiv = React.useRef(null);
   const [filteredResults, setFilteredResults] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
+  const [nbResults, setNbResults] = React.useState(0);
   const [moreSettings, setMoreSettings] = React.useState(false);
   const [maxPax, setMaxPax] = React.useState('');
   const [maxKg, setMaxKg] = React.useState('');
@@ -373,6 +374,7 @@ const Routing = React.memo((props) => {
   const [fees, setFees] = React.useState(props.options.settings.routeFinder.fees.length ? props.options.settings.routeFinder.fees : ['No']);
   const [overheadLength, setOverheadLength] = React.useState(props.options.settings.routeFinder.overheadLength);
   const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
+  const [memory, setMemory] = React.useState(props.options.settings.routeFinder.memory);
   const [vipOnly, setVipOnly] = React.useState(false);
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
@@ -644,6 +646,8 @@ const Routing = React.memo((props) => {
   const startSearch = () => {
     setProgress(0);
     setLoading(true);
+    setNbResults(0);
+    results.current = null;
 
     // Check ICAO if free mode
     if (type === 'free') {
@@ -656,6 +660,17 @@ const Routing = React.memo((props) => {
         alert('Invalid destination ICAO');
         setLoading(false);
         return false;
+      }
+    }
+
+    // Job src
+    const src = {};
+    const addIcao = function(icao) {
+      if (!src[icao]) {
+        src[icao] = {
+          c: [props.options.icaodata[icao].lon, props.options.icaodata[icao].lat],
+          r: []
+        }
       }
     }
 
@@ -684,13 +699,32 @@ const Routing = React.memo((props) => {
         range: range
       });
     }
-    
-    // Build job list
-    const jobs = {};
-    const jobsReverse = {};
+
+    // List of start points
+    const icaos = [];
+    if (type === "rent") {
+      for (const icao of Object.keys(props.options.planes)) {
+        if (hideAirport(icao, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
+        for (const p of props.options.planes[icao]) {
+          if (!aircraftModels.length || aircraftModels.includes(p.model)) {
+            icaos.push(icao);
+            addIcao(icao);
+            break;
+          }
+        }
+      }
+    }
+    else {
+      icaos.push(fromIcao);
+      addIcao(fromIcao);
+    }
+    const total = icaos.length;
+
+    // Compute jobs matching airplane specs
     for (const k of [...new Set([...Object.keys(props.options.jobs), ...Object.keys(props.options.flight)])]) {
       const [fr, to] = k.split('-');
-      if (hideAirport(fr, props.options.settings.airport, props.options.settings.display.sim) || hideAirport(to, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
+      if (hideAirport(fr, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
+      if (hideAirport(to, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
       const obj = {
         cargos: {
           TripOnly: [],
@@ -736,32 +770,42 @@ const Routing = React.memo((props) => {
         append(props.options.flight[k], obj);
       }
       if (obj.cargos.TripOnly || obj.cargos.VIP) {
-        if (!jobs[fr]) { jobs[fr] = new Map(); }
-        jobs[fr].set(to, obj);
-        if (!jobsReverse[to]) { jobsReverse[to] = []; }
-        jobsReverse[to].push(fr);
+        // Add jobs departing from ICAO
+        addIcao(fr);
+        if (!src[fr].j) { src[fr].j = new Map(); }
+        src[fr].j.set(to, obj);
+        // Set reverse leg
+        addIcao(to);
+        src[to].r.push(fr);
       }
     }
 
-    // List of start points
-    let icaos = [fromIcao];
-    if (type === "rent") {
-      icaos = [];
-      for (const icao of Object.keys(props.options.planes)) {
-        for (const p of props.options.planes[icao]) {
-          if (!aircraftModels.length || aircraftModels.includes(p.model)) {
-            icaos.push(icao);
-            break;
-          }
-        }
-      }
-    }
-    const total = icaos.length
-
-    const maxWorkers = navigator.hardwareConcurrency || 4;
-    const closeIcaosCache = {};
+    let maxWorkers = navigator.hardwareConcurrency || 4;
+    if (memory === 'vlow') { maxWorkers = Math.min(maxWorkers, 2); }
+    if (memory === 'low') { maxWorkers = Math.min(maxWorkers, 4); }
     let done = 0;
     let allResults = [];
+    let resultLimit = 0;
+    switch (memory) {
+      case 'vlow':
+        resultLimit = 500;
+        break;
+      case 'low':
+        resultLimit = 5000;
+        break;
+      case 'normal':
+        resultLimit = 50000;
+        break;
+      case 'high':
+        resultLimit = 500000;
+        break;
+      default:
+        break;
+    }
+    if (resultLimit) {
+      resultLimit = Math.round(resultLimit/Math.min(total, maxWorkers));
+    }
+
     const execute = (worker, icao) => {
       let model = 'free';
       // If renting a plane, consider the plane with the largest capacity in Kg available
@@ -776,7 +820,7 @@ const Routing = React.memo((props) => {
       worker.postMessage({
         fromIcao: icao,
         toIcao: type === 'rent' ? (loop ? icao : null) : (toIcao ? toIcao : null),
-        jobs: jobs,
+        src: src,
         options: {
           maxKg: planesSpecs[model].maxKg,
           maxPax: planesSpecs[model].maxPax,
@@ -785,19 +829,17 @@ const Routing = React.memo((props) => {
           range: planesSpecs[model].range,
           maxStops: maxStops,
           maxEmptyLeg: maxEmptyLeg,
-          icaos: Object.keys(jobs),
-          icaodata: props.options.icaodata,
           model: model,
-          jobsReverse: jobsReverse
+          resultLimit: resultLimit
         },
         maxHops: maxHops,
-        maxBadLegs: maxBadLegs,
-        closeIcaosCache: closeIcaosCache
+        maxBadLegs: maxBadLegs
       });
     };
     const onmessage = ({data}, worker) => {
       if (data.status === 'finished') {
         allResults = allResults.concat(data.results);
+        setNbResults(allResults.length);
         done += 1;
         const icao = icaos.pop();
         if (icao) {
@@ -822,7 +864,7 @@ const Routing = React.memo((props) => {
       loop: loop,
       fromIcao: fromIcao,
       toIcao: toIcao,
-      jobs: jobs,
+      src: src,
       planesSpecs: planesSpecs,
       maxStops: maxStops,
       maxEmptyLeg: maxEmptyLeg,
@@ -839,6 +881,7 @@ const Routing = React.memo((props) => {
       workers.push(worker);
     }
     setCancel(workers);
+
   };
 
   const cancelWorkers = () => {
@@ -1583,6 +1626,24 @@ const Routing = React.memo((props) => {
                     />
                   </Tooltip>
                 </Grid>
+                <Grid item xs={6}>
+                  <Tooltip title="Adjust this setting if Route Finder is crashing">
+                    <TextField
+                      label="Memory usage"
+                      variant="outlined"
+                      value={memory}
+                      onChange={(evt) => setMemory(evt.target.value)}
+                      select
+                      fullWidth
+                    >
+                      <MenuItem value="vlow">Very low</MenuItem>
+                      <MenuItem value="low">Low</MenuItem>
+                      <MenuItem value="normal">Normal</MenuItem>
+                      <MenuItem value="high">High</MenuItem>
+                      <MenuItem value="unlimited">No limit</MenuItem>
+                    </TextField>
+                  </Tooltip>
+                </Grid>
               </Grid>
 
               <Typography variant="body1" className={classes.formLabel}>Route parameters:</Typography>
@@ -1715,9 +1776,12 @@ const Routing = React.memo((props) => {
             }
             {loading && <LinearProgress variant="determinate" value={progress} className={classes.progressBar} />}
             {cancel !== null &&
-              <Button color="secondary" onClick={cancelWorkers}>
-                Cancel
-              </Button>
+              <div>
+                <Typography variant="body2" gutterBottom>{nbResults} routes found</Typography>
+                <Button color="secondary" onClick={cancelWorkers}>
+                  Cancel
+                </Button>
+              </div>
             }
           </div>
         </div>
