@@ -313,6 +313,24 @@ function PDFRoute({route, icaodata, routeParams, settings}) {
                         <Text key={i} style={styles.cell}>{c.kg}kg VIP package</Text>
                     )
                   }
+                  <Text style={styles.cellFooter}>{leg.cargo.reduce((acc, c) => c.pax ? acc : acc+c.kg, 0)+leg.VIPcargo.reduce((acc, c) => c.pax ? acc : acc+c.kg, 0)}kg</Text>
+                </View>
+                <View style={{ flexDirection: 'column' }}>
+                  <Text style={styles.cellHeader}>Weight</Text>
+                  {
+                    leg.cargo.map((c, i) => c.pax ?
+                        <Text key={i} style={styles.cell}>{c.pax*77}kg</Text>
+                      :
+                        <Text key={i} style={styles.cell}>{c.kg}kg</Text>
+                    )
+                  }
+                  {
+                    leg.VIPcargo.map((c, i) => c.pax ?
+                        <Text key={i} style={styles.cell}>{c.pax*77}kg</Text>
+                      :
+                        <Text key={i} style={styles.cell}>{c.kg}kg</Text>
+                    )
+                  }
                   <Text style={styles.cellFooter}>{leg.kg}kg</Text>
                 </View>
                 <View style={{ flexDirection: 'column' }}>
