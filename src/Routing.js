@@ -364,6 +364,8 @@ const Routing = React.memo((props) => {
   const [consumption, setConsumption] = React.useState(60);
   const [range, setRange] = React.useState(1800);
   const [fuelType, setFuelType] = React.useState(1);
+  const [rentFee, setRentFee] = React.useState(0);
+  const [rentType, setRentType] = React.useState('dry');
   const [fromIcao, setFromIcao] = React.useState(null);
   const [fromIcaoInput, setFromIcaoInput] = React.useState('');
   const [toIcao, setToIcao] = React.useState(null);
@@ -607,6 +609,10 @@ const Routing = React.memo((props) => {
           }
         }
       }
+      else {
+        rentalType = rentType;
+        rentalCost = rentFee * time;
+      }
       // Subtract rental cost and bonus to total pay
       if (fees.includes('Rental')) {
         pay -= rentalCost - bonus;
@@ -614,6 +620,11 @@ const Routing = React.memo((props) => {
       // Subtract fuel usage to total pay
       if (fees.includes('Fuel') && rentalType !== 'wet') {
         pay -= fuelCost;
+      }
+
+      // If rental is wet, no fuel cost
+      if (rentalType === 'wet') {
+        fuelCost = 0;
       }
 
       allResults[i].payNM = pay/totalDistance;
@@ -1535,6 +1546,36 @@ const Routing = React.memo((props) => {
                       >
                         <MenuItem value="0">100LL</MenuItem>
                         <MenuItem value="1">Jet-A</MenuItem>
+                      </TextField>
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <Tooltip title="Leave it to 0 if using your own plane.">
+                        <TextField
+                          label="Rental price"
+                          placeholder="0"
+                          variant="outlined"
+                          value={rentFee}
+                          onChange={(evt) => setRentFee(evt.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">$/Hour</InputAdornment>,
+                          }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Rent type"
+                        variant="outlined"
+                        value={rentType}
+                        onChange={(evt) => setRentType(evt.target.value)}
+                        select
+                        fullWidth
+                      >
+                        <MenuItem value="dry">Dry</MenuItem>
+                        <MenuItem value="wet">Wet</MenuItem>
                       </TextField>
                     </Grid>
                   </Grid>
