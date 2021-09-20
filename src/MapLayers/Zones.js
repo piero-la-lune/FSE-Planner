@@ -16,19 +16,37 @@ const ZonesLayer = React.memo(function ZonesLayer(props) {
     // Clear previous markers
     groupRef.current.clearLayers();
   
-    props.icaos.forEach(icao =>
+    Object.keys(props.zones).forEach(icao => {
 
-      // Create marker
+      // Create lines
       L.polyline(
-        props.icaodata[icao].zone,
+        props.zones[icao],
         {
           weight: 1,
           color: '#888',
           interactive: false,
           fill: false
       })
-        .addTo(groupRef.current)
-    );
+        .addTo(groupRef.current);
+      L.polyline(
+        props.zones[icao].map(elm => [elm[0], elm[1]+360]),
+        {
+          weight: 1,
+          color: '#888',
+          interactive: false,
+          fill: false
+      })
+        .addTo(groupRef.current);
+      L.polyline(
+        props.zones[icao].map(elm => [elm[0], elm[1]-360]),
+        {
+          weight: 1,
+          color: '#888',
+          interactive: false,
+          fill: false
+      })
+        .addTo(groupRef.current);
+    });
 
     // Add layer to map
     if (!added.current) {
@@ -36,7 +54,7 @@ const ZonesLayer = React.memo(function ZonesLayer(props) {
       added.current = true;
     }
 
-  }, [props.color, props.icaos, props.icaodata]);
+  }, [props.color, props.zones]);
 
 
   return null;
