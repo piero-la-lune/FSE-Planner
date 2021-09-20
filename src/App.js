@@ -39,7 +39,7 @@ import Tour from './Tour.js';
 import Storage from './Storage.js';
 import log from './util/logger.js';
 
-import icaodataSrc from "./data/icaodata-with-zones.json";
+import icaodataSrc from "./data/icaodata.json";
 const icaodataSrcArr = Object.values(icaodataSrc);
 
 
@@ -137,11 +137,6 @@ function wrap(num, center) {
   if (num < center-180) { return 360; }
   if (num >= center+180) { return -360; }
   return 0;
-}
-function wrapZone(zone, pointLon, wrap, center) {
-  for (var i = 0; i < zone.length; i++) {
-    zone[i][1] += wrap;
-  }
 }
 
 const useStyles = makeStyles(theme => ({
@@ -396,7 +391,6 @@ function App() {
     icaos.forEach((icao) => {
       const nb = wrap(obj[icao].lon, settings.display.map.center);
       obj[icao].lon += nb;
-      wrapZone(obj[icao].zone, obj[icao].lon, nb, settings.display.map.center);
     });
     setIcaodata(obj);
   }, [settings.display.map.center]);

@@ -1,4 +1,4 @@
-import icaodata from "./data/icaodata-with-zones.json";
+import icaodata from "./data/icaodata.json";
 import aircrafts from "./data/aircraft.json";
 
 export function hideAirport(icao, s, sim) {

@@ -45,9 +45,11 @@ const FSEMap = React.memo(function FSEMap(props) {
   const maxBounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
   const [contextMenu, setContextMenu] = React.useState(null);
   const [unbuiltFBOs, setUnbuiltFBOs] = React.useState([]);
+  const [zones, setZones] = React.useState({});
   const [simIcaodata, setSimIcaodata] = React.useState({icaos: [], data: {}});
   const [loading, setLoading] = React.useState(false);
   const loadedUnbuiltFBOS = React.useRef(false);
+  const loadedZones = React.useRef(false);
   const loadedSimIcaodata = React.useRef(false);
   const simRef = React.useRef(s.display.sim);
 
@@ -98,7 +100,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   // Load sim data
   const loadSimIcaodata = React.useCallback(() => {
     setLoading(true);
-    fetch('sim/'+simRef.current+'.json').then(response => {
+    fetch('data/'+simRef.current+'.json').then(response => {
       if (response.ok) {
         response.json().then(obj => {
           setSimIcaodata({icaos: Object.keys(obj), data: obj});
@@ -186,6 +188,18 @@ const FSEMap = React.memo(function FSEMap(props) {
         }
       });
     }
+    else if (evt.name === 'FSE airports landing area' && !loadedZones.current) {
+      setLoading(true);
+      fetch('data/zones.json').then(response => {
+        if (response.ok) {
+          response.json().then(obj => {
+            loadedZones.current = true;
+            setZones(obj);
+            setLoading(false);
+          });
+        }
+      });
+    }
     else if (evt.name === 'Simulator airports' && !loadedSimIcaodata.current) {
       loadSimIcaodata();
     }
@@ -236,7 +250,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         </Popover>
       }
       <LayersControl position="topleft">
-        {loading && <CircularProgress className={classes.progress} />}
+        {loading && <CircularProgress className={classes.progress} disableShrink />}
         <LayersControl.BaseLayer name="Default map" checked={s.display.map.basemap === 0}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -288,8 +302,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         </LayersControl.Overlay>
         <LayersControl.Overlay name="FSE airports landing area" checked={false}>
           <ZonesLayer
-            icaos={props.icaos}
-            icaodata={props.options.icaodata}
+            zones={zones}
             renderer={canvasRendererRef.current}
             color={s.display.markers.colors.base}
           />
