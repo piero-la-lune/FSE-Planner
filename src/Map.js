@@ -3,6 +3,7 @@ import Popover from '@material-ui/core/Popover';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { MapContainer, TileLayer, LayersControl } from "react-leaflet";
@@ -26,6 +27,12 @@ const useStyles = makeStyles(theme => ({
   },
   contextMenuList: {
     paddingTop: 0
+  },
+  progress: {
+    position: 'absolute',
+    top: 22,
+    left: 60,
+    zIndex: 1000
   }
 }));
 
@@ -37,8 +44,12 @@ const FSEMap = React.memo(function FSEMap(props) {
   const canvasRendererRef = React.useRef(new Canvas({ padding: 0.5 }));
   const maxBounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
   const [contextMenu, setContextMenu] = React.useState(null);
-  const [unbuiltFBOs, setUnbuildFBOs] = React.useState([]);
+  const [unbuiltFBOs, setUnbuiltFBOs] = React.useState([]);
   const [simIcaodata, setSimIcaodata] = React.useState({icaos: [], data: {}});
+  const [loading, setLoading] = React.useState(false);
+  const loadedUnbuiltFBOS = React.useRef(false);
+  const loadedSimIcaodata = React.useRef(false);
+  const simRef = React.useRef(s.display.sim);
 
   // Display search marker
   const searchRef = React.useRef(null);
@@ -85,15 +96,24 @@ const FSEMap = React.memo(function FSEMap(props) {
   ]);
 
   // Load sim data
-  React.useEffect(() => {
-    fetch('sim/'+s.display.sim+'.json').then(response => {
+  const loadSimIcaodata = React.useCallback(() => {
+    setLoading(true);
+    fetch('sim/'+simRef.current+'.json').then(response => {
       if (response.ok) {
         response.json().then(obj => {
           setSimIcaodata({icaos: Object.keys(obj), data: obj});
+          setLoading(false);
+          loadedSimIcaodata.current = true;
         });
       }
     });
-  }, [s.display.sim]);
+  }, []);
+  React.useEffect(() => {
+    simRef.current = s.display.sim;
+    if (loadedSimIcaodata.current) {
+      loadSimIcaodata();
+    }
+  }, [loadSimIcaodata, s.display.sim]);
 
   // Set search marker on top at each render
   React.useEffect(() => {
@@ -137,19 +157,44 @@ const FSEMap = React.memo(function FSEMap(props) {
   React.useEffect(() => {
     if (!mapRef.current) { return; }
     mapRef.current.setMaxBounds([[-90, s.display.map.center-180], [90, s.display.map.center+180]]);
-  }, [s.display.map.center, mapRef])
+  }, [s.display.map.center, mapRef]);
 
-  // Load unbuilt lots
-  React.useEffect(() => {
-    fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'unbuilt.json').then(response => {
-      if (response.ok) {
-        response.json().then(arr => {
-          setUnbuildFBOs(arr);
-        });
-      }
+  // Right click on map
+  const onContextMenu = (evt) => {
+    evt.originalEvent.stopPropagation();
+    evt.originalEvent.preventDefault();
+    const lat = Math.round((evt.latlng.lat + Number.EPSILON) * 10000) / 10000;
+    const lon = Math.round((evt.latlng.lng + Number.EPSILON) * 10000) / 10000;
+    setContextMenu({
+      mouseX: evt.originalEvent.clientX,
+      mouseY: evt.originalEvent.clientY,
+      title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
+      actions: []
     });
-  }, []);
-
+  }
+  // Show a layer
+  const onOverlayAdd = (evt) => {
+    if (evt.name === 'Unbuilt lots' && !loadedUnbuiltFBOS.current) {
+      setLoading(true);
+      fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'unbuilt.json').then(response => {
+        if (response.ok) {
+          response.json().then(arr => {
+            loadedUnbuiltFBOS.current = true;
+            setUnbuiltFBOs(arr);
+            setLoading(false);
+          });
+        }
+      });
+    }
+    else if (evt.name === 'Simulator airports' && !loadedSimIcaodata.current) {
+      loadSimIcaodata();
+    }
+  }
+  const whenCreated = (map) => {
+    map.on('contextmenu', onContextMenu);
+    map.on('overlayadd', onOverlayAdd);
+    mapRef.current = map
+  }
 
   props.actions.current.contextMenu = setContextMenu;
 
@@ -167,21 +212,7 @@ const FSEMap = React.memo(function FSEMap(props) {
       minZoom={2}
       maxZoom={12}
       renderer={canvasRendererRef.current}
-      whenCreated={(map) => {
-        map.on('contextmenu', (evt) => {
-          evt.originalEvent.stopPropagation();
-          evt.originalEvent.preventDefault();
-          const lat = Math.round((evt.latlng.lat + Number.EPSILON) * 10000) / 10000;
-          const lon = Math.round((evt.latlng.lng + Number.EPSILON) * 10000) / 10000;
-          setContextMenu({
-            mouseX: evt.originalEvent.clientX,
-            mouseY: evt.originalEvent.clientY,
-            title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
-            actions: []
-          });
-        });
-        mapRef.current = map
-      }}
+      whenCreated={whenCreated}
     >
       {contextMenu &&
         <Popover
@@ -205,6 +236,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         </Popover>
       }
       <LayersControl position="topleft">
+        {loading && <CircularProgress className={classes.progress} />}
         <LayersControl.BaseLayer name="Default map" checked={s.display.map.basemap === 0}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
