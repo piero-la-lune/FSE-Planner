@@ -196,15 +196,12 @@ function SettingsPopup(props) {
   const surfaceOptions = [
     [1, 'Asphalt'],
     [2, 'Concrete'],
-    [3, 'Coral'],
-    [4, 'Dirt'],
-    [5, 'Grass'],
-    [6, 'Gravel'],
-    [7, 'Helipad'],
-    [8, 'Oil Treated'],
-    [9, 'Snow'],
-    [10, 'Steel Mats'],
-    [11, 'Water']
+    [3, 'Dirt'],
+    [4, 'Grass'],
+    [5, 'Gravel'],
+    [6, 'Helipad'],
+    [7, 'Snow'],
+    [8, 'Water']
   ];
   const earningsOptions = [
     ['Ground', 'Ground crew fees'],

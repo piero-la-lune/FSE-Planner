@@ -106,7 +106,7 @@ const defaultSettings = {
   },
   airport: {
     size: [0, 23500],
-    surface: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    surface: [1, 2, 3, 4, 5, 6, 7, 8],
     runway: [0, 30000],
     onlySim: false,
     onlyBM: false
