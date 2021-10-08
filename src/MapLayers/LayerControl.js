@@ -224,7 +224,7 @@ const imgs = [
   "settings/LayerFSE.png",
   "settings/LayerZones.png",
   "settings/LayerSim.png",
-  "settings/LayerJobs2.png",
+  "settings/LayerJobs.png",
   "settings/LayerRoute.png",
   "settings/LayerCustom.png"
 ];

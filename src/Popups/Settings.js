@@ -340,11 +340,13 @@ function SettingsPopup(props) {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={3}>
+              <Grid item container xs={12}>
+                <Alert severity="info">This is used by all default layers and by the Route Finder.</Alert>
+              </Grid>
               <SettingSlider2 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
               <SettingSlider3 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
               <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
               <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
-              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display airports that sell building materials" setting="airport.onlyBM" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>
@@ -354,7 +356,7 @@ function SettingsPopup(props) {
           </AccordionSummary>
           <AccordionDetails>
             <div>
-              <Alert severity="warning" className={classes.alert}>After saving, you will need to refresh the app in order to see the changes in Route Finder.</Alert>
+              <Alert severity="warning">After saving, you will need to refresh the app in order to see the changes in Route Finder.</Alert>
               <Typography variant="body1" className={classes.formLabel}>Advanced algorithm parameters:</Typography>
               <Grid container spacing={3}>
                 <Setting s={s} setS={setS} label="Iterations" setting='routeFinder.maxHops' xs={6} helperText="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops." />
