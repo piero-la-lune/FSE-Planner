@@ -343,11 +343,11 @@ function SettingsPopup(props) {
               <Grid item container xs={12}>
                 <Alert severity="info">This is used by all default layers and by the Route Finder.</Alert>
               </Grid>
-              <SettingSlider2 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
-              <SettingSlider3 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
-              <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
-              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
-              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use airports with an ILS approach (MSFS)" setting="airport.onlyILS" xs={12} />
+              <SettingSlider2 s={s} setS={setS} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
+              <SettingSlider3 s={s} setS={setS} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
+              <SettingSelect s={s} setS={setS} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
+              <SettingSwitch s={s} setS={setS} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
+              <SettingSwitch s={s} setS={setS} label="Only display and use airports with an ILS approach (MSFS)" setting="airport.onlyILS" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>
@@ -389,10 +389,11 @@ function SettingsPopup(props) {
           onClick={() => {
             if (window.confirm('Are you sure you want to reset all settings to default settings?')) {
               // Propagate change
-              props.setSettings(props.defaultSettings);
-              setS(props.defaultSettings);
+              const newSettings = _clone(props.defaultSettings);
+              props.setSettings(newSettings);
+              setS(newSettings);
               // Save settings to local storage
-              storage.set('settings', props.defaultSettings);
+              storage.set('settings', newSettings);
               // Close popup
               setExpanded(false);
               props.handleClose();

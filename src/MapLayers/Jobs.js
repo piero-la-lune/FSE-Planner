@@ -145,7 +145,12 @@ function addFlight(legs, jobs, opts) {
 function getMarkers(legs, opts) {
   let markers = new Set();
   // Add markers where a plane can be rented
-  Object.keys(opts.planes).forEach(elm => markers.add(elm));
+  Object.keys(opts.planes).forEach(elm => {
+    // Do not display airports that do not match the filtering criteria
+    if (!hideAirport(elm, opts.settings.airport, opts.settings.display.sim)) {
+      markers.add(elm)
+    }
+  });
   // Add markers in filtering options
   if (opts.fromIcao) { markers.add(opts.fromIcao); }
   if (opts.toIcao) { markers.add(opts.toIcao); }
