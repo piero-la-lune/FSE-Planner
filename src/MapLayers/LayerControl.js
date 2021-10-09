@@ -237,6 +237,7 @@ const defaultLayer = {
     runway: [0, 30000],
     onlySim: false,
     onlyBM: false,
+    onlyILS: false,
     price: [0, 0]
   },
   display: {

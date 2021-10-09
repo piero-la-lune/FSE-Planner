@@ -97,6 +97,14 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(0.2),
     marginLeft: theme.spacing(0.2)
   },
+  ils: {
+    background: '#fff',
+    color: theme.palette.primary.main,
+    fontSize: '0.5em',
+    fontWeight: 'bold',
+    marginLeft: theme.spacing(1),
+    padding: '0px 3px'
+  }
 }));
 
 const SVGs = new AirportSVG('#fff', '#3f51b5', 20);
@@ -177,6 +185,9 @@ function Popup(props) {
               <React.Fragment>
                 <span className={classes.striked}>{icao}</span>{icaodata[icao][siminfo][0]}
               </React.Fragment>
+          }
+          {
+            icaodata[icao].ils && <span className={classes.ils}>ILS</span>
           }
           <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE} title="Go to FSE">
             <OpenInNewIcon fontSize="inherit" />

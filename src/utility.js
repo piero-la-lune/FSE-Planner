@@ -27,6 +27,12 @@ export function hideAirport(icao, s, sim) {
             &&
               icaodata[icao].size < 5000
           )
+        ||
+          (
+              s.onlyILS
+            &&
+              !icaodata[icao].ils
+          )
       )
   );
 }

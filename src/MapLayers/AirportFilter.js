@@ -356,6 +356,7 @@ function AirportFilter(props) {
   const [surface, setSurface] = React.useState(layer.filters.surface);
   const [onlySim, setOnlySim] = React.useState(layer.filters.onlySim);
   const [onlyBM, setOnlyBM] = React.useState(layer.filters.onlyBM);
+  const [onlyILS, setOnlyILS] = React.useState(layer.filters.onlyILS);
   const [price, setPrice] = React.useState(layer.filters.price);
   const [step, setStep] = React.useState(layer.type ? 1 : 0);
 
@@ -385,6 +386,7 @@ function AirportFilter(props) {
       setSurface(props.layer.filters.surface);
       setOnlySim(props.layer.filters.onlySim);
       setOnlyBM(props.layer.filters.onlyBM);
+      setOnlyILS(props.layer.filters.onlyILS);
       setPrice(props.layer.filters.price);
     }
   }, [props.open, props.layer]);
@@ -444,6 +446,18 @@ function AirportFilter(props) {
                   />
                 }
                 label="Only display airports that sell building materials"
+              />
+            </div>
+            <div className={classes.divSwitch}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={onlyILS}
+                    onChange={(evt, value) => { setOnlyILS(value); }}
+                    color="primary"
+                  />
+                }
+                label="Only display airports with an ILS approach (MSFS)"
               />
             </div>
           </div>
@@ -512,6 +526,7 @@ function AirportFilter(props) {
                     runway: length,
                     onlySim: onlySim,
                     onlyBM: onlyBM,
+                    onlyILS: onlyILS,
                     price: price
                   },
                   display: {

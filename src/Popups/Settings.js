@@ -347,6 +347,7 @@ function SettingsPopup(props) {
               <SettingSlider3 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
               <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
               <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
+              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use airports with an ILS approach (MSFS)" setting="airport.onlyILS" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>
