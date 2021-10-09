@@ -152,7 +152,7 @@ function cleanJobs(list, icaodata) {
     if (!jobs[key].hasOwnProperty(unit)) {
       jobs[key][unit] = {};
     }
-    const type = job.PtAssignment ? 'PT' : job.Type;
+    const type = job.PtAssignment === 'true' ? 'PT' : job.Type;
     if (!jobs[key][unit][type]) {
       jobs[key][unit][type] = [];
     }

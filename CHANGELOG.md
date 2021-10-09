@@ -6,6 +6,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.7.0] - 2021-10-09
+
+### New
+- New custom layers: add custom layers to the map with your own filters and display settings
+- New basemap with English location names
+- New ILS filter: only display and use airports that have an ILS approach (MSFS). Thanks to Lily418 for the help
+- New setting in Route Finder to set a custom airplane rental price ([#65](https://github.com/piero-la-lune/FSE-Planner/issues/65)
+
+### Changed
+- Optimized Route Finder memory usage: this should prevent crashes with Chrome, even when searching large areas
+- Improved Route Finder when setting a destination: no more route going in the wrong overall direction
+- Optimized application memory usage and loading time
+- Updated runway data (length and surface)
+- Updated plane list to include newly added FSE planes
+- Updated MSFS data
+- Changed display in Route Finder PDF to separate cargo weight from the total weight (cargo and passengers) ([#66](https://github.com/piero-la-lune/FSE-Planner/issues/66)
+
+### Fixed
+- Bug when loading data from airports with an ICAO resembling a number, such as 0E0 ([#79](https://github.com/piero-la-lune/FSE-Planner/issues/79)
+- Rounded airplane specs in Route Finder for a better display
+- Bug when resetting settings multiple times
+
+
+
 ## [1.6.0] - 2021-06-27
 
 ### New
