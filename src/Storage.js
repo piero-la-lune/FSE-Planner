@@ -19,6 +19,11 @@ class Storage {
       if (oldVersion < '1.5.0') {
         this.remove('flight');
       }
+      if (oldVersion < '1.7.0') {
+        const settings = this.get('settings', {});
+        delete settings.airport;
+        this.set('settings', settings);
+      }
       localStorage.setItem('version', version);
     }
   }

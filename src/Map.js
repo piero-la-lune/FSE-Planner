@@ -3,21 +3,27 @@ import Popover from '@material-ui/core/Popover';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { MapContainer, TileLayer, LayersControl } from "react-leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
 import { getBounds } from "geolib";
 import L from "leaflet";
 
 import Canvas from "./MapLayers/Components/Canvas.js";
-import JobsLayer from "./MapLayers/Jobs.js";
-import RouteLayer from "./MapLayers/Route.js";
-import ZonesLayer from "./MapLayers/Zones.js";
-import AirportsLayer from "./MapLayers/Airports.js";
 import Marker from "./MapLayers/Components/Marker.js";
+import LayerControl from "./MapLayers/LayerControl.js";
+
+const baselayerURL = [
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  'https://api.maptiler.com/maps/topo/{z}/{x}/{y}.png?key='+process.env.REACT_APP_MAPTILER_KEY
+];
 
 const useStyles = makeStyles(theme => ({
+  map: {
+    display: 'flex',
+    flex: '1 1 auto',
+    position: 'relative'
+  },
   contextMenu: {
     minWidth: 200
   },
@@ -44,14 +50,8 @@ const FSEMap = React.memo(function FSEMap(props) {
   const canvasRendererRef = React.useRef(new Canvas({ padding: 0.5 }));
   const maxBounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
   const [contextMenu, setContextMenu] = React.useState(null);
-  const [unbuiltFBOs, setUnbuiltFBOs] = React.useState([]);
-  const [zones, setZones] = React.useState({});
-  const [simIcaodata, setSimIcaodata] = React.useState({icaos: [], data: {}});
-  const [loading, setLoading] = React.useState(false);
-  const loadedUnbuiltFBOS = React.useRef(false);
-  const loadedZones = React.useRef(false);
-  const loadedSimIcaodata = React.useRef(false);
-  const simRef = React.useRef(s.display.sim);
+  const [init, setInit] = React.useState(false);
+  const basemapRef = React.useRef(false);
 
   // Display search marker
   const searchRef = React.useRef(null);
@@ -97,25 +97,6 @@ const FSEMap = React.memo(function FSEMap(props) {
     mapRef
   ]);
 
-  // Load sim data
-  const loadSimIcaodata = React.useCallback(() => {
-    setLoading(true);
-    fetch('data/'+simRef.current+'.json').then(response => {
-      if (response.ok) {
-        response.json().then(obj => {
-          setSimIcaodata({icaos: Object.keys(obj), data: obj});
-          setLoading(false);
-          loadedSimIcaodata.current = true;
-        });
-      }
-    });
-  }, []);
-  React.useEffect(() => {
-    simRef.current = s.display.sim;
-    if (loadedSimIcaodata.current) {
-      loadSimIcaodata();
-    }
-  }, [loadSimIcaodata, s.display.sim]);
 
   // Set search marker on top at each render
   React.useEffect(() => {
@@ -174,40 +155,11 @@ const FSEMap = React.memo(function FSEMap(props) {
       actions: []
     });
   }
-  // Show a layer
-  const onOverlayAdd = (evt) => {
-    if (evt.name === 'Unbuilt lots' && !loadedUnbuiltFBOS.current) {
-      setLoading(true);
-      fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'unbuilt.json').then(response => {
-        if (response.ok) {
-          response.json().then(arr => {
-            loadedUnbuiltFBOS.current = true;
-            setUnbuiltFBOs(arr);
-            setLoading(false);
-          });
-        }
-      });
-    }
-    else if (evt.name === 'FSE airports landing area' && !loadedZones.current) {
-      setLoading(true);
-      fetch('data/zones.json').then(response => {
-        if (response.ok) {
-          response.json().then(obj => {
-            loadedZones.current = true;
-            setZones(obj);
-            setLoading(false);
-          });
-        }
-      });
-    }
-    else if (evt.name === 'Simulator airports' && !loadedSimIcaodata.current) {
-      loadSimIcaodata();
-    }
-  }
+
   const whenCreated = (map) => {
     map.on('contextmenu', onContextMenu);
-    map.on('overlayadd', onOverlayAdd);
-    mapRef.current = map
+    mapRef.current = map;
+    setInit(true);
   }
 
   props.actions.current.contextMenu = setContextMenu;
@@ -216,128 +168,59 @@ const FSEMap = React.memo(function FSEMap(props) {
     setContextMenu(null);
   };
 
+  const setBasemap = React.useCallback(basemap => {
+    if (!basemapRef.current) { return; }
+    basemapRef.current.setUrl(baselayerURL[basemap]);
+  }, []);
 
   return (
-    <MapContainer
-      center={[46.5344, 3.42167]}
-      zoom={6}
-      maxBounds={maxBounds}
-      attributionControl={false}
-      minZoom={2}
-      maxZoom={12}
-      renderer={canvasRendererRef.current}
-      whenCreated={whenCreated}
-    >
-      {contextMenu &&
-        <Popover
-          open={true}
-          onClose={closeContextMenu}
-          anchorReference="anchorPosition"
-          anchorPosition={
-            { top: contextMenu.mouseY, left: contextMenu.mouseX }
-          }
-          onContextMenu={(evt) => {evt.preventDefault(); evt.stopPropagation();}}
-          classes={{paper:classes.contextMenu}}
-        >
-          <Typography variant="body1" className={classes.contextMenuTitle}>{contextMenu.title}</Typography>
-          {contextMenu.actions.length > 0 &&
-            <MenuList className={classes.contextMenuList}>
-              { contextMenu.actions.map((action, i) =>
-                <MenuItem dense key={i} onClick={() => { action.onClick(); closeContextMenu(); }}>{action.name}</MenuItem>
-              )}
-            </MenuList>
-          }
-        </Popover>
+    <div className={classes.map}>
+      <MapContainer
+        center={[46.5344, 3.42167]}
+        zoom={6}
+        maxBounds={maxBounds}
+        attributionControl={false}
+        minZoom={2}
+        maxZoom={12}
+        zoomControl={false}
+        renderer={canvasRendererRef.current}
+        whenCreated={whenCreated}
+      >
+        {contextMenu &&
+          <Popover
+            open={true}
+            onClose={closeContextMenu}
+            anchorReference="anchorPosition"
+            anchorPosition={
+              { top: contextMenu.mouseY, left: contextMenu.mouseX }
+            }
+            onContextMenu={(evt) => {evt.preventDefault(); evt.stopPropagation();}}
+            classes={{paper:classes.contextMenu}}
+          >
+            <Typography variant="body1" className={classes.contextMenuTitle}>{contextMenu.title}</Typography>
+            {contextMenu.actions.length > 0 &&
+              <MenuList className={classes.contextMenuList}>
+                { contextMenu.actions.map((action, i) =>
+                  <MenuItem dense key={i} onClick={() => { action.onClick(); closeContextMenu(); }}>{action.name}</MenuItem>
+                )}
+              </MenuList>
+            }
+          </Popover>
+        }
+        <TileLayer url={baselayerURL[s.display.map.basemap]} ref={basemapRef} />
+      </MapContainer>
+      {init &&
+        <LayerControl
+          map={mapRef.current}
+          setBasemap={setBasemap}
+          options={props.options}
+          actions={props.actions}
+          route={props.route}
+          customIcaos={props.customIcaos}
+          icaos={props.icaos}
+        />
       }
-      <LayersControl position="topleft">
-        {loading && <CircularProgress className={classes.progress} disableShrink />}
-        <LayersControl.BaseLayer name="Default map" checked={s.display.map.basemap === 0}>
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Alternative map" checked={s.display.map.basemap === 1}>
-          <TileLayer
-            url={"https://api.maptiler.com/maps/topo/{z}/{x}/{y}.png?key="+process.env.REACT_APP_MAPTILER_KEY}
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.Overlay name="FSE airports" checked={true}>
-          <AirportsLayer
-            icaos={props.icaos}
-            icaodata={props.options.icaodata}
-            fseicaodata={props.options.icaodata}
-            color={s.display.markers.colors.fse}
-            size={s.display.markers.sizes.fse}
-            airportFilter={s.airport}
-            siminfo={s.display.sim}
-            actions={props.actions}
-            id="fse"
-          />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay name="Unbuilt lots" checked={false}>
-          <AirportsLayer
-            icaos={unbuiltFBOs}
-            icaodata={props.options.icaodata}
-            fseicaodata={props.options.icaodata}
-            color={s.display.markers.colors.fse}
-            size={s.display.markers.sizes.custom}
-            airportFilter={s.airport}
-            siminfo={s.display.sim}
-            actions={props.actions}
-            id="fbo"
-          />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay name="Simulator airports" checked={false}>
-          <AirportsLayer
-            icaos={simIcaodata.icaos}
-            icaodata={simIcaodata.data}
-            fseicaodata={props.options.icaodata}
-            color={s.display.markers.colors.sim}
-            size={s.display.markers.sizes.sim}
-            siminfo={s.display.sim}
-            sim={s.display.sim}
-            actions={props.actions}
-            id="sim"
-          />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay name="FSE airports landing area" checked={false}>
-          <ZonesLayer
-            zones={zones}
-            renderer={canvasRendererRef.current}
-            color={s.display.markers.colors.base}
-          />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay name="Job & plane search" checked={true}>
-          <JobsLayer
-            options={props.options}
-            renderer={canvasRendererRef.current}
-            actions={props.actions}
-          />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay name="Route finder" checked={true}>
-          <RouteLayer
-            options={props.options}
-            renderer={canvasRendererRef.current}
-            actions={props.actions}
-            route={props.route}
-          />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay name="Custom markers" checked={true}>
-          <AirportsLayer
-            icaos={props.customIcaos}
-            icaodata={props.options.icaodata}
-            fseicaodata={props.options.icaodata}
-            color={s.display.markers.colors.custom}
-            size={s.display.markers.sizes.custom}
-            weight={s.display.legs.display.custom ? s.display.legs.weights.flight : undefined}
-            highlight={s.display.legs.colors.highlight}
-            siminfo={s.display.sim}
-            actions={props.actions}
-            id="custom"
-          />
-        </LayersControl.Overlay>
-      </LayersControl>
-    </MapContainer>
+    </div>
   );
 
 });

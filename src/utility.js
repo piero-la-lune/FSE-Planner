@@ -27,6 +27,12 @@ export function hideAirport(icao, s, sim) {
             &&
               icaodata[icao].size < 5000
           )
+        ||
+          (
+              s.onlyILS
+            &&
+              !icaodata[icao].ils
+          )
       )
   );
 }
@@ -35,14 +41,11 @@ export function airportSurface(surface) {
   switch (surface) {
     case 1: return "Asphalt"
     case 2: return "Concrete"
-    case 3: return "Coral"
-    case 4: return "Dirt"
-    case 5: return "Grass"
-    case 6: return "Gravel"
-    case 7: return "Helipad"
-    case 8: return "Oil Treated"
-    case 9: return "Snow"
-    case 10: return "Steel Mats"
+    case 3: return "Dirt"
+    case 4: return "Grass"
+    case 5: return "Gravel"
+    case 6: return "Helipad"
+    case 7: return "Snow"
     default: return "Water"
   }
 }

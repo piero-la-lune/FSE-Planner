@@ -97,6 +97,14 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(0.2),
     marginLeft: theme.spacing(0.2)
   },
+  ils: {
+    background: '#fff',
+    color: theme.palette.primary.main,
+    fontSize: '0.5em',
+    fontWeight: 'bold',
+    marginLeft: theme.spacing(1),
+    padding: '0px 3px'
+  }
 }));
 
 const SVGs = new AirportSVG('#fff', '#3f51b5', 20);
@@ -178,6 +186,9 @@ function Popup(props) {
                 <span className={classes.striked}>{icao}</span>{icaodata[icao][siminfo][0]}
               </React.Fragment>
           }
+          {
+            icaodata[icao].ils && <span className={classes.ils}>ILS</span>
+          }
           <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE} title="Go to FSE">
             <OpenInNewIcon fontSize="inherit" />
           </Link>
@@ -187,6 +198,9 @@ function Popup(props) {
       <div className={classes.popupPart}>
         <Typography variant="body2" className={classes.popupLabel}>Position: {Math.abs(icaodata[icao].lat)}{icaodata[icao].lat >= 0 ? 'N' : 'S'} {Math.abs(icaodata[icao].lon)}{icaodata[icao].lon >= 0 ? 'E' : 'W'}, {icaodata[icao].elev} feet</Typography>
         <Typography variant="body2" className={classes.popupLabel}>Runway: {icaodata[icao].runway} feet of {airportSurface(icaodata[icao].surface)}</Typography>
+        { props.forsale &&
+          <Typography variant="body2" className={classes.popupLabel}>For sale: ${props.forsale.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Typography>
+        }
         {
           icaodata[icao][siminfo].length > 1 &&
             <React.Fragment>

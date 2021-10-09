@@ -196,15 +196,12 @@ function SettingsPopup(props) {
   const surfaceOptions = [
     [1, 'Asphalt'],
     [2, 'Concrete'],
-    [3, 'Coral'],
-    [4, 'Dirt'],
-    [5, 'Grass'],
-    [6, 'Gravel'],
-    [7, 'Helipad'],
-    [8, 'Oil Treated'],
-    [9, 'Snow'],
-    [10, 'Steel Mats'],
-    [11, 'Water']
+    [3, 'Dirt'],
+    [4, 'Grass'],
+    [5, 'Gravel'],
+    [6, 'Helipad'],
+    [7, 'Snow'],
+    [8, 'Water']
   ];
   const earningsOptions = [
     ['Ground', 'Ground crew fees'],
@@ -343,11 +340,14 @@ function SettingsPopup(props) {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={3}>
-              <SettingSlider2 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
-              <SettingSlider3 s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
-              <SettingSelect s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
-              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
-              <SettingSwitch s={s} setS={(s) => {s.airport = _clone(s.airport); setS(s)}} label="Only display airports that sell building materials" setting="airport.onlyBM" xs={12} />
+              <Grid item container xs={12}>
+                <Alert severity="info">This is used by all default layers and by the Route Finder.</Alert>
+              </Grid>
+              <SettingSlider2 s={s} setS={setS} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
+              <SettingSlider3 s={s} setS={setS} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
+              <SettingSelect s={s} setS={setS} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
+              <SettingSwitch s={s} setS={setS} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
+              <SettingSwitch s={s} setS={setS} label="Only display and use airports with an ILS approach (MSFS)" setting="airport.onlyILS" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>
@@ -357,7 +357,7 @@ function SettingsPopup(props) {
           </AccordionSummary>
           <AccordionDetails>
             <div>
-              <Alert severity="warning" className={classes.alert}>After saving, you will need to refresh the app in order to see the changes in Route Finder.</Alert>
+              <Alert severity="warning">After saving, you will need to refresh the app in order to see the changes in Route Finder.</Alert>
               <Typography variant="body1" className={classes.formLabel}>Advanced algorithm parameters:</Typography>
               <Grid container spacing={3}>
                 <Setting s={s} setS={setS} label="Iterations" setting='routeFinder.maxHops' xs={6} helperText="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops." />
@@ -389,10 +389,11 @@ function SettingsPopup(props) {
           onClick={() => {
             if (window.confirm('Are you sure you want to reset all settings to default settings?')) {
               // Propagate change
-              props.setSettings(props.defaultSettings);
-              setS(props.defaultSettings);
+              const newSettings = _clone(props.defaultSettings);
+              props.setSettings(newSettings);
+              setS(newSettings);
               // Save settings to local storage
-              storage.set('settings', props.defaultSettings);
+              storage.set('settings', newSettings);
               // Close popup
               setExpanded(false);
               props.handleClose();
