@@ -99,17 +99,17 @@ function cleanPlanes(list, username, rentable = true) {
   const planes = {};
   for (const obj of list) {
     // Exclude broken airplanes
-    if (obj.NeedsRepair === 1) { continue; }
+    if (obj.NeedsRepair === '1') { continue; }
     // Rented planes discarded, unless rented by current user
     if (obj.RentedBy !== 'Not rented.' && obj.RentedBy !== username) { continue; }
     // If searching for rentable planes, discard planes without
     // dry and web rental price (except planes owned by FSE, because
     // those are reserved for All-In jobs)
-    if (rentable && !obj.RentalDry && !obj.RentalWet) {
+    if (rentable && !parseInt(obj.RentalDry) && !parseInt(obj.RentalWet)) {
       if (obj.Owner !== 'Bank of FSE') { continue; }
     }
     // Planes with fee owned are discarded
-    if (obj.FeeOwed) { continue; }
+    if (parseInt(obj.FeeOwed)) { continue; }
     // Planes in flight are discarded
     if (obj.Location === 'In Flight') { continue; }
 
@@ -118,12 +118,12 @@ function cleanPlanes(list, username, rentable = true) {
     if (!planes[obj.MakeModel].hasOwnProperty(obj.Location)) { planes[obj.MakeModel][obj.Location] = []; }
 
     planes[obj.MakeModel][obj.Location].push({
-      id: obj.SerialNumber,
+      id: parseInt(obj.SerialNumber),
       reg: obj.Registration,
       home: obj.Home,
-      wet: obj.RentalWet,
-      dry: obj.RentalDry,
-      bonus: obj.Bonus
+      wet: parseInt(obj.RentalWet),
+      dry: parseInt(obj.RentalDry),
+      bonus: parseInt(obj.Bonus)
     });
   }
   return planes;
@@ -133,7 +133,7 @@ function cleanJobs(list, icaodata) {
   const jobs = {};
   for (const job of list) {
     // Do not keep non paying jobs
-    if (!job.Pay) { continue; }
+    if (!parseInt(job.Pay)) { continue; }
     // Because Airport jobs and My Flight datafeeds do not use the same property names...
     const toIcao = job.ToIcao ? job.ToIcao : job.Destination;
     const unit = job.UnitType ? job.UnitType : job.Units;
@@ -157,8 +157,8 @@ function cleanJobs(list, icaodata) {
       jobs[key][unit][type] = [];
     }
     jobs[key][unit][type].push({
-      nb: job.Amount,
-      pay: job.Pay
+      nb: parseInt(job.Amount),
+      pay: parseInt(job.Pay)
     });
   }
   return jobs;
@@ -281,7 +281,7 @@ function UpdatePopup(props) {
     })
     .then(function(csv) {
       // Parse CSV
-      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy', dynamicTyping: true});
+      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
       if (parse.errors.length > 0) {
         throw new Error("Parsing error");
       }
@@ -348,7 +348,7 @@ function UpdatePopup(props) {
     })
     .then(function(csv) {
       // Parse CSV
-      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy', dynamicTyping: true});
+      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
       if (parse.errors.length > 0) {
         throw new Error("Parsing error");
       }
@@ -378,7 +378,7 @@ function UpdatePopup(props) {
     })
     .then(function(csv) {
       // Parse CSV
-      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy', dynamicTyping: true});
+      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
       if (parse.errors.length > 0) {
         throw new Error("Parsing error");
       }
@@ -455,7 +455,7 @@ function UpdatePopup(props) {
     })
     .then(function(csv) {
       // Parse CSV
-      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy', dynamicTyping: true});
+      const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
       if (parse.errors.length > 0) {
         throw new Error("Parsing error");
       }
