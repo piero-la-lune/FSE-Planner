@@ -1,4 +1,4 @@
-import icaodata from "./data/icaodata-with-zones.json";
+import icaodata from "./data/icaodata.json";
 import aircrafts from "./data/aircraft.json";
 
 export function hideAirport(icao, s, sim) {
@@ -21,6 +21,18 @@ export function hideAirport(icao, s, sim) {
             &&
               icaodata[icao][sim][0] === null
           )
+        ||
+          (
+              s.onlyBM
+            &&
+              icaodata[icao].size < 5000
+          )
+        ||
+          (
+              s.onlyILS
+            &&
+              !icaodata[icao].ils
+          )
       )
   );
 }
@@ -29,14 +41,11 @@ export function airportSurface(surface) {
   switch (surface) {
     case 1: return "Asphalt"
     case 2: return "Concrete"
-    case 3: return "Coral"
-    case 4: return "Dirt"
-    case 5: return "Grass"
-    case 6: return "Gravel"
-    case 7: return "Helipad"
-    case 8: return "Oil Treated"
-    case 9: return "Snow"
-    case 10: return "Steel Mats"
+    case 3: return "Dirt"
+    case 4: return "Grass"
+    case 5: return "Gravel"
+    case 6: return "Helipad"
+    case 7: return "Snow"
     default: return "Water"
   }
 }
@@ -66,11 +75,11 @@ export class Plane {
       this.MTOW = p.MTOW;
       this.emptyWeight = p.EmptyWeight;
       // Plane range: maximum length of a single leg
-      this.range = this.fuelCapacity / p.GPH * p.CruiseSpeed;
+      this.range = Math.round(this.fuelCapacity / p.GPH * p.CruiseSpeed);
       // Compute fuel weight in kg at 25% fuel load
       const fuelKg = 0.25 * 2.68735 * this.fuelCapacity;
       // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
-      this.maxKg = this.MTOW - this.emptyWeight - 77*(1+this.crew) - fuelKg;
+      this.maxKg = Math.floor(this.MTOW - this.emptyWeight - 77*(1+this.crew) - fuelKg);
     }
     else {
       this.model = model;

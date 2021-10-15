@@ -20,8 +20,8 @@ const Canvas = L.Canvas.extend({
     if (!this._drawing || layer._empty()) { return; }
 
     const zoom = this._map._zoom;
-    const minZoom = this._map._layersMinZoom;
-    const maxZoom = this._map._layersMaxZoom;
+    const minZoom = this._map.options.minZoom;
+    const maxZoom = this._map.options.maxZoom;
     const color = layer.options.color;
     const fillColor = layer.options.fillColor;
     const radius = layer.options.radius;
@@ -150,8 +150,8 @@ const Canvas = L.Canvas.extend({
     if (!layer._parts.length) { return; }
 
     const zoom = this._map._zoom;
-    const minZoom = this._map._layersMinZoom;
-    const maxZoom = this._map._layersMaxZoom;
+    const minZoom = this._map.options.minZoom;
+    const maxZoom = this._map.options.maxZoom;
     let ratio;
     if (zoom <= 7) {
       ratio = (1 - 0.05)/(7 - minZoom)*(zoom - minZoom) + 0.05;

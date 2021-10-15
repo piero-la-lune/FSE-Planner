@@ -6,4 +6,22 @@ const log = {
   export: () => logs
 };
 
+export function downloadReport() {
+  const ls = {...localStorage};
+  ls.key = null
+  const data = JSON.stringify({logs: log.export(), localStorage: ls});
+  const blob = new Blob([data], {type: 'text/json'});
+  const a = document.createElement('a');
+  a.download = 'debug.json';
+  a.href = window.URL.createObjectURL(blob)
+  a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':');
+  a.click();
+}
+/* To reinject localstorage in browser
+var data = JSON.parse(String.raw`MYDATA`);
+Object.keys(data.localStorage).forEach(function (k) {
+  localStorage.setItem(k, data.localStorage[k]);
+});
+*/
+
 export default log;

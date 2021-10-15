@@ -34,11 +34,12 @@ import Routing from './Routing.js';
 import UpdatePopup from './Popups/Update.js';
 import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';
+import ErrorBoundary from './ErrorBoundary.js';
 import Tour from './Tour.js';
 import Storage from './Storage.js';
 import log from './util/logger.js';
 
-import icaodataSrc from "./data/icaodata-with-zones.json";
+import icaodataSrc from "./data/icaodata.json";
 const icaodataSrcArr = Object.values(icaodataSrc);
 
 
@@ -80,7 +81,8 @@ const defaultSettings = {
       }
     },
     map: {
-      center: 0
+      center: 0,
+      basemap: 0
     },
     sim: 'msfs'
   },
@@ -104,9 +106,10 @@ const defaultSettings = {
   },
   airport: {
     size: [0, 23500],
-    surface: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    surface: [1, 2, 3, 4, 5, 6, 7, 8],
     runway: [0, 30000],
-    onlySim: false
+    onlySim: false,
+    onlyILS: false
   },
   routeFinder: {
     maxHops: 4,
@@ -117,7 +120,8 @@ const defaultSettings = {
     idleTime: 2,
     fees: ['Ground', 'Booking', 'Rental', 'Fuel'],
     overheadLength: 0,
-    approachLength: 10
+    approachLength: 10,
+    memory: 'normal'
   }
 };
 
@@ -133,11 +137,6 @@ function wrap(num, center) {
   if (num < center-180) { return 360; }
   if (num >= center+180) { return -360; }
   return 0;
-}
-function wrapZone(zone, pointLon, wrap, center) {
-  for (var i = 0; i < zone.length; i++) {
-    zone[i][1] += wrap;
-  }
 }
 
 const useStyles = makeStyles(theme => ({
@@ -392,7 +391,6 @@ function App() {
     icaos.forEach((icao) => {
       const nb = wrap(obj[icao].lon, settings.display.map.center);
       obj[icao].lon += nb;
-      wrapZone(obj[icao].zone, obj[icao].lon, nb, settings.display.map.center);
     });
     setIcaodata(obj);
   }, [settings.display.map.center]);
@@ -414,6 +412,8 @@ function App() {
 
     // Register error logging
     window.onerror = (message, file, line, column, errorObject) => {
+      // We do not use ErrorBoundary component for logging, because it does
+      // not detect errors in event handlers, and we need to log these errors too
       log.error(message, {
         file: file,
         line: line,
@@ -442,7 +442,8 @@ function App() {
 
   // Invalidate map size when routing toogled
   React.useEffect(() => {
-    mapRef.current.leafletElement.invalidateSize({pan:false});
+    if (!mapRef.current) { return; }
+    mapRef.current.invalidateSize({pan:false});
   }, [routeFinder]);
 
   const setFrom = React.useCallback((icao) => {
@@ -467,8 +468,6 @@ function App() {
     }
   }, [icaodata]);
   const isToIcao = React.useCallback((icao) => toIcao === icao, [toIcao]);
-  const addCustom = (icao) => setCustomIcaos(prev => [...prev, icao]);
-  const removeCustom = (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao));
   const isInCustom = React.useCallback((icao) => customIcaos.includes(icao), [customIcaos]);
   React.useEffect(() => {
     storage.set('customIcaos', customIcaos);
@@ -483,300 +482,302 @@ function App() {
       isFromIcao: isFromIcao,
       isToIcao: isToIcao,
       toIcao: setTo,
-      addCustom: addCustom,
-      removeCustom: removeCustom,
+      addCustom: (icao) => setCustomIcaos(prev => [...prev, icao]),
+      removeCustom: (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao)),
       isInCustom: isInCustom,
       contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined
     };
   }
   if (!actions.current) { setActions(); }
-  React.useEffect(setActions, [goTo, setFrom, isFromIcao, setTo, isToIcao, addCustom, removeCustom, isInCustom]);
+  React.useEffect(setActions, [goTo, setFrom, isFromIcao, setTo, isToIcao, isInCustom]);
 
 
   return (
-    <div style={{
-      display: "flex",
-      flexFlow: "column",
-      height: "100vh",
-    }}>
-      <AppBar position="static">
-        <Toolbar>
-          <div className={classes.title}>
-            <Typography variant="h6" className={classes.h6}>
-              FSE Planner
-            </Typography>
-            <Tooltip title="Changelog & credits">
-              <Button className={classes.version} onClick={() => setCreditsPopup(true)} data-tour="Step9" size="small">
-                v{process.env.REACT_APP_VERSION}
-              </Button>
-            </Tooltip>
-          </div>
-          <div className={classes.filters}>
-            <div className={classes.search}>
-              <Autocomplete
-                options={icaodataSrcArr}
-                getOptionLabel={(a) => a.icao ? a.icao : ''}
-                renderOption={(a) =>
-                  <span className={classes.searchOption}>
-                    <b className={classes.searchIcao}>{a.icao}</b>
-                    <span className={classes.searchInfos}>
-                      <span className={classes.searchName}>{a.name}</span>
-                      <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+    <ErrorBoundary>
+      <div style={{
+        display: "flex",
+        flexFlow: "column",
+        height: "100vh",
+      }}>
+        <AppBar position="static">
+          <Toolbar>
+            <div className={classes.title}>
+              <Typography variant="h6" className={classes.h6}>
+                FSE Planner
+              </Typography>
+              <Tooltip title="Changelog & credits">
+                <Button className={classes.version} onClick={() => setCreditsPopup(true)} data-tour="Step9" size="small">
+                  v{process.env.REACT_APP_VERSION}
+                </Button>
+              </Tooltip>
+            </div>
+            <div className={classes.filters}>
+              <div className={classes.search}>
+                <Autocomplete
+                  options={icaodataSrcArr}
+                  getOptionLabel={(a) => a.icao ? a.icao : ''}
+                  renderOption={(a) =>
+                    <span className={classes.searchOption}>
+                      <b className={classes.searchIcao}>{a.icao}</b>
+                      <span className={classes.searchInfos}>
+                        <span className={classes.searchName}>{a.name}</span>
+                        <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                      </span>
                     </span>
-                  </span>
-                }
-                filterOptions={(options, params) => {
-                  // If input is empty and search history is not, display search history
-                  if (!searchInput && searchHistory.length > 0) {
-                    return searchHistory.map(icao => icaodata[icao]);
                   }
-                  // Search for ICAO
-                  let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
-                  // If not enough results, search for city name
-                  if (filtered.length < 5) {
-                    const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
-                    filtered = filtered.concat(add.slice(0, 5-filtered.length));
-                  }
-                  return filtered;
-                }}
-                renderInput={(params) =>
-                  <InputBase
-                    placeholder="Search..."
-                    className={classes.inputSearch}
-                    ref={params.InputProps.ref}
-                    inputProps={params.inputProps}
-                    endAdornment={params.inputProps.value ?
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setSearch(null);
-                            setSearchInput('');
-                            window.history.replaceState(null, '', '?');
-                          }}
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                      :
-                        null
+                  filterOptions={(options, params) => {
+                    // If input is empty and search history is not, display search history
+                    if (!searchInput && searchHistory.length > 0) {
+                      return searchHistory.map(icao => icaodata[icao]);
                     }
+                    // Search for ICAO
+                    let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
+                    // If not enough results, search for city name
+                    if (filtered.length < 5) {
+                      const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
+                      filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                    }
+                    return filtered;
+                  }}
+                  renderInput={(params) =>
+                    <InputBase
+                      placeholder="Search..."
+                      className={classes.inputSearch}
+                      ref={params.InputProps.ref}
+                      inputProps={params.inputProps}
+                      endAdornment={params.inputProps.value ?
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSearch(null);
+                              setSearchInput('');
+                              window.history.replaceState(null, '', '?');
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        :
+                          null
+                      }
+                    />
+                  }
+                  PopperComponent={PopperMy}
+                  onChange={(evt, value) => {
+                    if (value) {
+                      setSearch(value.icao);
+                      const list = [...(new Set([value.icao, ...searchHistory]))].slice(0, 5);
+                      setSearchHistory(list);
+                      storage.set('searchHistory', list);
+                      window.history.replaceState({icao:value.icao}, '', '?icao='+value.icao);
+                    }
+                    else {
+                      setSearch(null);
+                      window.history.replaceState(null, '', '?');
+                    }
+                  }}
+                  value={search ? icaodataSrc[search] : null}
+                  inputValue={searchInput}
+                  onInputChange={(evt, value) => setSearchInput(value)}
+                  autoHighlight={true}
+                  selectOnFocus={false}
+                />
+              </div>
+              <Tooltip title='Jobs radiating FROM this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <div className={classes.boxBorder} data-tour="Step7">
+                  <FlightTakeoffIcon className={fromIcao === null ? classes.tgBtn : null}/>
+                  &nbsp;&nbsp;
+                  <InputBase
+                    placeholder="ICAO"
+                    className={classes.input}
+                    inputProps={{maxLength:4}}
+                    value={fromIcaoInput}
+                    onChange={evt => setFrom(evt.target.value)}
                   />
+                </div>
+              </Tooltip>
+              <Tooltip title='Jobs radiating TO this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <div className={classes.boxBorder}>
+                  <FlightLandIcon className={toIcao === null ? classes.tgBtn : null} />
+                  &nbsp;&nbsp;
+                  <InputBase
+                    placeholder="ICAO"
+                    className={classes.input}
+                    inputProps={{maxLength:4}}
+                    value={toIcaoInput}
+                    onChange={evt => setTo(evt.target.value)}
+                  />
+                </div>
+              </Tooltip>
+              <Tooltip title='Jobs going in this direction (+/- 30°)' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <div className={classes.boxBorder}>
+                  <ExploreIcon className={direction === '' ? classes.tgBtn : null}/>
+                  &nbsp;&nbsp;
+                  <InputBase
+                    placeholder="145°"
+                    className={classes.input}
+                    inputProps={{maxLength:3}}
+                    value={direction}
+                    onChange={evt => { setDirection(evt.target.value); }}
+                  />
+                </div>
+              </Tooltip>
+              <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} className={classes.box} exclusive>
+                <TooltipToggleButton value="Trip-Only" title="Trip only" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                  <EmojiPeopleIcon />
+                </TooltipToggleButton>
+                <TooltipToggleButton value="VIP" title="VIP" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                  <StarIcon />
+                </TooltipToggleButton>
+                <TooltipToggleButton value="All-In" title="All in" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                  <FlightIcon />
+                </TooltipToggleButton>
+              </ToggleButtonGroup>
+              <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} className={classes.box} exclusive>
+                <TooltipToggleButton value="passengers" title="Passengers" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                  <PeopleIcon />
+                </TooltipToggleButton>
+                <TooltipToggleButton value="kg" title="Cargo" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                  <BusinessCenterIcon />
+                </TooltipToggleButton>
+              </ToggleButtonGroup>
+              <div className={classes.boxBorder}>
+                {cargo === 'passengers' ?
+                  <React.Fragment>
+                    <PeopleIcon className={minPax === '' && maxPax === '' ? classes.tgBtn : null} />
+                    &nbsp;
+                    <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                      <InputBase
+                        placeholder="min"
+                        className={classes.inputNb}
+                        value={minPax}
+                        onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinPax(nb); }}
+                      />
+                    </Tooltip>
+                    -
+                    <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                      <InputBase
+                        placeholder="max"
+                        className={classes.inputNb}
+                        value={maxPax}
+                        onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxPax(nb); }}
+                      />
+                    </Tooltip>
+                  </React.Fragment>
+                :
+                  <React.Fragment>
+                    <BusinessCenterIcon className={minKg === '' && maxKg === '' ? classes.tgBtn : null} />
+                    &nbsp;
+                    <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                      <InputBase
+                        placeholder="min"
+                        className={classes.inputNb}
+                        value={minKg}
+                        onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinKg(nb); }}
+                      />
+                    </Tooltip>
+                    -
+                    <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                      <InputBase
+                        placeholder="max"
+                        className={classes.inputNb}
+                        value={maxKg}
+                        onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxKg(nb); }}
+                      />
+                    </Tooltip>
+                  </React.Fragment>
                 }
-                PopperComponent={PopperMy}
-                onChange={(evt, value) => {
-                  if (value) {
-                    setSearch(value.icao);
-                    const list = [...(new Set([value.icao, ...searchHistory]))].slice(0, 5);
-                    setSearchHistory(list);
-                    storage.set('searchHistory', list);
-                    window.history.replaceState({icao:value.icao}, '', '?icao='+value.icao);
-                  }
-                  else {
-                    setSearch(null);
-                    window.history.replaceState(null, '', '?');
-                  }
-                }}
-                value={search ? icaodataSrc[search] : null}
-                inputValue={searchInput}
-                onInputChange={(evt, value) => setSearchInput(value)}
-                autoHighlight={true}
-                selectOnFocus={false}
-              />
-            </div>
-            <Tooltip title='Jobs radiating FROM this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-              <div className={classes.boxBorder} data-tour="Step7">
-                <FlightTakeoffIcon className={fromIcao === null ? classes.tgBtn : null}/>
-                &nbsp;&nbsp;
-                <InputBase
-                  placeholder="ICAO"
-                  className={classes.input}
-                  inputProps={{maxLength:4}}
-                  value={fromIcaoInput}
-                  onChange={evt => setFrom(evt.target.value)}
-                />
-              </div>
-            </Tooltip>
-            <Tooltip title='Jobs radiating TO this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-              <div className={classes.boxBorder}>
-                <FlightLandIcon className={toIcao === null ? classes.tgBtn : null} />
-                &nbsp;&nbsp;
-                <InputBase
-                  placeholder="ICAO"
-                  className={classes.input}
-                  inputProps={{maxLength:4}}
-                  value={toIcaoInput}
-                  onChange={evt => setTo(evt.target.value)}
-                />
-              </div>
-            </Tooltip>
-            <Tooltip title='Jobs going in this direction (+/- 30°)' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-              <div className={classes.boxBorder}>
-                <ExploreIcon className={direction === '' ? classes.tgBtn : null}/>
-                &nbsp;&nbsp;
-                <InputBase
-                  placeholder="145°"
-                  className={classes.input}
-                  inputProps={{maxLength:3}}
-                  value={direction}
-                  onChange={evt => { setDirection(evt.target.value); }}
-                />
-              </div>
-            </Tooltip>
-            <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} className={classes.box} exclusive>
-              <TooltipToggleButton value="Trip-Only" title="Trip only" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-                <EmojiPeopleIcon />
-              </TooltipToggleButton>
-              <TooltipToggleButton value="VIP" title="VIP" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-                <StarIcon />
-              </TooltipToggleButton>
-              <TooltipToggleButton value="All-In" title="All in" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-                <FlightIcon />
-              </TooltipToggleButton>
-            </ToggleButtonGroup>
-            <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} className={classes.box} exclusive>
-              <TooltipToggleButton value="passengers" title="Passengers" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-                <PeopleIcon />
-              </TooltipToggleButton>
-              <TooltipToggleButton value="kg" title="Cargo" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
-                <BusinessCenterIcon />
-              </TooltipToggleButton>
-            </ToggleButtonGroup>
-            <div className={classes.boxBorder}>
-              {cargo === 'passengers' ?
-                <React.Fragment>
-                  <PeopleIcon className={minPax === '' && maxPax === '' ? classes.tgBtn : null} />
-                  &nbsp;
-                  <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                    <InputBase
-                      placeholder="min"
-                      className={classes.inputNb}
-                      value={minPax}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinPax(nb); }}
-                    />
-                  </Tooltip>
-                  -
-                  <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                    <InputBase
-                      placeholder="max"
-                      className={classes.inputNb}
-                      value={maxPax}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxPax(nb); }}
-                    />
-                  </Tooltip>
-                </React.Fragment>
-              :
-                <React.Fragment>
-                  <BusinessCenterIcon className={minKg === '' && maxKg === '' ? classes.tgBtn : null} />
-                  &nbsp;
-                  <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                    <InputBase
-                      placeholder="min"
-                      className={classes.inputNb}
-                      value={minKg}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinKg(nb); }}
-                    />
-                  </Tooltip>
-                  -
-                  <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                    <InputBase
-                      placeholder="max"
-                      className={classes.inputNb}
-                      value={maxKg}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxKg(nb); }}
-                    />
-                  </Tooltip>
-                </React.Fragment>
-              }
 
+              </div>
+              <div className={classes.boxBorder}>
+                <SettingsEthernetIcon className={minDist === '' && maxDist === '' ? classes.tgBtn : null} />
+                &nbsp;
+                <Tooltip title='Minimum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                  <InputBase
+                    placeholder="min"
+                    className={classes.inputNb}
+                    value={minDist}
+                    onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinDist(nb); }}
+                  />
+                </Tooltip>
+                -
+                <Tooltip title='Maximum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                  <InputBase
+                    placeholder="max"
+                    className={classes.inputNb}
+                    value={maxDist}
+                    onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxDist(nb); }}
+                  />
+                </Tooltip>
+              </div>
+              <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setSettingsPopup(true)} data-tour="Step8">
+                <Tooltip title="More options">
+                  <TuneIcon />
+                </Tooltip>
+              </IconButton>
+              <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setRouteFinder(!routeFinder)} data-tour="Step8b">
+                <Tooltip title="Route finder">
+                  <DirectionsIcon />
+                </Tooltip>
+              </IconButton>
+              <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setUpdatePopup(true)} data-tour="Step2">
+                <Tooltip title="Load data from FSE">
+                  <UpdateIcon />
+                </Tooltip>
+              </IconButton>
             </div>
-            <div className={classes.boxBorder}>
-              <SettingsEthernetIcon className={minDist === '' && maxDist === '' ? classes.tgBtn : null} />
-              &nbsp;
-              <Tooltip title='Minimum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                <InputBase
-                  placeholder="min"
-                  className={classes.inputNb}
-                  value={minDist}
-                  onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinDist(nb); }}
-                />
-              </Tooltip>
-              -
-              <Tooltip title='Maximum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                <InputBase
-                  placeholder="max"
-                  className={classes.inputNb}
-                  value={maxDist}
-                  onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxDist(nb); }}
-                />
-              </Tooltip>
-            </div>
-            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setSettingsPopup(true)} data-tour="Step8">
-              <Tooltip title="More options">
-                <TuneIcon />
-              </Tooltip>
-            </IconButton>
-            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setRouteFinder(!routeFinder)} data-tour="Step8b">
-              <Tooltip title="Route finder">
-                <DirectionsIcon />
-              </Tooltip>
-            </IconButton>
-            <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setUpdatePopup(true)} data-tour="Step2">
-              <Tooltip title="Load data from FSE">
-                <UpdateIcon />
-              </Tooltip>
-            </IconButton>
-          </div>
-        </Toolbar>
-      </AppBar>
-      <div className={classes.body}>
-        <Routing
-          options={options}
-          setRoute={setRoute}
-          hidden={!routeFinder}
-          mapRef={mapRef}
-          close={() => setRouteFinder(false)}
-          actions={actions}
-        />
-        <FSEMap
-          options={options}
-          search={search}
+          </Toolbar>
+        </AppBar>
+        <div className={classes.body}>
+          <Routing
+            options={options}
+            setRoute={setRoute}
+            hidden={!routeFinder}
+            mapRef={mapRef}
+            close={() => setRouteFinder(false)}
+            actions={actions}
+          />
+          <FSEMap
+            options={options}
+            search={search}
+            icaos={icaos}
+            customIcaos={customIcaos}
+            route={route}
+            mapRef={mapRef}
+            actions={actions}
+          />
+        </div>
+        <UpdatePopup
+          open={updatePopup}
+          setUpdatePopup={setUpdatePopup}
+          setJobs={(jobs) => setJobs(transformJobs(jobs))}
+          setPlanes={(planes) => setPlanes(transformPlanes(planes))}
+          setFlight={setFlight}
+          icaodata={icaodata}
           icaos={icaos}
+          settings={settings}
           customIcaos={customIcaos}
-          route={route}
-          mapRef={mapRef}
-          actions={actions}
+          setCustomIcaos={setCustomIcaos}
+        />
+        <SettingsPopup
+          open={settingsPopop}
+          handleClose={() => setSettingsPopup(false)}
+          settings={settings}
+          setSettings={setSettings}
+          defaultSettings={defaultSettings}
+        />
+        <CreditsPopup
+          open={creditsPopop}
+          handleClose={() => setCreditsPopup(false)}
+          openTutorial={() => setIsTourOpen(true)}
+        />
+        <Tour
+          isTourOpen={isTourOpen}
+          setIsTourOpen={setIsTourOpen}
+          updatePopup={updatePopup}
+          setUpdatePopup={setUpdatePopup}
         />
       </div>
-      <UpdatePopup
-        open={updatePopup}
-        setUpdatePopup={setUpdatePopup}
-        setJobs={(jobs) => setJobs(transformJobs(jobs))}
-        setPlanes={(planes) => setPlanes(transformPlanes(planes))}
-        setFlight={setFlight}
-        icaodata={icaodata}
-        icaos={icaos}
-        settings={settings}
-        customIcaos={customIcaos}
-        setCustomIcaos={setCustomIcaos}
-      />
-      <SettingsPopup
-        open={settingsPopop}
-        handleClose={() => setSettingsPopup(false)}
-        settings={settings}
-        setSettings={setSettings}
-        defaultSettings={defaultSettings}
-      />
-      <CreditsPopup
-        open={creditsPopop}
-        handleClose={() => setCreditsPopup(false)}
-        openTutorial={() => setIsTourOpen(true)}
-      />
-      <Tour
-        isTourOpen={isTourOpen}
-        setIsTourOpen={setIsTourOpen}
-        updatePopup={updatePopup}
-        setUpdatePopup={setUpdatePopup}
-      />
-    </div>
+    </ErrorBoundary>
   );
 }
 

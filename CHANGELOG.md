@@ -6,7 +6,46 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
-## [1.5.5] - 2021-04-22
+## [1.7.0] - 2021-10-09
+
+### New
+- New custom layers: add custom layers to the map with your own filters and display settings
+- New basemap with English location names
+- New ILS filter: only display and use airports that have an ILS approach (MSFS). Thanks to Lily418 for the help
+- New setting in Route Finder to set a custom airplane rental price ([#65](https://github.com/piero-la-lune/FSE-Planner/issues/65)
+
+### Changed
+- Optimized Route Finder memory usage: this should prevent crashes with Chrome, even when searching large areas
+- Improved Route Finder when setting a destination: no more route going in the wrong overall direction
+- Optimized application memory usage and loading time
+- Updated runway data (length and surface)
+- Updated plane list to include newly added FSE planes
+- Updated MSFS data
+- Changed display in Route Finder PDF to separate cargo weight from the total weight (cargo and passengers) ([#66](https://github.com/piero-la-lune/FSE-Planner/issues/66)
+
+### Fixed
+- Bug when loading data from airports with an ICAO resembling a number, such as 0E0 ([#79](https://github.com/piero-la-lune/FSE-Planner/issues/79)
+- Rounded airplane specs in Route Finder for a better display
+- Bug when resetting settings multiple times
+
+
+
+## [1.6.0] - 2021-06-27
+
+### New
+- New airport filter: only display airports that sell building materials
+
+### Changed
+- FSE Planner URL (now [https://fse-planner.piero-la-lune.fr](https://fse-planner.piero-la-lune.fr)) with better performances (new hosting)
+- Whenever a bug occurs, display an error message instead of a white screen
+
+### Fixed
+- Bug that would cause a white screen when loading an in-flight plane ([#64](https://github.com/piero-la-lune/FSE-Planner/issues/64)
+- Bug that would not load all planes when entering two or more users/groups ([#69](https://github.com/piero-la-lune/FSE-Planner/issues/69)
+
+
+
+## [1.5.2] - 2021-04-22
 
 ### Fixed
 - Bug that would prevent the route PDF from showing

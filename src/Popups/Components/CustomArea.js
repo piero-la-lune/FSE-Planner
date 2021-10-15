@@ -1,5 +1,5 @@
 import React from 'react';
-import { Map, TileLayer, } from "react-leaflet";
+import { MapContainer, TileLayer, } from "react-leaflet";
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -41,13 +41,9 @@ function CustomAreaPopup(props) {
   const classes = useStyles();
   const [bounds, setBounds] = React.useState(() => startBounds);
 
-  const maxBounds=[[-90, props.settings.display.map.center-180], [90, props.settings.display.map.center+180]];
-
-  const mapRef = React.useCallback(node => {
-    if (node !== null) {
-      node.leafletElement.setMinZoom(node.leafletElement.getBoundsZoom(maxBounds, true));
-    }
-  }, [maxBounds]);
+  const maxBounds = React.useMemo(() => 
+    [[-90, props.settings.display.map.center-180], [90, props.settings.display.map.center+180]]
+  , [props.settings.display.map.center]);
 
   return (
 
@@ -59,12 +55,18 @@ function CustomAreaPopup(props) {
         </IconButton>
       </DialogTitle>
       <DialogContent className={classes.popupContent}>
-        <Map ref={mapRef} bounds={startBounds} boundsOptions={boundsOptions} maxBounds={maxBounds} minZoom={2}>
+        <MapContainer
+          bounds={startBounds}
+          boundsOptions={boundsOptions}
+          maxBounds={maxBounds}
+          minZoom={3}
+          attributionControl={false}
+        >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <RectangleTransform bounds={bounds} onUpdate={(bounds) => setBounds(bounds)} />
-        </Map>
+        </MapContainer>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="primary">

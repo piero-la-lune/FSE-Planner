@@ -1,9 +1,12 @@
 import { getDistance, convertDistance, getRhumbLineBearing } from "geolib";
 
-function closeIcaos(icao, icaos, icaodata, maxDist = 20) {
+function dist(fr, to, src) {
+  return Math.round(convertDistance(getDistance(src[fr].c, src[to].c), 'sm'));
+}
+function closeIcaos(icao, src, maxDist = 20) {
   const cIcaos = [];
-  for (let i of icaos) {
-    const distance = Math.round(convertDistance(getDistance(icaodata[icao], icaodata[i]), 'sm'));
+  for (let i of Object.keys(src)) {
+    const distance = dist(icao, i, src);
     if (distance < maxDist && i !== icao) {
       cIcaos.push([i, distance]);
     }
@@ -74,19 +77,19 @@ function bestLegStop(jobs, maxPax, maxKg, exclude) {
 
 // For the given destination and jobs, try to find assignments on the same path
 // to complement the cargo
-function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
-  const maxDist = jobs.get(to).distance;
+function getLegStops(fr, to, src, maxPax, maxKg, maxStops) {
+  const maxDist = src[fr].j.get(to).distance;
 
   // Keep only legs going to the same direction
   const jobsFiltered = [];
-  for (const [i, j] of jobs) {
+  for (const [i, j] of src[fr].j) {
     if (i === to) { continue; }
     
     // Discard farther legs
     if (j.distance > maxDist) { continue; }
 
     // Compute total distance, and discard legs that stray too far away from source leg
-    const totalDistance = (j.distance + convertDistance(getDistance(icaodata[i], icaodata[to]), 'sm'));
+    const totalDistance = (j.distance + dist(i, to, src));
     const ratio = maxDist / totalDistance;
     if (ratio < 0.7) { continue; }
 
@@ -111,7 +114,7 @@ function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
     // Find correct position for new airport
     let pos = i;
     for (var k = 0; k < i; k++) {
-      if (bestRoute.distance <= jobs.get(routes[i].icaos[k]).distance) {
+      if (bestRoute.distance <= src[fr].j.get(routes[i].icaos[k]).distance) {
         pos = k;
         break;
       }
@@ -131,9 +134,9 @@ function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
     }
 
     // Compute legs distance
-    let distance = jobs.get(icaos[0]).distance;
+    let distance = src[fr].j.get(icaos[0]).distance;
     for (k = 1; k < icaos.length; k++) {
-      distance += Math.round(convertDistance(getDistance(icaodata[icaos[k-1]], icaodata[icaos[k]]), 'sm'));
+      distance += dist(icaos[k-1], icaos[k], src);
     }
 
     routes.push({
@@ -153,20 +156,20 @@ function getLegStops(to, jobs, maxPax, maxKg, maxStops, icaodata) {
 
 // For the given destination and jobs, try to find assignments on the same path
 // to complement the cargo
-function getLegStopsReverse(fr, to, jobs, maxPax, maxKg, maxStops, icaodata, jobsReverse) {
-  const maxDist = jobs[fr].get(to).distance;
+function getLegStopsReverse(fr, to, src, maxPax, maxKg, maxStops) {
+  const maxDist = src[fr].j.get(to).distance;
 
   // Keep only legs going to the same direction
   const jobsFiltered = [];
-  for (const i of jobsReverse[to]) {
+  for (const i of src[to].r) {
     if (i === fr) { continue; }
-    const j = jobs[i].get(to);
+    const j = src[i].j.get(to);
     
     // Discard farther legs
     if (j.distance > maxDist) { continue; }
 
     // Compute total distance, and discard legs that stray too far away from source leg
-    const totalDistance = (j.distance + convertDistance(getDistance(icaodata[fr], icaodata[i]), 'sm'));
+    const totalDistance = (j.distance + dist(fr, i, src));
     const ratio = maxDist / totalDistance;
     if (ratio < 0.7) { continue; }
 
@@ -188,7 +191,7 @@ function getLegStopsReverse(fr, to, jobs, maxPax, maxKg, maxStops, icaodata, job
     // Find correct position for new airport
     let pos = i;
     for (var k = 0; k < i; k++) {
-      if (bestRoute.distance >= jobs[routes[i-1].icaos[k]].get(to).distance) {
+      if (bestRoute.distance >= src[routes[i-1].icaos[k]].j.get(to).distance) {
         pos = k;
         break;
       }
@@ -212,9 +215,9 @@ function getLegStopsReverse(fr, to, jobs, maxPax, maxKg, maxStops, icaodata, job
     }
 
     // Compute legs distance
-    let distance = jobs[icaos[icaos.length-1]].get(to).distance;
+    let distance = src[icaos[icaos.length-1]].j.get(to).distance;
     for (k = icaos.length-2; k >= 0; k--) {
-      distance += Math.round(convertDistance(getDistance(icaodata[icaos[k]], icaodata[icaos[k+1]]), 'sm'));
+      distance += dist(icaos[k], icaos[k+1], src);
     }
 
     routes.push({
@@ -232,8 +235,8 @@ function getLegStopsReverse(fr, to, jobs, maxPax, maxKg, maxStops, icaodata, job
   return routes;
 }
 
-// options: {maxPax, maxKg, icaos, icaodata}
-function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, badLegsCount, closeIcaosCache, progressStep = null) {
+// options: {maxPax, maxKg}
+function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badLegsCount, closeIcaosCache, progressStep = null) {
   // Stop when reached max iterations
   if (hop === 0) {
     return [];
@@ -257,10 +260,10 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
   const routes = [];
 
   // Ensure there are jobs departing from this airport
-  if (jobs[icao]) {
+  if (src[icao].j) {
 
     // Loop over possible destinations
-    for (const [to, j] of jobs[icao]) {
+    for (const [to, j] of src[icao].j) {
       if (progressStep) { postMessage({status: 'progress', progress: progressStep}); }
 
       // If looping, only consider the same destination as before
@@ -281,9 +284,9 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
       }
       else if (dest && !options.loop) {
         // If a given destination is set (and different from origin), only keep legs going in the right direction
-        const dist = convertDistance(getDistance(options.icaodata[to], options.icaodata[dest]), 'sm');
-        const dir = getRhumbLineBearing(options.icaodata[to], options.icaodata[dest]);
-        if ((180 - Math.abs(Math.abs(j.direction - dir) - 180)) > 30 || j.distance / dist > 1.2) {
+        const d = dist(to, dest, src);
+        const dir = getRhumbLineBearing(src[to].c, src[dest].c);
+        if ((180 - Math.abs(Math.abs(j.direction - dir) - 180)) > 30 || j.distance / d > 1.2) {
           if (!badLegsCount) { continue; }
           newBadLegsCount -= 1;
         }
@@ -295,15 +298,15 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
       // Limitation: if looping, do not search onroute jobs, because the previous taken jobs
       // were not removed from the jobs array.
       if (pax < options.maxPax && kg < options.maxKg && loadCargo.VIP.length === 0 && indexInHistory < 0) {
-        legStops = getLegStops(to, jobs[icao], options.maxPax-pax, options.maxKg-kg, options.maxStops, options.icaodata);
-        legStopsReverse = getLegStopsReverse(icao, to, jobs, options.maxPax-pax, options.maxKg-kg, options.maxStops, options.icaodata, options.jobsReverse);
+        legStops = getLegStops(icao, to, src, options.maxPax-pax, options.maxKg-kg, options.maxStops);
+        legStopsReverse = getLegStopsReverse(icao, to, src, options.maxPax-pax, options.maxKg-kg, options.maxStops);
         for (const legStop of legStops) {
           for (var i = 0; i < legStop.cargos.length; i++) {
             legStop.cargos[i] = {TripOnly: [...legStop.cargos[i].TripOnly, ...loadCargo.TripOnly], VIP:[]};
           }
         }
         for (const legStop of legStopsReverse) {
-          for (var i = 0; i < legStop.cargos.length; i++) {
+          for (i = 0; i < legStop.cargos.length; i++) {
             legStop.cargos[i] = {TripOnly: [...legStop.cargos[i].TripOnly, ...loadCargo.TripOnly], VIP:[]};
           }
         }
@@ -314,14 +317,14 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
       
       // Save cargos for later use
       const savedCargos =  j.cargos;
-      jobs[icao].get(to).cargos = remainCargo;
+      src[icao].j.get(to).cargos = remainCargo;
 
       // Compute routes
-      const newRoutes = route(to, dest, jobs, options, hop, [...legHistory, icao], true, newBadLegsCount, closeIcaosCache);
+      const newRoutes = route(to, dest, src, options, hop, [...legHistory, icao], true, newBadLegsCount, closeIcaosCache);
       newRoutes.push({icaos:[to], cargos:[], pay: 0, distance: 0});
 
       // Restore cargos
-      jobs[icao].get(to).cargos = savedCargos;
+      src[icao].j.get(to).cargos = savedCargos;
 
       // Append routes to result
       for (const newRoute of newRoutes) {
@@ -330,7 +333,7 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
           if (newRoute.icaos.filter(icao => legStop.icaos.includes(icao)).length) { continue; }
           let remainDist = j.distance;
           if (legStop.icaos.length) {
-            remainDist = Math.round(convertDistance(getDistance(options.icaodata[legStop.icaos[legStop.icaos.length-1]], options.icaodata[to]), 'sm'));
+            remainDist = dist(legStop.icaos[legStop.icaos.length-1], to, src);
           }
           routes.push({
             icaos: [icao, ...legStop.icaos, ...newRoute.icaos],
@@ -343,7 +346,7 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
           // Do not include a route if it loops over an airport included via a stop
           if (newRoute.icaos.filter(icao => legStop.icaos.includes(icao)).length) { continue; }
           let remainDist = j.distance;
-          remainDist = Math.round(convertDistance(getDistance(options.icaodata[icao], options.icaodata[legStop.icaos[0]]), 'sm'));
+          remainDist = dist(icao, legStop.icaos[0], src);
           routes.push({
             icaos: [icao, ...legStop.icaos, ...newRoute.icaos],
             cargos: [loadCargo, ...legStop.cargos, ...newRoute.cargos],
@@ -361,7 +364,7 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
 
     // Get close-by airports
     if (!closeIcaosCache[icao]) {
-      closeIcaosCache[icao] = closeIcaos(icao, options.icaos, options.icaodata, options.maxEmptyLeg);
+      closeIcaosCache[icao] = closeIcaos(icao, src, options.maxEmptyLeg);
     }
 
     for (const [i, distance] of closeIcaosCache[icao]) {
@@ -371,10 +374,10 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
       if (restrictNextHop && restrictNextHop !== i) { continue; }
 
       // If there are jobs between the two airports, abort because it was already done
-      if (jobs[icao] && jobs[icao].get(i)) { continue; }
+      if (src[icao].j && src[icao].j.get(i)) { continue; }
 
       // Compute routes
-      const newRoutes = route(i, dest, jobs, options, hop+1, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
+      const newRoutes = route(i, dest, src, options, hop+1, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
 
       // Append routes to result
       for (const newRoute of newRoutes) {
@@ -388,7 +391,25 @@ function route(icao, dest, jobs, options, hop, legHistory, includeLocalArea, bad
     }
   }
 
-  return routes;
+  let res = [];
+
+  if (options.resultLimit && routes.length > options.resultLimit) {
+    const indexPay = [...Array(routes.length).keys()];
+    indexPay.sort((a, b) => routes[b].pay - routes[a].pay);
+    const indexPayNM = [...Array(routes.length).keys()];
+    indexPayNM.sort((a, b) => (routes[b].pay/routes[b].distance) - (routes[a].pay/routes[a].distance));
+    const indexPayLeg = [...Array(routes.length).keys()];
+    indexPayLeg.sort((a, b) => (routes[b].pay/routes[b].icaos.length) - (routes[a].pay/routes[a].icaos.length));
+    const indexes = new Set([...indexPay.slice(0, options.resultLimit), ...indexPayNM.slice(0, options.resultLimit), ...indexPayLeg.slice(0, options.resultLimit)]);
+    for (i of indexes) {
+      res.push(routes[i]);
+    }
+  }
+  else {
+    res = routes;
+  }
+
+  return res;
 }
 
 function computeRemain(cargos, maxPax, maxKg) {
@@ -401,14 +422,15 @@ function computeRemain(cargos, maxPax, maxKg) {
 
 
 onmessage = function({data}) {
-  data.closeIcaosCache[data.fromIcao] = closeIcaos(data.fromIcao, data.options.icaos, data.options.icaodata, data.options.maxEmptyLeg);
-  if (!data.closeIcaosCache[data.fromIcao].length && !data.jobs[data.fromIcao]) {
+  const closeIcaosCache = {}
+  closeIcaosCache[data.fromIcao] = closeIcaos(data.fromIcao, data.src, data.options.maxEmptyLeg);
+  if (!closeIcaosCache[data.fromIcao].length && !data.src[data.fromIcao].j) {
     // No jobs around this starting point, no need to continue
     postMessage({status: 'progress', progress: 100});
     postMessage({status: 'finished', results: []});
     return;
   }
-  const progressStep = 100 / (data.closeIcaosCache[data.fromIcao].length + (data.jobs[data.fromIcao] ? data.jobs[data.fromIcao].size : 0));
+  const progressStep = 100 / (closeIcaosCache[data.fromIcao].length + (data.src[data.fromIcao].j ? data.src[data.fromIcao].j.size : 0));
 
   const options = {
     loop: data.fromIcao === data.toIcao,
@@ -417,13 +439,13 @@ onmessage = function({data}) {
   let allResults = route(
     data.fromIcao,
     data.toIcao,
-    data.jobs,
+    data.src,
     options,
     data.maxHops,
     [],
     true,
     data.maxBadLegs,
-    data.closeIcaosCache,
+    closeIcaosCache,
     progressStep
   );
 
@@ -467,8 +489,8 @@ onmessage = function({data}) {
             let [remainPax2, remainKg2] = computeRemain(route.cargos[k], options.maxPax, options.maxKg);
             remainPax = Math.min(remainPax, remainPax2);
             remainKg = Math.min(remainKg, remainKg2);
-            if (data.jobs[route.icaos[k]]) {
-              const jb = data.jobs[route.icaos[k]].get(route.icaos[j]);
+            if (data.src[route.icaos[k]].j) {
+              const jb = data.src[route.icaos[k]].j.get(route.icaos[j]);
               if (jb) {
 
                 // Find best cargo, if any
@@ -489,16 +511,18 @@ onmessage = function({data}) {
     }
     // Otherwise, add last leg to complete route
     else {
-      for (var i = 0; i < allResults.length; i++) {
+      // Filter out legs that do not bring you closer enough
+      const minFinalDist = dist(data.fromIcao, data.toIcao, data.src)/3;
+      allResults = allResults.filter(elm => dist(elm.icaos[elm.icaos.length-1], data.toIcao, data.src) < minFinalDist);
+      for (i = 0; i < allResults.length; i++) {
         // Add only last leg if route does not terminate to correct destination
         const lastIcao = allResults[i].icaos[allResults[i].icaos.length-1];
         if (lastIcao !== data.toIcao) {
-          const dist = Math.round(convertDistance(getDistance(data.options.icaodata[lastIcao], data.options.icaodata[data.toIcao]), 'sm'));
           allResults[i] = {
             icaos: [...allResults[i].icaos, data.toIcao],
             cargos: [...allResults[i].cargos, {TripOnly: [], VIP: []}],
             pay: allResults[i].pay,
-            distance: allResults[i].distance + dist
+            distance: allResults[i].distance + dist(lastIcao, data.toIcao, data.src)
           }
         }
       }

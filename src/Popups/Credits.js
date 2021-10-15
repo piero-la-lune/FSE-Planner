@@ -13,7 +13,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
-import log from '../util/logger.js';
+import { downloadReport } from '../util/logger.js';
 
 
 const useStyles = makeStyles(theme => ({
@@ -59,19 +59,7 @@ function CreditsPopup(props) {
       props.openTutorial();
     }
     else if (newValue === 3) {
-      const data = JSON.stringify({logs: log.export(), localStorage: localStorage});
-      const blob = new Blob([data], {type: 'text/json'});
-      const a = document.createElement('a');
-      a.download = 'debug.json';
-      a.href = window.URL.createObjectURL(blob)
-      a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':');
-      a.click();
-      /* To reinject localstorage in browser
-      var data = JSON.parse(String.raw`MYDATA`);
-      Object.keys(data.localStorage).forEach(function (k) {
-        localStorage.setItem(k, data.localStorage[k]);
-      });
-      */
+      downloadReport();
     }
     else {
       setExpanded(newValue);
@@ -106,6 +94,51 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
+          <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.7.0 (2021-10-09)</Typography>
+            <Typography variant="h6">New</Typography>
+            <List dense>
+              <ListItem>New custom layers: add custom layers to the map with your own filters and display settings</ListItem>
+              <ListItem>New basemap with English location names</ListItem>
+              <ListItem>New ILS filter: only display and use airports that have an ILS approach (MSFS). Thanks to Lily418 for the help</ListItem>
+              <ListItem>New setting in Route Finder to set a custom airplane rental price (<IssueLink id={65} />)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Optimized Route Finder memory usage: this should prevent crashes with Chrome, even when searching large areas</ListItem>
+              <ListItem>Improved Route Finder when setting a destination: no more route going in the wrong overall direction</ListItem>
+              <ListItem>Optimized application memory usage and loading time</ListItem>
+              <ListItem>Updated runway data (length and surface)</ListItem>
+              <ListItem>Updated plane list to include newly added FSE planes</ListItem>
+              <ListItem>Updated MSFS data</ListItem>
+              <ListItem>Changed display in Route Finder PDF to separate cargo weight from the total weight (cargo and passengers) (<IssueLink id={66} />)</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Bug when loading data from airports with an ICAO resembling a number, such as 0E0 (<IssueLink id={79} />)</ListItem>
+              <ListItem>Rounded airplane specs in Route Finder for a better display</ListItem>
+              <ListItem>Bug when resetting settings multiple times</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.6.0 (2021-06-27)</Typography>
+            <Typography variant="h6">New</Typography>
+            <List dense>
+              <ListItem>New airport filter: only display airports that sell building materials</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>FSE Planner URL (now&nbsp;<Link href="https://fse-planner.piero-la-lune.fr">https://fse-planner.piero-la-lune.fr</Link>) with better performances (new hosting)</ListItem>
+              <ListItem>Whenever a bug occurs, display an error message instead of a white screen</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Bug that would cause a white screen when loading an in-flight plane (<IssueLink id={64} />)</ListItem>
+              <ListItem>Bug that would not load all planes when entering two or more users/groups (<IssueLink id={69} />)</ListItem>
+            </List>
+          </Paper>
+
           <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.5.2 (2021-04-22)</Typography>
             <Typography variant="h6">Fixed</Typography>
@@ -410,6 +443,8 @@ function CreditsPopup(props) {
             <Typography variant="h5" className={classes.version}>Contributors</Typography>
             <List dense>
               <ListItem>piero-la-lune (author)</ListItem>
+              <ListItem>icykoneko (contributor)</ListItem>
+              <ListItem>Lily418 (author)</ListItem>
             </List>
           </Paper>
 

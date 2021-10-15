@@ -1,47 +1,43 @@
-import React from 'react';
-
 import L from "leaflet";
-import { useLeaflet } from "react-leaflet";
 
+function ZonesLayer(props) {
 
-const ZonesLayer = React.memo(function ZonesLayer(props) {
-
-  const groupRef = React.useRef(L.layerGroup());
-  const leaflet = React.useRef(useLeaflet());
-  const added = React.useRef(false);
-
-  // Display all airports on map
-  React.useEffect(() => {
-
-    // Clear previous markers
-    groupRef.current.clearLayers();
+  const group = L.layerGroup();
   
-    props.icaos.forEach(icao =>
+  Object.keys(props.zones).forEach(icao => {
 
-      // Create marker
-      L.polyline(
-        props.icaodata[icao].zone,
-        {
-          weight: 1,
-          color: '#888',
-          interactive: false,
-          fill: false
-      })
-        .addTo(groupRef.current)
-    );
+    // Create lines
+    L.polyline(
+      props.zones[icao],
+      {
+        weight: 1,
+        color: '#888',
+        interactive: false,
+        fill: false
+    })
+      .addTo(group);
+    L.polyline(
+      props.zones[icao].map(elm => [elm[0], elm[1]+360]),
+      {
+        weight: 1,
+        color: '#888',
+        interactive: false,
+        fill: false
+    })
+      .addTo(group);
+    L.polyline(
+      props.zones[icao].map(elm => [elm[0], elm[1]-360]),
+      {
+        weight: 1,
+        color: '#888',
+        interactive: false,
+        fill: false
+    })
+      .addTo(group);
+  });
 
-    // Add layer to map
-    if (!added.current) {
-      leaflet.current.layerContainer.addLayer(groupRef.current);
-      added.current = true;
-    }
+  return group;
 
-  }, [props.color, props.icaos, props.icaodata]);
-
-
-  return null;
-
-
-});
+};
 
 export default ZonesLayer;
