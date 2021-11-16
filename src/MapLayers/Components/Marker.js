@@ -319,6 +319,15 @@ function Marker({position, size, color, sim, id, ...props}) {
             onClick: () => props.actions.current.addCustom(props.icao)
           });
         }
+        // Chart links
+        actions.push({
+          name: 'Charts on ChartFox',
+          onClick: () => window.open(`https://chartfox.org/${props.icao}`, '_blank')
+        });
+        actions.push({
+          name: 'Airport on SkyVector',
+          onClick: () => window.open(`https://skyvector.com/airport/${props.icao}`, '_blank')
+        });
       }
       props.actions.current.contextMenu({
         mouseX: evt.originalEvent.clientX,
