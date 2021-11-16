@@ -63,7 +63,9 @@ function Job(props) {
     weight: props.weight,
     color: props.color,
     highlight: props.highlight,
-    bothWays: props.rleg
+    bothWays: props.rleg,
+    fromIcao: props.fromIcao,
+    toIcao: props.toIcao,
   })
     .bindTooltip(() => {
       var div = document.createElement('div');
