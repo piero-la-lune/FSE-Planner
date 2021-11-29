@@ -321,6 +321,9 @@ function Marker({position, size, color, sim, id, ...props}) {
         }
         // Chart links
         actions.push({
+          divider: true
+        });
+        actions.push({
           name: 'Charts on ChartFox',
           onClick: () => window.open(`https://chartfox.org/${props.icao}`, '_blank')
         });
