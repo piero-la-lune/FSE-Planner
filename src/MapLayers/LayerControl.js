@@ -8,6 +8,9 @@ import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button';
 import CancelIcon from '@material-ui/icons/Cancel';
 import EditIcon from '@material-ui/icons/Edit';
+import Popover from '@material-ui/core/Popover';
+import MenuList from '@material-ui/core/MenuList';
+import MenuItem from '@material-ui/core/MenuItem';
 import { makeStyles } from '@material-ui/core/styles';
 
 import ZonesLayer from "./Zones.js";
@@ -16,7 +19,7 @@ import RouteLayer from "./Route.js";
 import AirportsLayer from "./Airports.js";
 import GPSLayer from "./GPS.js";
 import AirportFilter from "./AirportFilter.js";
-import { simName } from "../utility.js";
+import { simName, hideAirport } from "../utility.js";
 import Storage from "../Storage.js";
 
 const storage = new Storage();
@@ -154,7 +157,7 @@ const useStylesLayer = makeStyles(theme => ({
 function Layer(props) {
   const classes = useStylesLayer();
   return (
-    <div className={classes.div} onClick={() => props.onChange(!props.visible)}>
+    <div className={classes.div} onClick={() => props.onChange(!props.visible)} onContextMenu={props.onContextMenu}>
       <span className={classes.span+' '+(props.visible ? classes.spanS : '')}>
         {props.img ?
           <img className={classes.img} src={props.img} alt={props.label} />
@@ -207,18 +210,30 @@ const useStyles = makeStyles(theme => ({
   'paperHover': {
     borderRadius: '4px',
     padding: '8px 16px 16px 16px',
+    width: 320,
+    overflow: 'auto',
+    maxHeight: 'calc(100% - 60px)'
   },
   layers: {
     display: 'flex',
     flexWrap: 'wrap',
     justifyContent: 'left',
-    gap: '20px 0',
-    maxWidth: 300
+    gap: '20px 0'
   },
   add: {
     textAlign: 'center',
     marginTop: 16
-  }
+  },
+  contextMenu: {
+    minWidth: 200
+  },
+  contextMenuTitle: {
+    margin: theme.spacing(1),
+    fontWeight: 'bold'
+  },
+  contextMenuList: {
+    paddingTop: 0
+  },
 }));
 
 const imgs = [
@@ -265,6 +280,7 @@ function LayerControl(props) {
   const [loading, setLoading] = React.useState(null);
   const [openFilter, setOpenFilter] = React.useState(false);
   const [layer, setLayer] = React.useState(defaultLayer);
+  const [contextMenu, setContextMenu] = React.useState(null);
   const { setBasemap } = props;
   const layersRef = React.useRef([
     {
@@ -618,6 +634,11 @@ function LayerControl(props) {
           layersRef.current.push(ll);
         }
         if (l.visible) {
+          layersRef.current[i].visible = true;
+        }
+      });
+      orderRef.current.forEach(i => {
+        if (layersRef.current[i].visible) {
           show(i, true);
         }
       });
@@ -630,20 +651,21 @@ function LayerControl(props) {
   }, [show]);
 
   // When remove layer icon is clicked
-  const removeLayer = (i) => {
+  const removeLayer = React.useCallback((i) => {
     layersRef.current[i].layer.remove();
     layersRef.current.splice(i, 1);
+    orderRef.current = orderRef.current.filter(elm => elm !== i);
     orderRef.current = orderRef.current.map(elm => elm > i ? elm-1 : elm);
     updateLocalStorage();
     forceUpdate();
-  }
+  }, [updateLocalStorage]);
 
   // When edit layer icon is clicked
-  const editLayer = (i) => {
+  const editLayer = React.useCallback((i) => {
     layerEditId.current = i;
     setLayer(layersRef.current[i].layerInfo);
     setOpenFilter(true);
-  }
+  }, []);
 
   // Return list of ICAOs that are in the given price range [min,max]
   const icaosForSale = (arr, price) => {
@@ -657,12 +679,70 @@ function LayerControl(props) {
     return icaos;
   }
 
+  const openContextMenu = React.useCallback((evt, i) => {
+    evt.preventDefault();
+    const layer = layersRef.current[i];
+    const actions = [];
+    if (layer.visible) {
+      actions.push({
+        name: "Bring to front",
+        onClick: () => { resetLayer(i) }
+      });
+    }
+    // Custom layer
+    if (!layer.img) {
+      actions.push({
+        name: "Edit",
+        onClick: () => { editLayer(i) }
+      });
+      actions.push({
+        name: "Remove",
+        onClick: () => { removeLayer(i) }
+      });
+      if (layer.src !== 'gps') {
+        actions.push({
+          name: "Download data",
+          onClick: () => {
+            let src = props.icaos;
+            if (layer.src === 'unbuilt') {
+              src = unbuiltRef.current;
+            }
+            else if (layer.src === 'forsale') {
+              src = icaosForSale(forsaleRef.current, layer.filter.price);
+            }
+            else if (layer.src === 'custom') {
+              src = layer.icaos;
+            }
+            src = src.filter(icao => !hideAirport(icao, layer.filter, s.display.sim));
+            let csv = "icao,latitude,longitude,name\n";
+            for (const icao of src) {
+              csv += icao+','+props.options.icaodata[icao].lat+','+props.options.icaodata[icao].lon+','+props.options.icaodata[icao].name+"\n";
+            }
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const a = document.createElement('a');
+            a.download = layer.label.replace(/[^a-zA-Z0-9]+/g, "-")+'.csv';
+            a.href = window.URL.createObjectURL(blob)
+            a.dataset.downloadurl =  ['text/csv', a.download, a.href].join(':');
+            a.click();
+          }
+        });
+      }
+    }
+    setContextMenu({
+      mouseX: evt.clientX,
+      mouseY: evt.clientY,
+      title: layersRef.current[i].label,
+      actions: actions
+    });
+  }, [resetLayer, editLayer, removeLayer, props.options.icaodata, s.display.sim, props.icaos]);
+
   return (
     <Paper
       elevation={3}
       className={classes.paper+' '+(hover || openFilter ? classes.paperHover : '')}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onContextMenu={evt => { evt.preventDefault() }}
     >
       <AirportFilter
         open={openFilter}
@@ -720,6 +800,7 @@ function LayerControl(props) {
                 loading={loading === i}
                 handleRemove={i > 5 ? () => { removeLayer(i); } : null}
                 handleEdit={i > 5 ? () => { editLayer(i); } : null}
+                onContextMenu={evt => openContextMenu(evt, i)}
               />
             )}
           </div>
@@ -736,6 +817,27 @@ function LayerControl(props) {
         </div>
       :
         <IconButton><LayersIcon /></IconButton>
+      }
+      {contextMenu &&
+        <Popover
+          open={true}
+          onClose={() => setContextMenu(null)}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            { top: contextMenu.mouseY, left: contextMenu.mouseX }
+          }
+          onContextMenu={(evt) => {evt.preventDefault(); evt.stopPropagation();}}
+          classes={{paper:classes.contextMenu}}
+        >
+          <Typography variant="body1" className={classes.contextMenuTitle}>{contextMenu.title}</Typography>
+          {contextMenu.actions.length > 0 &&
+            <MenuList className={classes.contextMenuList}>
+              { contextMenu.actions.map((action, i) =>
+                <MenuItem dense key={i} onClick={() => { action.onClick(); setContextMenu(null); }}>{action.name}</MenuItem>
+              )}
+            </MenuList>
+          }
+        </Popover>
       }
     </Paper>
   );
