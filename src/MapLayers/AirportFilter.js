@@ -319,6 +319,11 @@ const useStyles = makeStyles(theme => ({
   color: {
     color: '#fff',
     padding: '2px 8px'
+  },
+  asterix: {
+    fontStyle: 'italic',
+    color: 'rgba(0, 0, 0, 0.54)',
+    marginTop: theme.spacing(2)
   }
 }));
 
@@ -415,8 +420,7 @@ function AirportFilter(props) {
   return (
     <Dialog open={props.open} fullWidth={true} maxWidth="md" classes={{paper: classes.popup}}>
       <DialogTitle>
-        { step === 0 && !custom && 'Step 1: Layer type' }
-        { step === 0 && custom && 'Step 1: Import data' }
+        { step === 0 &&  (custom === 0 ? 'Step 1: Layer type' : 'Step 1: Import data') }
         { step === 1 && 'Step 2: Filters' }
         { step === 2 && 'Step 3: Display options' }
       </DialogTitle>
@@ -431,17 +435,18 @@ function AirportFilter(props) {
               </Paper>
               <Paper className={classes.divType} onClick={() => setType('forsale')}>
                 <AttachMoneyIcon className={classes.iconType} />
-                <Typography variant="body1">Airports with FBOs for sale</Typography>
+                <Typography variant="body1">Airports with FBOs for sale*</Typography>
               </Paper>
               <Paper className={classes.divType} onClick={() => setType('unbuilt')}>
                 <BusinessIcon className={classes.iconType} />
-                <Typography variant="body1">Airports with unbuilt FBO lots</Typography>
+                <Typography variant="body1">Airports with unbuilt FBO lots*</Typography>
               </Paper>
               <Paper className={classes.divType} onClick={() => setCustom(1)}>
                 <InsertDriveFileIcon className={classes.iconType} />
                 <Typography variant="body1">Import data</Typography>
               </Paper>
             </div>
+            <Typography variant="body2" className={classes.asterix}>*Data is updated every 6 hours (00:00, 06:00, 12:00 and 18:00 GMT).</Typography>
           </div>
         }
         {
