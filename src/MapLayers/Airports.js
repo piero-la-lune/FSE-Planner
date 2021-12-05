@@ -11,24 +11,24 @@ function AirportsLayer(props) {
   const forsale = props.forsale || {};
 
   // Create lines if needed
-  if (props.weight) {
-    let prevIcao = null;
+  if (props.weight && props.connections) {
     let legs = {};
-    for (const icao of props.icaos) {
-      if (prevIcao) {
-        const fr = { latitude: props.icaodata[prevIcao].lat, longitude: props.icaodata[prevIcao].lon };
-        const to = { latitude: props.icaodata[icao].lat, longitude: props.icaodata[icao].lon };
-        let key = prevIcao+"-"+icao;
-        if (!legs.hasOwnProperty(key)) {
-          legs[key] = {
-            amount: 0,
-            pay: 0,
-            direction: Math.round(getRhumbLineBearing(fr, to)),
-            distance: Math.round(convertDistance(getDistance(fr, to), 'sm')),
-          }
+    for (const c of props.connections) {
+      const [prevIcao, icao] = c;
+      if (hideAirport(prevIcao, props.airportFilter, props.siminfo)) { continue; }
+      if (hideAirport(icao, props.airportFilter, props.siminfo)) { continue; }
+      
+      const fr = { latitude: props.icaodata[prevIcao].lat, longitude: props.icaodata[prevIcao].lon };
+      const to = { latitude: props.icaodata[icao].lat, longitude: props.icaodata[icao].lon };
+      let key = prevIcao+"-"+icao;
+      if (!legs.hasOwnProperty(key)) {
+        legs[key] = {
+          amount: 0,
+          pay: 0,
+          direction: Math.round(getRhumbLineBearing(fr, to)),
+          distance: Math.round(convertDistance(getDistance(fr, to), 'sm')),
         }
       }
-      prevIcao = icao;
     }
 
     const legsKeys = Object.keys(legs);

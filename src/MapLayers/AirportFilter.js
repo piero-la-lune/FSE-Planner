@@ -11,12 +11,15 @@ import Paper from '@material-ui/core/Paper';
 import LocalAirportIcon from '@material-ui/icons/LocalAirport';
 import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
 import BusinessIcon from '@material-ui/icons/Business';
+import RoomIcon from '@material-ui/icons/Room';
+import InsertDriveFileIcon from '@material-ui/icons/InsertDriveFile';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Slider from '@material-ui/core/Slider';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
 
 const surfaceOptions = [
@@ -358,10 +361,19 @@ function AirportFilter(props) {
   const [onlyBM, setOnlyBM] = React.useState(layer.filters.onlyBM);
   const [onlyILS, setOnlyILS] = React.useState(layer.filters.onlyILS);
   const [price, setPrice] = React.useState(layer.filters.price);
-  const [step, setStep] = React.useState(layer.type ? 1 : 0);
+  const [step, setStep] = React.useState(layer.type && layer.type !== 'custom' && layer.type !== 'gps' ? 1 : 0);
+  const [custom, setCustom] = React.useState(layer.type === 'custom' ? 3 : layer.type === 'gps' ? 2 : 0);
+  const [customIcaosVal, setCustomIcaosVal] = React.useState(layer.data.icaos.join("\n"));
+  const [customConnectionsVal, setCustomConnectionsVal] = React.useState(layer.data.connections.map(elm => elm.join(' ')).join("\n"));
+  const [customIcaos, setCustomIcaos] = React.useState(layer.data.icaos);
+  const [customConnections, setCustomConnections] = React.useState(layer.data.connections);
+  const [gpsPointsVal, setGpsPointsVal] = React.useState(layer.data.points.map(elm => elm.join(",")).join("\n"));
+  const [gpsConnectionsVal, setGpsConnectionsVal] = React.useState(layer.data.connections.map(elm => elm.join(',')).join("\n"));
+  const [gpsPoints, setGpsPoints] = React.useState(layer.data.points);
+  const [gpsConnections, setGpsConnections] = React.useState(layer.data.connections);
 
   React.useEffect(() => {
-    if (type !== null && step === 0) {
+    if (type !== null && step === 0 && type !== 'custom' && type !== 'gps') {
       setStep(1);
       if (name === 'My custom layer') {
         if (type === 'forsale') {
@@ -376,7 +388,7 @@ function AirportFilter(props) {
 
   React.useEffect(() => {
     if (props.open) {
-      setStep(props.layer.type ? 1 : 0);
+      setStep(props.layer.type && props.layer.type !== 'custom' && props.layer.type !== 'gps' ? 1 : 0);
       setType(props.layer.type);
       setName(props.layer.display.name);
       setColor(props.layer.display.color);
@@ -388,18 +400,28 @@ function AirportFilter(props) {
       setOnlyBM(props.layer.filters.onlyBM);
       setOnlyILS(props.layer.filters.onlyILS);
       setPrice(props.layer.filters.price);
+      setCustom(props.layer.type === 'custom' ? 3 : props.layer.type === 'gps' ? 2 : 0);
+      setCustomIcaos(props.layer.data.icaos);
+      setCustomIcaosVal(props.layer.data.icaos.join("\n"));
+      setCustomConnections(props.layer.data.connections);
+      setCustomConnectionsVal(props.layer.data.connections.map(elm => elm.join(' ')).join("\n"));
+      setGpsPointsVal(props.layer.data.points.map(elm => elm.join(",")).join("\n"));
+      setGpsConnectionsVal(props.layer.data.connections.map(elm => elm.join(',')).join("\n"));
+      setGpsPoints(props.layer.data.points);
+      setGpsConnections(props.layer.data.connections);
     }
   }, [props.open, props.layer]);
 
   return (
     <Dialog open={props.open} fullWidth={true} maxWidth="md" classes={{paper: classes.popup}}>
       <DialogTitle>
-        { step === 0 && 'Step 1: Layer type' }
+        { step === 0 && !custom && 'Step 1: Layer type' }
+        { step === 0 && custom && 'Step 1: Import data' }
         { step === 1 && 'Step 2: Filters' }
         { step === 2 && 'Step 3: Display options' }
       </DialogTitle>
       <DialogContent dividers className={classes.dialog}>
-        { step === 0 &&
+        { step === 0 && !custom &&
           <div>
             <DialogContentText>Choose the type of layer:</DialogContentText>
             <div className={classes.divPickType}>
@@ -415,7 +437,195 @@ function AirportFilter(props) {
                 <BusinessIcon className={classes.iconType} />
                 <Typography variant="body1">Airports with unbuilt FBO lots</Typography>
               </Paper>
+              <Paper className={classes.divType} onClick={() => setCustom(1)}>
+                <InsertDriveFileIcon className={classes.iconType} />
+                <Typography variant="body1">Import data</Typography>
+              </Paper>
             </div>
+          </div>
+        }
+        {
+          step === 0 && custom === 1 &&
+          <div>
+            <DialogContentText>Choose the type of data to import:</DialogContentText>
+            <div className={classes.divPickType}>
+              <Paper className={classes.divType} onClick={() => setCustom(3)}>
+                <LocalAirportIcon className={classes.iconType} />
+                <Typography variant="body1">FSE Airports</Typography>
+              </Paper>
+              <Paper className={classes.divType} onClick={() => setCustom(2)}>
+                <RoomIcon className={classes.iconType} />
+                <Typography variant="body1">GPS coordinates</Typography>
+              </Paper>
+            </div>
+          </div>
+        }
+        { step === 0 && custom === 2 &&
+          <div>
+            <Grid container spacing={3}>
+              <Grid item xs={6}>
+                <Typography variant="h6">GPS points</Typography>
+                <Typography variant="body2">Enter in the field below the GPS points you would like to display on the map. For each point, you need to specify its latitude, its longitude, and an optional label.</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="h6">Connections</Typography>
+                <Typography variant="body2">Enter in the field below the connections between two GPS points you would like to display on the map (to draw a route). Only IDs (first GPS point has ID 0, second has ID 1, etc.) of GPS points specified on the left field are accepted.</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="GPS points"
+                  multiline
+                  rows={8}
+                  variant="outlined"
+                  fullWidth
+                  placeholder="35.092,-106.655,Albuquerque
+33.459,-112.082,Phoenix
+36.164,-115.169,Las Vegas
+[...]"
+                  helperText="One GPS point per line with the CSV format (coma separator): latitude, longitude, label."
+                  value={gpsPointsVal}
+                  onChange={(evt) => {
+                    setGpsPointsVal(evt.target.value);
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="List of connections"
+                  multiline
+                  rows={8}
+                  variant="outlined"
+                  fullWidth
+                  placeholder="0 1
+1 2
+[...]"
+                  helperText="One connection per line. Each line must contain the starting ID and arrival ID separated by a space or coma"
+                  value={gpsConnectionsVal}
+                  onChange={(evt) => {
+                    setGpsConnectionsVal(evt.target.value);
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={3} justifyContent="center">
+              <Grid item>
+                <Button
+                  onClick={() => {
+                    const elms = gpsPointsVal.split(/\n+/);
+                    const points = [];
+                    // Keep only valid GPS points
+                    for (const elm of elms) {
+                      const arr = elm.split(/,/);
+                      if (arr.length < 2) { continue; }
+                      const latitude = parseFloat(arr[0]);
+                      const longitude = parseFloat(arr[1]);
+                      if (isNaN(latitude) || latitude < -90 || latitude > 90 ||
+                          isNaN(longitude) || longitude < -180 || longitude > 180) { continue; }
+                      const label = arr.length === 3 ? arr[2] : 'Point #'+points.length
+                      points.push([latitude, longitude, label]);
+                    }
+                    setGpsPoints(points);
+                    const arr = gpsConnectionsVal.toUpperCase().split(/\n+/);
+                    const connections = [];
+                    for (const elm of arr) {
+                      const c = elm.split(/[ ,]+/);
+                      if (c.length !== 2) { continue; }
+                      const fr = parseInt(c[0]);
+                      const to = parseInt(c[1]);
+                      if (isNaN(fr) || fr < 0 || fr >= points.length || isNaN(to) || to < 0 || to >= points.length) { continue; }
+                      connections.push([fr, to]);
+                    }
+                    setGpsConnections(connections);
+                    setType('gps');
+                    setStep(2);
+                  }}
+                  color="primary"
+                  variant="contained"
+                >
+                  Load data
+                </Button>
+              </Grid>
+            </Grid>
+          </div>
+        }
+        { step === 0 && custom === 3 &&
+          <div>
+            <Grid container spacing={3}>
+              <Grid item xs={6}>
+                <Typography variant="h6">FSE Airports</Typography>
+                <Typography variant="body2">Enter in the field below the airport ICAOs you would like to display on the map. Only valid FSE ICAOs are accepted.</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="h6">Connections</Typography>
+                <Typography variant="body2">Enter in the field below the connections between two airports you would like to display on the map (to draw a route or a FBO network for instance). Only valid FSE ICAOs are accepted.</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="List of FSE ICAOs"
+                  multiline
+                  rows={8}
+                  variant="outlined"
+                  fullWidth
+                  placeholder="LFLY
+LFPO
+EGLL
+[...]"
+                  helperText="ICAOs can be seperated by a white space, a coma or a new line."
+                  value={customIcaosVal}
+                  onChange={(evt) => {
+                    setCustomIcaosVal(evt.target.value);
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="List of connections"
+                  multiline
+                  rows={8}
+                  variant="outlined"
+                  fullWidth
+                  placeholder="EGLL LFLY
+EGLL LFPO
+[...]"
+                  helperText="One connection per line. Each line must contain the starting and arrival ICAO, separated by a space or coma"
+                  value={customConnectionsVal}
+                  onChange={(evt) => {
+                    setCustomConnectionsVal(evt.target.value);
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={3} justifyContent="center">
+              <Grid item>
+                <Button
+                  onClick={() => {
+                    const elms = customIcaosVal.toUpperCase().split(/[ ,\n]+/);
+                    // Keep only valid FSE ICAOs
+                    const icaos = elms.filter(elm => props.icaos.includes(elm));
+                    setCustomIcaos(icaos);
+                    const arr = customConnectionsVal.toUpperCase().split(/\n+/);
+                    const connections = [];
+                    for (const elm of arr) {
+                      const c = elm.split(/[ ,]+/);
+                      if (c.length === 2 && icaos.includes(c[0]) && icaos.includes(c[1])) {
+                        connections.push([c[0], c[1]]);
+                      }
+                    }
+                    setCustomConnections(connections);
+                    setType('custom');
+                    setStep(1);
+                  }}
+                  color="primary"
+                  variant="contained"
+                >
+                  Load data
+                </Button>
+              </Grid>
+            </Grid>
           </div>
         }
         { step === 1 &&
@@ -533,6 +743,11 @@ function AirportFilter(props) {
                     name: name,
                     color: color,
                     size: iconSize
+                  },
+                  data: {
+                    icaos: customIcaos,
+                    connections: type === 'gps' ? gpsConnections : customConnections,
+                    points: gpsPoints,
                   }
                 }
               );

@@ -14,9 +14,12 @@ import ZonesLayer from "./Zones.js";
 import JobsLayer from "./Jobs.js";
 import RouteLayer from "./Route.js";
 import AirportsLayer from "./Airports.js";
+import GPSLayer from "./GPS.js";
 import AirportFilter from "./AirportFilter.js";
 import { simName } from "../utility.js";
+import Storage from "../Storage.js";
 
+const storage = new Storage();
 
 
 const useStylesBasemapBtn = makeStyles(theme => ({
@@ -244,6 +247,11 @@ const defaultLayer = {
     name: 'My custom layer',
     color: '#d4ac0d',
     size: 20
+  },
+  data: {
+    icaos: [],
+    connections: [],
+    points: []
   }
 }
 
@@ -264,7 +272,8 @@ function LayerControl(props) {
       visible: false,
       type: 'airports',
       layer: null,
-      img: imgs[2]
+      img: imgs[2],
+      src: 'all'
     },
     {
       label: "FSE airports landing area",
@@ -306,7 +315,7 @@ function LayerControl(props) {
   const simRef = React.useRef(s.display.sim);
   const loadedRef = React.useRef(false);
   const toUpdateRef = React.useRef([]);
-  const orderRef = React.useRef([0, 1, 2, 3, 4, 5]);
+  const orderRef = React.useRef(storage.get('layersOrder', [0, 1, 2, 3, 4, 5]));
   const unbuiltRef = React.useRef(null);
   const forsaleRef = React.useRef(null);
   const layerEditId = React.useRef(null);
@@ -315,21 +324,32 @@ function LayerControl(props) {
     setBasemap(basemap);
   }, [setBasemap, basemap]);
 
+  const updateLocalStorage = React.useCallback(() => {
+    const ls = layersRef.current.map(l => l.layerInfo ?
+      {visible: l.visible, info: l.layerInfo} :
+      {visible: l.visible}
+    );
+    storage.set('layers', ls);
+    storage.set('layersOrder', orderRef.current);
+  }, []);
+
   const showLayer = React.useCallback(id => {
     layersRef.current[id].layer.addTo(props.map);
     layersRef.current[id].visible = true;
     setLoading(null);
     orderRef.current = orderRef.current.filter(elm => elm !== id);
     orderRef.current.push(id);
+    updateLocalStorage();
     forceUpdate();
-  }, [props.map]);
+  }, [props.map, updateLocalStorage]);
 
   const hideLayer = React.useCallback(id => {
     layersRef.current[id].layer.remove();
     layersRef.current[id].visible = false;
     setLoading(null);
+    updateLocalStorage();
     forceUpdate();
-  }, []);
+  }, [updateLocalStorage]);
 
   const show = React.useCallback((i, checked) => {
     const layerRef = layersRef.current[i];
@@ -337,7 +357,6 @@ function LayerControl(props) {
     if (checked) {
       if (!layerRef.layer) {
         if (layerRef.type === 'zones') {
-          setLoading(i);
           fetch('data/zones.json').then(response => {
             if (response.ok) {
               response.json().then(obj => {
@@ -363,39 +382,32 @@ function LayerControl(props) {
           showLayer(i); 
         }
         else if (layerRef.type === 'airports-custom') {
+          const connections = [];
+          for (var j = 1; j < props.customIcaos.length; j++) {
+            connections.push([props.customIcaos[j-1], props.customIcaos[j]]);
+          }
           layersRef.current[i].layer = AirportsLayer({
             icaos: props.customIcaos,
             icaodata: props.options.icaodata,
             fseicaodata: props.options.icaodata,
             color: s.display.markers.colors.custom,
             size: s.display.markers.sizes.custom,
-            weight: s.display.legs.display.custom ? s.display.legs.weights.flight : undefined,
+            weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             siminfo: s.display.sim,
             actions: props.actions,
+            connections: s.display.legs.display.custom ? connections : undefined,
             id: "custom"
           });
           showLayer(i); 
         }
         else if (layerRef.type === 'airports-sim') {
           if (!simIcaodataRef.current) {
-            setLoading(i);
             fetch('data/'+s.display.sim+'.json').then(response => {
               if (response.ok) {
                 response.json().then(obj => {
                   simIcaodataRef.current = {icaos: Object.keys(obj), data: obj};
-                  layersRef.current[i].layer = AirportsLayer({
-                    icaos: simIcaodataRef.current.icaos,
-                    icaodata: simIcaodataRef.current.data,
-                    fseicaodata: props.options.icaodata,
-                    color: s.display.markers.colors.sim,
-                    size: s.display.markers.sizes.sim,
-                    siminfo: s.display.sim,
-                    sim: s.display.sim,
-                    actions: props.actions,
-                    id: "sim"
-                  });
-                  showLayer(i);
+                  show(i, checked);
                 });
               }
             });
@@ -415,18 +427,71 @@ function LayerControl(props) {
             showLayer(i);
           }
         }
+        else if (layerRef.type === 'airports' && layerRef.src === 'gps') {
+          layersRef.current[i].layer = GPSLayer({
+            points: layerRef.points,
+            fseicaodata: props.options.icaodata,
+            color: layerRef.color,
+            size: layerRef.size,
+            weight: s.display.legs.weights.flight,
+            highlight: s.display.legs.colors.highlight,
+            actions: props.actions,
+            connections: layerRef.connections,
+            id: layerRef.id
+          });
+          showLayer(i);
+        }
         else {
+          // Default source is all FSE airports
+          let src = props.icaos;
+          // If source is unbuilt airports
+          if (layerRef.src === 'unbuilt') {
+            if (unbuiltRef.current === null) {
+              fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'unbuilt.json').then(response => {
+                if (response.ok) {
+                  response.json().then(arr => {
+                    unbuiltRef.current = arr;
+                    show(i, checked);
+                  });
+                }
+              });
+              return;
+            }
+            src = unbuiltRef.current;
+          }
+          // If source is airports for sale
+          else if (layerRef.src === 'forsale') {
+            if (forsaleRef.current === null) {
+              fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'forsale.json').then(response => {
+                if (response.ok) {
+                  response.json().then(arr => {
+                    forsaleRef.current = arr;
+                    show(i, checked);
+                  });
+                }
+              });
+              return;
+            }
+            src = icaosForSale(forsaleRef.current, layerRef.filter.price);
+          }
+          // If source is from custom user input
+          else if (layerRef.src === 'custom') {
+            src = layerRef.icaos;
+          }
           layersRef.current[i].layer = AirportsLayer({
-            icaos: layersRef.current[i].icaos ? layersRef.current[i].icaos : props.icaos,
+            icaos: src,
             icaodata: props.options.icaodata,
             fseicaodata: props.options.icaodata,
-            color: layersRef.current[i].color ? layersRef.current[i].color : s.display.markers.colors.fse,
-            size: layersRef.current[i].size ? layersRef.current[i].size : s.display.markers.sizes.fse,
-            airportFilter: layersRef.current[i].filter ? layersRef.current[i].filter : s.airport,
-            forsale: layersRef.current[i].forsale ? layersRef.current[i].forsale : null,
+            color: layerRef.color ? layerRef.color : s.display.markers.colors.fse,
+            size: layerRef.size ? layerRef.size : s.display.markers.sizes.fse,
+            weight: s.display.legs.weights.flight,
+            highlight: s.display.legs.colors.highlight,
+            airportFilter: layerRef.filter ? layerRef.filter : s.airport,
+            forsale: forsaleRef.current === null ? null : Object.fromEntries(forsaleRef.current),
             siminfo: s.display.sim,
             actions: props.actions,
-            id: layersRef.current[i].id ? layersRef.current[i].id : "fse"
+            connections: layerRef.connections ? layerRef.connections : undefined,
+            id: layerRef.id ? layerRef.id : "fse"
           });
           showLayer(i);
         }
@@ -523,13 +588,39 @@ function LayerControl(props) {
     toUpdateRef.current = [];
   }, [props.options, props.actions, props.route, props.customIcaos, props.icaos, resetLayer]);
 
+  // Layer factory for custom layers
+  const layerFactory = (l) => {
+    return {
+      label: l.display.name,
+      visible: true,
+      type: 'airports',
+      layer: null,
+      img: null,
+      icaos: l.data.icaos,
+      connections: l.data.connections,
+      points: l.data.points,
+      color: l.display.color,
+      size: l.display.size,
+      filter: l.filters,
+      id: (Math.random() + 1).toString(36).substring(7),
+      layerInfo: l,
+      src: l.type
+    };
+  }
+
   // Show default layers and preload images
   React.useEffect(() => {
     if (!loadedRef.current) {
-      show(0, true);
-      show(3, true);
-      show(4, true);
-      show(5, true);
+      const ls = storage.get('layers', [{"visible":true},{"visible":false},{"visible":false},{"visible":true},{"visible":true},{"visible":true}]);
+      ls.forEach((l, i) => {
+        if (l.info) {
+          const ll = layerFactory(l.info);
+          layersRef.current.push(ll);
+        }
+        if (l.visible) {
+          show(i, true);
+        }
+      });
       imgs.forEach(src => {
         let img = new Image();
         img.src = src;
@@ -543,6 +634,7 @@ function LayerControl(props) {
     layersRef.current[i].layer.remove();
     layersRef.current.splice(i, 1);
     orderRef.current = orderRef.current.map(elm => elm > i ? elm-1 : elm);
+    updateLocalStorage();
     forceUpdate();
   }
 
@@ -553,6 +645,7 @@ function LayerControl(props) {
     setOpenFilter(true);
   }
 
+  // Return list of ICAOs that are in the given price range [min,max]
   const icaosForSale = (arr, price) => {
     const [min, max] = price;
     const icaos = [];
@@ -578,19 +671,7 @@ function LayerControl(props) {
           setOpenFilter(false);
           setLayer({...defaultLayer});
           // Create layer
-          const ll = {
-            label: l.display.name,
-            visible: true,
-            type: 'airports',
-            layer: null,
-            img: null,
-            icaos: [],
-            color: l.display.color,
-            size: l.display.size,
-            filter: l.filters,
-            id: (Math.random() + 1).toString(36).substring(7),
-            layerInfo: l
-          };
+          const ll = layerFactory(l);
           let id = null;
           // New layer
           if (layerEditId.current === null) {
@@ -607,51 +688,8 @@ function LayerControl(props) {
             layersRef.current[id] = ll;
             layerEditId.current = null;
           }
-          if (l.type === 'unbuilt') {
-            if (unbuiltRef.current === null) {
-              fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'unbuilt.json').then(response => {
-                if (response.ok) {
-                  response.json().then(arr => {
-                    layersRef.current[id].icaos = arr;
-                    unbuiltRef.current = arr;
-                    resetLayer(id);
-                    setHover(false);
-                  });
-                }
-              });
-            }
-            else {
-              layersRef.current[id].icaos = unbuiltRef.current;
-              resetLayer(id);
-              setHover(false);
-            }
-          }
-          else if (l.type === 'forsale') {
-            if (forsaleRef.current === null) {
-              fetch(process.env.REACT_APP_DYNAMIC_DATA_URL+'forsale.json').then(response => {
-                if (response.ok) {
-                  response.json().then(arr => {
-                    layersRef.current[id].icaos = icaosForSale(arr, l.filters.price);
-                    layersRef.current[id].forsale = Object.fromEntries(arr);
-                    forsaleRef.current = arr;
-                    resetLayer(id);
-                    setHover(false);
-                  });
-                }
-              });
-            }
-            else {
-              layersRef.current[id].icaos = icaosForSale(forsaleRef.current, l.filters.price);
-              layersRef.current[id].forsale = Object.fromEntries(forsaleRef.current);
-              resetLayer(id);
-              setHover(false);
-            }
-          }
-          else {
-            layersRef.current[id].icaos = Object.keys(props.options.icaodata);
-            resetLayer(id);
-            setHover(false);
-          }
+          resetLayer(id);
+          setHover(false);
         }}
         handleCancel={() => {
           layerEditId.current = null;
@@ -660,6 +698,7 @@ function LayerControl(props) {
           setHover(false);
         }}
         layer={layer}
+        icaos={props.icaos}
       />
       {hover || openFilter ?
         <div>

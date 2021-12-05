@@ -249,7 +249,7 @@ function Marker({position, size, color, sim, id, ...props}) {
     .bindPopup(() => {
       var div = document.createElement('div');
       if (sim) {
-        ReactDOM.render(<Typography variant="h5" style={{padding:'3px 8px 3px 8px'}}>{props.icao}</Typography>, div);
+        ReactDOM.render(<Typography variant="h5" style={{padding:'3px 24px 3px 8px'}}>{props.icao}</Typography>, div);
       }
       else {
         ReactDOM.render(<Popup {...props} />, div);
@@ -257,7 +257,7 @@ function Marker({position, size, color, sim, id, ...props}) {
       return div;
     }, {
       autoPanPadding: new L.Point(30, 30),
-      minWidth: sim ? 100 : Math.min(250, window.innerWidth-10),
+      minWidth: sim ? 50 : Math.min(250, window.innerWidth-10),
       maxWidth: Math.max(600, window.innerWidth-10)
     })
     .on('contextmenu', (evt) => {
