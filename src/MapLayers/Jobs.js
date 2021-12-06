@@ -173,6 +173,7 @@ function Jobs(props) {
   let [legs, max] = cleanLegs(props.options.jobs, props.options);
   legs = addFlight(legs, props.options.flight, props.options);
   const markers = getMarkers(legs, props.options);
+  const markerJobs = Object.fromEntries(markers.map(m => [m, []]));
 
   // Add Jobs
   const legsKeys = Object.keys(legs);
@@ -202,7 +203,7 @@ function Jobs(props) {
       weight = parseFloat(s.display.legs.weights.flight);
     }
 
-    Job({
+    const job = Job({
       positions: [[props.options.icaodata[fr].lat, props.options.icaodata[fr].lon], [props.options.icaodata[to].lat, props.options.icaodata[to].lon]],
       color: color,
       highlight: s.display.legs.colors.highlight,
@@ -213,8 +214,11 @@ function Jobs(props) {
       actions: props.actions,
       fromIcao: fr,
       toIcao: to
-    })
-      .addTo(group);
+    });
+    job.addTo(group);
+
+    markerJobs[fr].push(job);
+    markerJobs[to].push(job);
   }
 
   // Add Markers
@@ -243,9 +247,23 @@ function Jobs(props) {
       planes: props.options.planes[marker],
       siminfo: s.display.sim,
       actions: props.actions,
-      id: 'jobs'+color
+      id: 'jobs'+color,
+      allJobs: markerJobs[marker]
     })
-      .addTo(group)
+      .on("mouseover", (e) => {
+        const {allJobs} = e.target.options;
+
+        allJobs.forEach(x => {
+          x.options.prevColor = x.options.color;
+          x.setStyle({color: s.display.legs.colors.highlight});
+        });
+      })
+      .on("mouseout", (e) => {
+        const {allJobs} = e.target.options;
+
+        allJobs.forEach(x => x.setStyle({color: x.options.prevColor}));
+      })
+        .addTo(group)
   }
 
   return group;
