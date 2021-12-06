@@ -929,9 +929,6 @@ function LayerControl(props) {
               layersRef.current[id].layer.remove();
             }
             if (layersRef.current[id].layerInfo.shareEditID) {
-              ll.shared = true;
-              ll.layerInfo.shareID = layersRef.current[id].layerInfo.shareID;
-              ll.layerInfo.shareEditID = layersRef.current[id].layerInfo.shareEditID;
               fetch(process.env.REACT_APP_API_URL+'/layer/'+layersRef.current[id].layerInfo.shareID, {
                 method: 'post',
                 headers: {
@@ -943,6 +940,9 @@ function LayerControl(props) {
                   alert('Unable to update this shared layer. Check your internet connection or try again later.')
                 }
               });
+              ll.shared = true;
+              ll.layerInfo.shareID = layersRef.current[id].layerInfo.shareID;
+              ll.layerInfo.shareEditID = layersRef.current[id].layerInfo.shareEditID;
             }
             layersRef.current[id] = ll;
             layerEditId.current = null;
