@@ -243,9 +243,23 @@ function Jobs(props) {
       planes: props.options.planes[marker],
       siminfo: s.display.sim,
       actions: props.actions,
-      id: 'jobs'+color
+      id: 'jobs'+color,
+      allJobs: group.getLayers().filter(x => x.options.fromIcao === marker || x.options.toIcao === marker)
     })
-      .addTo(group)
+      .on("mouseover", (e) => {
+        const {allJobs} = e.target.options;
+
+        allJobs.forEach(x => {
+          x.options.prevColor = x.options.color;
+          x.setStyle({color: s.display.legs.colors.highlight});
+        });
+      })
+      .on("mouseout", (e) => {
+        const {allJobs} = e.target.options;
+
+        allJobs.forEach(x => x.setStyle({color: x.options.prevColor}));
+      })
+        .addTo(group)
   }
 
   return group;
