@@ -80,10 +80,10 @@ function SizePicker(props) {
       setMax(23500);
     }
     else if (newValue.includes("2")) {
-      setMax(3500);
+      setMax(3499);
     }
     else {
-      setMax(1000);
+      setMax(999);
     }
     setValue(newValue);
   };

@@ -11,7 +11,20 @@ import EditIcon from '@material-ui/icons/Edit';
 import Popover from '@material-ui/core/Popover';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import TextField from '@material-ui/core/TextField';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
+import Tooltip from '@material-ui/core/Tooltip';
+import Alert from '@material-ui/lab/Alert';
+import ShareIcon from '@material-ui/icons/Share';
 import { makeStyles } from '@material-ui/core/styles';
+
+import { getBounds } from "geolib";
+import {default as _clone} from 'lodash/cloneDeep';
 
 import ZonesLayer from "./Zones.js";
 import JobsLayer from "./Jobs.js";
@@ -124,7 +137,11 @@ const useStylesLayer = makeStyles(theme => ({
     width: 50,
     height: 50,
     borderRadius: 5,
-    transition: 'all .1s ease-in'
+    transition: 'all .1s ease-in',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff'
   },
   delete: {
     position: 'absolute',
@@ -162,7 +179,9 @@ function Layer(props) {
         {props.img ?
           <img className={classes.img} src={props.img} alt={props.label} />
         :
-          <div className={classes.divImg} style={{backgroundColor: props.color ? props.color : 'transparent'}} />
+          <div className={classes.divImg} style={{backgroundColor: props.color ? props.color : 'transparent'}}>
+            {props.shared && <ShareIcon />}
+          </div>
         }
         {props.loading && <CircularProgress size={24} thickness={10} color="secondary" className={classes.progress} disableShrink />}
       </span>
@@ -281,6 +300,11 @@ function LayerControl(props) {
   const [openFilter, setOpenFilter] = React.useState(false);
   const [layer, setLayer] = React.useState(defaultLayer);
   const [contextMenu, setContextMenu] = React.useState(null);
+  const [share, setShare] = React.useState(false);
+  const [shareID, setShareID] = React.useState(null);
+  const [shareLabel, setShareLabel] = React.useState('');
+  const [shareEditID, setShareEditID] = React.useState(null);
+  const [copied, setCopied] = React.useState(false);
   const { setBasemap } = props;
   const layersRef = React.useRef([
     {
@@ -620,9 +644,26 @@ function LayerControl(props) {
       filter: l.filters,
       id: (Math.random() + 1).toString(36).substring(7),
       layerInfo: l,
-      src: l.type
+      src: l.type,
+      shared: l.shareID ? true : false
     };
   }
+
+  const centerMapOnLayer = React.useCallback((i) => {
+    const layer = layersRef.current[i];
+    let bounds = [[-30, -100], [50, 100]]
+    if (layer.src === 'custom') {
+      const points = layer.icaos.map(elm => props.options.icaodata[elm]);
+      const b = getBounds(points);
+      bounds = [[b.minLat, b.minLng], [b.maxLat, b.maxLng]];
+    }
+    else if (layer.src === 'gps') {
+      const points = layer.points.map(elm => { return {latitude: elm[0], longitude: elm[1]} });
+      const b = getBounds(points);
+      bounds = [[b.minLat, b.minLng], [b.maxLat, b.maxLng]];
+    }
+    props.map.fitBounds(bounds, {animate:false});
+  }, [props.map, props.options.icaodata])
 
   // Show default layers and preload images
   React.useEffect(() => {
@@ -636,23 +677,79 @@ function LayerControl(props) {
         if (l.visible) {
           layersRef.current[i].visible = true;
         }
-      });
-      orderRef.current.forEach(i => {
-        if (layersRef.current[i].visible) {
-          show(i, true);
+        else {
+          layersRef.current[i].visible = false;
         }
       });
+      // Is layer query param set ?
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('layer');
+      // If layer query param is set
+      if (id) {
+        let found = false;
+        // Hide all other layers
+        orderRef.current.forEach(i => {
+          layersRef.current[i].visible = false;
+          // If layer is already loaded, do not add another copy
+          if (layersRef.current[i].layerInfo
+              && layersRef.current[i].layerInfo.shareID
+              && layersRef.current[i].layerInfo.shareID === id) {
+            // If edit key is passed too, save it
+            const shareEditID = urlParams.get('edit');
+            if (shareEditID) {
+              layersRef.current[i].layerInfo.shareEditID = shareEditID;
+            }
+            show(i, true);
+            centerMapOnLayer(i);
+            found = true;
+          }
+        });
+        // If layer is not already loaded, load it
+        if (!found) {
+          fetch(process.env.REACT_APP_API_URL+'/layer/'+id).then(response => {
+            if (response.ok) {
+              response.json().then(arr => {
+                if (arr.info) {
+                  // Add layer
+                  const ll = layerFactory(arr.info);
+                  layersRef.current.push(ll);
+                  const i = layersRef.current.length - 1;
+                  orderRef.current.push(i);
+                  // If edit key is passed too, save it
+                  const shareEditID = urlParams.get('edit');
+                  if (shareEditID) {
+                    layersRef.current[i].layerInfo.shareEditID = shareEditID;
+                  }
+                  show(i, true);
+                  centerMapOnLayer(i);
+                }
+              });
+            }
+          });
+        }
+      }
+      else {
+        //
+        orderRef.current.forEach(i => {
+          if (layersRef.current[i].visible) {
+            show(i, true);
+          }
+        });
+      }
+      // Preload images
       imgs.forEach(src => {
         let img = new Image();
         img.src = src;
       });
       loadedRef.current = true;
     }
-  }, [show]);
+  }, [show, centerMapOnLayer]);
 
   // When remove layer icon is clicked
   const removeLayer = React.useCallback((i) => {
-    layersRef.current[i].layer.remove();
+    if (layersRef.current[i].layer) {
+      layersRef.current[i].layer.remove();
+    }
     layersRef.current.splice(i, 1);
     orderRef.current = orderRef.current.filter(elm => elm !== i);
     orderRef.current = orderRef.current.map(elm => elm > i ? elm-1 : elm);
@@ -679,6 +776,7 @@ function LayerControl(props) {
     return icaos;
   }
 
+  // When right click on a layer name
   const openContextMenu = React.useCallback((evt, i) => {
     evt.preventDefault();
     const layer = layersRef.current[i];
@@ -691,14 +789,71 @@ function LayerControl(props) {
     }
     // Custom layer
     if (!layer.img) {
+      if (!layer.shared || layer.layerInfo.shareEditID) {
+        actions.push({
+          name: "Edit",
+          onClick: () => { editLayer(i) }
+        });
+      }
       actions.push({
-        name: "Edit",
-        onClick: () => { editLayer(i) }
+        name: "Duplicate",
+        onClick: () => {
+          const layerInfo = _clone(layer.layerInfo);
+          layerInfo.display.name = layerInfo.display.name+' copy';
+          delete layerInfo.shareID;
+          const ll = layerFactory(layerInfo);
+          layersRef.current.push(ll);
+          const id = layersRef.current.length - 1;
+          orderRef.current.push(id);
+          show(id, true);
+        }
       });
       actions.push({
         name: "Remove",
         onClick: () => { removeLayer(i) }
       });
+      if (!layer.shared) {
+        actions.push({
+          name: "Share",
+          onClick: () => {
+            setShare(true);
+            setShareLabel(layer.label);
+            fetch(process.env.REACT_APP_API_URL+'/layer', {
+              method: 'post',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({version: process.env.REACT_APP_VERSION, info: layer.layerInfo})
+            }).then(response => {
+              if (response.ok) {
+                response.json().then(arr => {
+                  if (arr.id && arr.editId) {
+                    layersRef.current[i].layerInfo.shareID = arr.id;
+                    layersRef.current[i].layerInfo.shareEditID = arr.editId;
+                    layersRef.current[i].shared = true;
+                    updateLocalStorage();
+                    setShareID(arr.id);
+                    setShareEditID(arr.editId);
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+      else {
+        actions.push({
+          name: "Shared: get link",
+          onClick: () => {
+            setShare(true);
+            setShareLabel(layer.label);
+            setShareID(layer.layerInfo.shareID);
+            if (layer.layerInfo.shareEditID) {
+              setShareEditID(layer.layerInfo.shareEditID);
+            }
+          }
+        });
+      }
       if (layer.src !== 'gps') {
         actions.push({
           name: "Download data",
@@ -734,7 +889,15 @@ function LayerControl(props) {
       title: layersRef.current[i].label,
       actions: actions
     });
-  }, [resetLayer, editLayer, removeLayer, props.options.icaodata, s.display.sim, props.icaos]);
+  }, [resetLayer, editLayer, removeLayer, props.options.icaodata, s.display.sim, props.icaos, updateLocalStorage, show]);
+
+  // Close layer share popup
+  const handleCloseShare = React.useCallback(() => {
+    setShare(false);
+    setShareID(null);
+    setShareEditID(null);
+    setHover(false);
+  }, []);
 
   return (
     <Paper
@@ -764,6 +927,22 @@ function LayerControl(props) {
             id = layerEditId.current;
             if (layersRef.current[id].layer) {
               layersRef.current[id].layer.remove();
+            }
+            if (layersRef.current[id].layerInfo.shareEditID) {
+              ll.shared = true;
+              ll.layerInfo.shareID = layersRef.current[id].layerInfo.shareID;
+              ll.layerInfo.shareEditID = layersRef.current[id].layerInfo.shareEditID;
+              fetch(process.env.REACT_APP_API_URL+'/layer/'+layersRef.current[id].layerInfo.shareID, {
+                method: 'post',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({version: process.env.REACT_APP_VERSION, info: ll.layerInfo, editId: layersRef.current[id].layerInfo.shareEditID})
+              }).then(response => {
+                if (!response.ok) {
+                  alert('Unable to update this shared layer. Check your internet connection or try again later.')
+                }
+              });
             }
             layersRef.current[id] = ll;
             layerEditId.current = null;
@@ -799,8 +978,9 @@ function LayerControl(props) {
                 color={elm.color}
                 loading={loading === i}
                 handleRemove={i > 5 ? () => { removeLayer(i); } : null}
-                handleEdit={i > 5 ? () => { editLayer(i); } : null}
+                handleEdit={i > 5 && (!elm.shared || elm.layerInfo.shareEditID) ? () => { editLayer(i); } : null}
                 onContextMenu={evt => openContextMenu(evt, i)}
+                shared={elm.shared}
               />
             )}
           </div>
@@ -839,6 +1019,79 @@ function LayerControl(props) {
           }
         </Popover>
       }
+      <Dialog open={share}>
+        <DialogTitle>Share "{shareLabel}"</DialogTitle>
+        <DialogContent>
+          <Typography variant="h6">Read-only link</Typography>
+          <Typography variant="body2" style={{margin: '12px 0 24px 0'}}>People with this link will be able to view this custom layer, but not edit it.</Typography>
+          <TextField
+            label="Read-only URL"
+            fullWidth
+            readOnly
+            value={shareID ? 'https://fse-planner.piero-la-lune.fr/?layer='+shareID : 'Loading...'}
+            variant="outlined"
+            onFocus={event => {
+              event.target.select();
+            }}
+            InputProps={{
+              endAdornment:
+                <InputAdornment position="end">
+                  <Tooltip title={copied ? 'Copied!' : 'Copy URL to clipboard'}>
+                    <IconButton
+                      disabled={shareID === null}
+                      onClick={() => {
+                        navigator.clipboard.writeText('https://fse-planner.piero-la-lune.fr/?layer='+shareID)
+                        setTimeout(() => setCopied(false), 1000);
+                        setCopied(true);
+                      }}
+                    >
+                      <FileCopyIcon />
+                    </IconButton>
+                  </Tooltip>
+                </InputAdornment>
+            }}
+          />
+          {
+            shareEditID &&
+            <div>
+              <Typography variant="h6" style={{marginTop: 32}}>Edit link</Typography>
+              <Alert severity="warning">You should keep a copy of this link on your computer, you will not be able to recover the link if a data reset happens in your current Internet browser.</Alert>
+              <Typography variant="body2" style={{margin: '12px 0 24px 0'}}>People with this link will be able to edit this custom layer.</Typography>
+              <TextField
+                label="Edit URL"
+                fullWidth
+                readOnly
+                value={'https://fse-planner.piero-la-lune.fr/?edit='+shareEditID+'&layer='+shareID}
+                variant="outlined"
+                onFocus={event => {
+                  event.target.select();
+                }}
+                InputProps={{
+                  endAdornment:
+                    <InputAdornment position="end">
+                      <Tooltip title={copied ? 'Copied!' : 'Copy URL to clipboard'}>
+                        <IconButton
+                          onClick={() => {
+                            navigator.clipboard.writeText('https://fse-planner.piero-la-lune.fr/?edit='+shareEditID+'&layer='+shareID)
+                            setTimeout(() => setCopied(false), 1000);
+                            setCopied(true);
+                          }}
+                        >
+                          <FileCopyIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </InputAdornment>
+                }}
+              />
+            </div>
+          }
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseShare} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 
