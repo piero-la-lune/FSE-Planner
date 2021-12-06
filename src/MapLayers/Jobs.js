@@ -173,6 +173,7 @@ function Jobs(props) {
   let [legs, max] = cleanLegs(props.options.jobs, props.options);
   legs = addFlight(legs, props.options.flight, props.options);
   const markers = getMarkers(legs, props.options);
+  const markerJobs = Object.fromEntries(markers.map(m => [m, []]));
 
   // Add Jobs
   const legsKeys = Object.keys(legs);
@@ -202,7 +203,7 @@ function Jobs(props) {
       weight = parseFloat(s.display.legs.weights.flight);
     }
 
-    Job({
+    const job = Job({
       positions: [[props.options.icaodata[fr].lat, props.options.icaodata[fr].lon], [props.options.icaodata[to].lat, props.options.icaodata[to].lon]],
       color: color,
       highlight: s.display.legs.colors.highlight,
@@ -210,11 +211,12 @@ function Jobs(props) {
       leg: leg,
       rleg: rleg,
       type: props.options.cargo,
-      actions: props.actions,
-      fromIcao: fr,
-      toIcao: to
-    })
-      .addTo(group);
+      actions: props.actions
+    });
+    job.addTo(group);
+
+    markerJobs[fr].push(job);
+    markerJobs[to].push(job);
   }
 
   // Add Markers
@@ -244,7 +246,7 @@ function Jobs(props) {
       siminfo: s.display.sim,
       actions: props.actions,
       id: 'jobs'+color,
-      allJobs: group.getLayers().filter(x => x.options.fromIcao === marker || x.options.toIcao === marker)
+      allJobs: markerJobs[marker]
     })
       .on("mouseover", (e) => {
         const {allJobs} = e.target.options;
