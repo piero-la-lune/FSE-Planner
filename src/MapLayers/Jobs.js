@@ -211,7 +211,9 @@ function Jobs(props) {
       leg: leg,
       rleg: rleg,
       type: props.options.cargo,
-      actions: props.actions
+      actions: props.actions,
+      fromIcao: fr,
+      toIcao: to
     });
     job.addTo(group);
 
