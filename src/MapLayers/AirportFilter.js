@@ -446,7 +446,7 @@ function AirportFilter(props) {
                 <Typography variant="body1">Import data</Typography>
               </Paper>
             </div>
-            <Typography variant="body2" className={classes.asterix}>*Data is updated every 6 hours (00:00, 06:00, 12:00 and 18:00 GMT).</Typography>
+            <Typography variant="body2" className={classes.asterix}>*Data is updated every 6 hours (02:00, 08:00, 14:00 and 20:00 GMT).</Typography>
           </div>
         }
         {

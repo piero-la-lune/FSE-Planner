@@ -95,6 +95,30 @@ function CreditsPopup(props) {
       <DialogContent dividers className={classes.dialog}>
         <div hidden={expanded !== 0}>
           <Paper className={classes.content}>
+            <Typography variant="h5" className={classes.version}>v1.8.0 (2021-12-08)</Typography>
+            <Typography variant="h6">New</Typography>
+            <List dense>
+              <ListItem>Save layers between sessions</ListItem>
+              <ListItem>New layer type: import CSV data (FSE airports or GPS coordinates) to build a custom layer</ListItem>
+              <ListItem>Share layers to other people (right click on layer to access the feature)</ListItem>
+              <ListItem>Export layer to CSV file (right click on layer to access the feature)</ListItem>
+              <ListItem>Layer context menu (right click on layer)</ListItem>
+              <ListItem>Direct link to SkyVector and ChartFox in airport context menu (<IssueLink id={81} />) [by John Bayly]</ListItem>
+              <ListItem>Highlight all jobs from/to when mouse hovering an airport (<IssueLink id={53} />) [by John Bayly]</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated MSFS data (added new seaplane bases, updated ILS and runway length & surface information, etc.)</ListItem>
+              <ListItem>Updated FSE data (plane list)</ListItem>
+              <ListItem>"Unbuilt" and "For Sale" layer data is now updated every 6 hours</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Duration display bug in Route Finder (<IssueLink id={86} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper className={classes.content}>
             <Typography variant="h5" className={classes.version}>v1.7.0 (2021-10-09)</Typography>
             <Typography variant="h6">New</Typography>
             <List dense>
@@ -444,7 +468,8 @@ function CreditsPopup(props) {
             <List dense>
               <ListItem>piero-la-lune (author)</ListItem>
               <ListItem>icykoneko (contributor)</ListItem>
-              <ListItem>Lily418 (author)</ListItem>
+              <ListItem>Lily418 (contributor)</ListItem>
+              <ListItem>John Bayly (contributor)</ListItem>
             </List>
           </Paper>
 
