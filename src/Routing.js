@@ -1017,7 +1017,7 @@ const Routing = React.memo((props) => {
                               : null
                             )}
                             { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
-                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
+                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly, false)}</Typography>
                           </Paper>
                         }
                         {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
@@ -1028,7 +1028,7 @@ const Routing = React.memo((props) => {
                               :
                                 <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
                             )}
-                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
+                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP, false)}</Typography>
                           </Paper>
                         }
                       </TimelineOppositeContent>
