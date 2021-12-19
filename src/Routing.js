@@ -381,6 +381,7 @@ const Routing = React.memo((props) => {
   );
   const [memory, setMemory] = React.useState(props.options.settings.routeFinder.memory);
   const [vipOnly, setVipOnly] = React.useState(false);
+  const [tripOnly, setTripOnly] = React.useState(false);
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
@@ -765,7 +766,7 @@ const Routing = React.memo((props) => {
               obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
             }
           }
-          if (v.kg['VIP']) {
+          if (v.kg['VIP'] && !tripOnly) {
             for (const c of v.kg['VIP']) {
               if (c.nb > planeMaxKg || !checkJobExpiration(c)) { continue; }
               obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
@@ -779,7 +780,7 @@ const Routing = React.memo((props) => {
               obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
             }
           }
-          if (v.passengers['VIP']) {
+          if (v.passengers['VIP'] && !tripOnly) {
             for (const c of v.passengers['VIP']) {
               if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax || !checkJobExpiration(c)) { continue; }
               obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
@@ -1835,11 +1836,28 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
 
-              <FormControlLabel
-                control={<Switch checked={vipOnly} onChange={(evt) => setVipOnly(evt.target.checked)} />}
-                label="VIP jobs only"
-                className={classes.formLabel}
-              />
+              <Grid container spacing={1} style={{marginTop:12}}>
+                <Grid item xs={6}>
+                  <FormControlLabel
+                    control={<Switch checked={vipOnly} onChange={(evt) => {
+                      setVipOnly(evt.target.checked);
+                      setTripOnly(false);
+                    }} />}
+                    label="VIP jobs only"
+                    className={classes.formLabel}
+                  />
+              </Grid>
+              <Grid item xs={6}>
+                <FormControlLabel
+                  control={<Switch checked={tripOnly} onChange={(evt) => {
+                    setTripOnly(evt.target.checked);
+                    setVipOnly(false);
+                  }} />}
+                  label="Trip only jobs"
+                  className={classes.formLabel}
+                />
+              </Grid>
+            </Grid>
 
             </div>
           }
