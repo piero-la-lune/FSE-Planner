@@ -376,6 +376,9 @@ const Routing = React.memo((props) => {
   const [fees, setFees] = React.useState(props.options.settings.routeFinder.fees.length ? props.options.settings.routeFinder.fees : ['No']);
   const [overheadLength, setOverheadLength] = React.useState(props.options.settings.routeFinder.overheadLength);
   const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
+  const [jobExpiration, setJobExpiration] = React.useState(
+    props.options.settings.routeFinder.jobExpiration
+  );
   const [memory, setMemory] = React.useState(props.options.settings.routeFinder.memory);
   const [vipOnly, setVipOnly] = React.useState(false);
   const [loop, setLoop] = React.useState(false);
@@ -731,6 +734,16 @@ const Routing = React.memo((props) => {
     }
     const total = icaos.length;
 
+    const minExpiration = new Date();
+    minExpiration.setTime(
+      minExpiration.getTime() +
+        parseInt(jobExpiration ?? 0) * 60 * 60 * 1000
+    );
+    const checkJobExpiration = ({ expire }) => {
+      const expiresAt = new Date(expire);
+      return expiresAt >= minExpiration;
+    };
+
     // Compute jobs matching airplane specs
     for (const k of [...new Set([...Object.keys(props.options.jobs), ...Object.keys(props.options.flight)])]) {
       const [fr, to] = k.split('-');
@@ -743,18 +756,18 @@ const Routing = React.memo((props) => {
         },
         distance: props.options.jobs[k] ? props.options.jobs[k].distance : props.options.flight[k].distance,
         direction: props.options.jobs[k] ? props.options.jobs[k].direction : props.options.flight[k].direction,
-      }
+      }  
       const append = (v, obj) => {
         if (v.kg) {
           if (v.kg['Trip-Only'] && !vipOnly) {
             for (const c of v.kg['Trip-Only']) {
-              if (c.nb > planeMaxKg) { continue; }
+              if (c.nb > planeMaxKg || !checkJobExpiration(c)) { continue; }
               obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
             }
           }
           if (v.kg['VIP']) {
             for (const c of v.kg['VIP']) {
-              if (c.nb > planeMaxKg) { continue; }
+              if (c.nb > planeMaxKg || !checkJobExpiration(c)) { continue; }
               obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
             }
           }
@@ -762,13 +775,13 @@ const Routing = React.memo((props) => {
         if (v.passengers) {
           if (v.passengers['Trip-Only'] && !vipOnly) {
             for (const c of v.passengers['Trip-Only']) {
-              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
+              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax || !checkJobExpiration(c)) { continue; }
               obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
             }
           }
           if (v.passengers['VIP']) {
             for (const c of v.passengers['VIP']) {
-              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
+              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax || !checkJobExpiration(c)) { continue; }
               obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
             }
           }
@@ -841,7 +854,8 @@ const Routing = React.memo((props) => {
           maxStops: maxStops,
           maxEmptyLeg: maxEmptyLeg,
           model: model,
-          resultLimit: resultLimit
+          resultLimit: resultLimit,
+          jobExpiration
         },
         maxHops: maxHops,
         maxBadLegs: maxBadLegs
@@ -880,7 +894,8 @@ const Routing = React.memo((props) => {
       maxStops: maxStops,
       maxEmptyLeg: maxEmptyLeg,
       maxHops: maxHops,
-      maxBadLegs: maxBadLegs
+      maxBadLegs: maxBadLegs,
+      jobExpiration
     });
     const workers = [];
     for (var i = 0; i < maxWorkers; i++) {
@@ -1674,6 +1689,26 @@ const Routing = React.memo((props) => {
                       required
                       InputProps={{
                         endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={6}>
+                  <Tooltip title="Select only jobs that expires in, at least, this many hours.">
+                    <TextField
+                      label="Min job expiration"
+                      variant="outlined"
+                      placeholder="0"
+                      value={jobExpiration}
+                      onChange={(evt) =>
+                        setJobExpiration(
+                          evt.target.value.replace(/[^0-9]/g, '')
+                        )
+                      }
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">hours</InputAdornment>
+                        ),
                       }}
                     />
                   </Tooltip>
