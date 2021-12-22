@@ -1,4 +1,5 @@
 import React from 'react';
+import Divider from '@material-ui/core/Divider';
 import Popover from '@material-ui/core/Popover';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -201,7 +202,13 @@ const FSEMap = React.memo(function FSEMap(props) {
             {contextMenu.actions.length > 0 &&
               <MenuList className={classes.contextMenuList}>
                 { contextMenu.actions.map((action, i) =>
-                  <MenuItem dense key={i} onClick={() => { action.onClick(); closeContextMenu(); }}>{action.name}</MenuItem>
+                  {
+                    if (action.divider) {
+                      return <Divider />
+                    } else {
+                      return <MenuItem dense key={i} onClick={() => { action.onClick(); closeContextMenu(); }}>{action.name}</MenuItem>
+                    }
+                  }
                 )}
               </MenuList>
             }

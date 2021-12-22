@@ -516,7 +516,7 @@ const Routing = React.memo((props) => {
       // Idle time at airport, added later because does not count for fuel usage
       time += (idleTime / 60)*(allResults[i].icaos.length-1);
       const h = Math.floor(time);
-      const min = Math.round((time-h)*60);
+      const min = Math.floor((time-h)*60);
       const grossPay = allResults[i].pay;
       let pay = allResults[i].pay;
 

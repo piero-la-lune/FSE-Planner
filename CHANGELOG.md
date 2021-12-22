@@ -6,13 +6,34 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.8.0] - 2021-12-08
+
+### New
+- Save layers between sessions
+- New layer type: import CSV data (FSE airports or GPS coordinates) to build a custom layer
+- Share layers to other people (right click on layer to access the feature)
+- Export layer to CSV file (right click on layer to access the feature)
+- Layer context menu (right click on layer)
+- Direct link to SkyVector and ChartFox in airport context menu ([#81](https://github.com/piero-la-lune/FSE-Planner/issues/81)) [by John Bayly]
+- Highlight all jobs from/to when mouse hovering an airport ([#53](https://github.com/piero-la-lune/FSE-Planner/issues/53)) [by John Bayly]
+
+### Changed
+- Updated MSFS data (added new seaplane bases, updated ILS and runway length & surface information, etc.)
+- Updated FSE data (plane list)
+- "Unbuilt" and "For Sale" layer data is now updated every 6 hours
+
+### Fixed
+- Duration display bug in Route Finder ([#86](https://github.com/piero-la-lune/FSE-Planner/issues/86))
+
+
+
 ## [1.7.0] - 2021-10-09
 
 ### New
 - New custom layers: add custom layers to the map with your own filters and display settings
 - New basemap with English location names
 - New ILS filter: only display and use airports that have an ILS approach (MSFS). Thanks to Lily418 for the help
-- New setting in Route Finder to set a custom airplane rental price ([#65](https://github.com/piero-la-lune/FSE-Planner/issues/65)
+- New setting in Route Finder to set a custom airplane rental price ([#65](https://github.com/piero-la-lune/FSE-Planner/issues/65))
 
 ### Changed
 - Optimized Route Finder memory usage: this should prevent crashes with Chrome, even when searching large areas
@@ -21,10 +42,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Updated runway data (length and surface)
 - Updated plane list to include newly added FSE planes
 - Updated MSFS data
-- Changed display in Route Finder PDF to separate cargo weight from the total weight (cargo and passengers) ([#66](https://github.com/piero-la-lune/FSE-Planner/issues/66)
+- Changed display in Route Finder PDF to separate cargo weight from the total weight (cargo and passengers) ([#66](https://github.com/piero-la-lune/FSE-Planner)/issues/66)
 
 ### Fixed
-- Bug when loading data from airports with an ICAO resembling a number, such as 0E0 ([#79](https://github.com/piero-la-lune/FSE-Planner/issues/79)
+- Bug when loading data from airports with an ICAO resembling a number, such as 0E0 ([#79](https://github.com/piero-la-lune/FSE-Planner/issues/79))
 - Rounded airplane specs in Route Finder for a better display
 - Bug when resetting settings multiple times
 

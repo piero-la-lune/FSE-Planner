@@ -230,7 +230,7 @@ function Popup(props) {
   );
 }
 
-function Marker({position, size, color, sim, id, ...props}) {
+function Marker({position, size, color, sim, id, allJobs, ...props}) {
   let type = 'default';
   if (!sim || (props.icaodata[props.icao] && props.icaodata[props.icao][sim][0] === props.icao)) {
     const a = props.icaodata[props.icao];
@@ -243,13 +243,14 @@ function Marker({position, size, color, sim, id, ...props}) {
       color: '#fff',
       fillColor: color,
       type: type,
-      id: id
+      id: id,
+      allJobs: allJobs,
     }
   )
     .bindPopup(() => {
       var div = document.createElement('div');
       if (sim) {
-        ReactDOM.render(<Typography variant="h5" style={{padding:'3px 8px 3px 8px'}}>{props.icao}</Typography>, div);
+        ReactDOM.render(<Typography variant="h5" style={{padding:'3px 24px 3px 8px'}}>{props.icao}</Typography>, div);
       }
       else {
         ReactDOM.render(<Popup {...props} />, div);
@@ -257,7 +258,7 @@ function Marker({position, size, color, sim, id, ...props}) {
       return div;
     }, {
       autoPanPadding: new L.Point(30, 30),
-      minWidth: sim ? 100 : Math.min(250, window.innerWidth-10),
+      minWidth: sim ? 50 : Math.min(250, window.innerWidth-10),
       maxWidth: Math.max(600, window.innerWidth-10)
     })
     .on('contextmenu', (evt) => {
@@ -319,6 +320,18 @@ function Marker({position, size, color, sim, id, ...props}) {
             onClick: () => props.actions.current.addCustom(props.icao)
           });
         }
+        // Chart links
+        actions.push({
+          divider: true
+        });
+        actions.push({
+          name: 'Charts on ChartFox',
+          onClick: () => window.open(`https://chartfox.org/${props.icao}`, '_blank')
+        });
+        actions.push({
+          name: 'Airport on SkyVector',
+          onClick: () => window.open(`https://skyvector.com/airport/${props.icao}`, '_blank')
+        });
       }
       props.actions.current.contextMenu({
         mouseX: evt.originalEvent.clientX,
