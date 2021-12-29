@@ -158,7 +158,8 @@ function cleanJobs(list, icaodata) {
     }
     jobs[key][unit][type].push({
       nb: parseInt(job.Amount),
-      pay: parseInt(job.Pay)
+      pay: parseInt(job.Pay),
+      expire: new Date(`${job.ExpireDateTime.replace(' ', 'T')}Z`).valueOf(),
     });
   }
   return jobs;

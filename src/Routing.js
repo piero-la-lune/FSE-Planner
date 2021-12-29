@@ -37,6 +37,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import ListItemText from '@material-ui/core/ListItemText';
 import Alert from '@material-ui/lab/Alert';
 import Popper from '@material-ui/core/Popper';
+import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
@@ -265,11 +266,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const filter = createFilterOptions({limit: 5});
+const filter = createFilterOptions({ limit: 5 });
 const PopperMy = function (props) {
   return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
 }
-
 
 function textTotalCargo(cargos, kgPax = true) {
   const text = [];
@@ -296,16 +296,16 @@ function textTotalCargo(cargos, kgPax = true) {
 }
 
 function filterText(sortBy, result) {
-  switch(sortBy) {
-    case 'payNM': return '$'+Math.round(result.payNM)+'/NM';
-    case 'payLeg': return '$'+Math.round(result.payLeg)+'/leg';
-    case 'payTime': return '$'+Math.round(result.payTime)+'/H';
+  switch (sortBy) {
+    case 'payNM': return '$' + Math.round(result.payNM) + '/NM';
+    case 'payLeg': return '$' + Math.round(result.payLeg) + '/leg';
+    case 'payTime': return '$' + Math.round(result.payTime) + '/H';
     case 'pay': return '';
-    default: return '$'+result.b+' bonus';
+    default: return '$' + result.b + ' bonus';
   }
 }
 
-const Results = React.memo(({results, classes, showDetail, goTo, setRoute, nbDisplay, sortBy}) => {
+const Results = React.memo(({ results, classes, showDetail, goTo, setRoute, nbDisplay, sortBy }) => {
   return (
     results.slice(0, nbDisplay).map(result =>
       <div
@@ -316,7 +316,7 @@ const Results = React.memo(({results, classes, showDetail, goTo, setRoute, nbDis
       >
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize="small" />}
-          classes={{separator:classes.separator}}
+          classes={{ separator: classes.separator }}
           maxItems={5}
           itemsBeforeCollapse={3}
         >
@@ -376,8 +376,12 @@ const Routing = React.memo((props) => {
   const [fees, setFees] = React.useState(props.options.settings.routeFinder.fees.length ? props.options.settings.routeFinder.fees : ['No']);
   const [overheadLength, setOverheadLength] = React.useState(props.options.settings.routeFinder.overheadLength);
   const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
+  const [jobExpiration, setJobExpiration] = React.useState(
+    props.options.settings.routeFinder.jobExpiration
+  );
   const [memory, setMemory] = React.useState(props.options.settings.routeFinder.memory);
   const [vipOnly, setVipOnly] = React.useState(false);
+  const [tripOnly, setTripOnly] = React.useState(false);
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
@@ -427,7 +431,7 @@ const Routing = React.memo((props) => {
       if (minTime) {
         const t = minTime.split(':');
         if (t.length === 2) {
-          minTimeNb = parseInt(t[0]) + parseInt(t[1])/60;
+          minTimeNb = parseInt(t[0]) + parseInt(t[1]) / 60;
         }
         else {
           setMinTime('');
@@ -436,7 +440,7 @@ const Routing = React.memo((props) => {
       if (maxTime) {
         const t = maxTime.split(':');
         if (t.length === 2) {
-          maxTimeNb = parseInt(t[0]) + parseInt(t[1])/60;
+          maxTimeNb = parseInt(t[0]) + parseInt(t[1]) / 60;
         }
         else {
           setMaxTime('');
@@ -445,7 +449,7 @@ const Routing = React.memo((props) => {
 
       const r = results.current.filter(elm => {
         return !(
-             (minDist && elm.distance < minDist)
+          (minDist && elm.distance < minDist)
           || (maxDist && elm.distance > maxDist)
           || (minPay && elm.pay < minPay)
           || (maxPay && elm.pay > maxPay)
@@ -480,7 +484,7 @@ const Routing = React.memo((props) => {
   // Scroll to top when filtering / changing sortby of results
   React.useEffect(() => {
     if (resultsDiv.current) {
-      resultsDiv.current.scrollTo(0 ,0);
+      resultsDiv.current.scrollTo(0, 0);
       setNbDisplay(20);
     }
   }, [filteredResults]);
@@ -503,27 +507,27 @@ const Routing = React.memo((props) => {
     for (var i = 0; i < allResults.length; i++) {
       const plane = planesSpecs[allResults[i].model];
       const totalDistance =
-          allResults[i].distance
+        allResults[i].distance
         + allResults[i].distance * overheadLength / 100
-        + approachLength*(allResults[i].icaos.length-1);
+        + approachLength * (allResults[i].icaos.length - 1);
       let time =
-          allResults[i].distance/plane.speed
+        allResults[i].distance / plane.speed
         + allResults[i].distance * overheadLength / 100 / plane.speed
-        + approachLength*(allResults[i].icaos.length-1)/(plane.speed*approachSpeedRatio);
+        + approachLength * (allResults[i].icaos.length - 1) / (plane.speed * approachSpeedRatio);
       // Compute fuel usage
       let fuelUsage = time * plane.GPH;
       let fuelCost = fuelUsage * (plane.fuelType === 1 ? 4.19 : 4.55);
       // Idle time at airport, added later because does not count for fuel usage
-      time += (idleTime / 60)*(allResults[i].icaos.length-1);
+      time += (idleTime / 60) * (allResults[i].icaos.length - 1);
       const h = Math.floor(time);
-      const min = Math.floor((time-h)*60);
+      const min = Math.floor((time - h) * 60);
       const grossPay = allResults[i].pay;
       let pay = allResults[i].pay;
 
       // Compute ground fees: 10% for each assignment
       // (could be 0 or 5% if there is no FBO at the originating or destination airport,
       // but there is no way of knowing if that is the case, so 10% is always applied)
-      const feeGround = pay*0.1;
+      const feeGround = pay * 0.1;
       if (fees.includes('Ground')) {
         pay -= feeGround;
       }
@@ -534,7 +538,7 @@ const Routing = React.memo((props) => {
       // Used to store previous fees, because we apply the highest fee of all hops
       // that the assignment has traveled
       const feeHistory = {};
-      for (var j = 0; j < allResults[i].icaos.length-1; j++) {
+      for (var j = 0; j < allResults[i].icaos.length - 1; j++) {
         if (!allResults[i].cargos[j].TripOnly.length) { continue; }
         // Compute the number of PT assignments in aircraft
         let nbPT = allResults[i].cargos[j].TripOnly.reduce((acc, c) => acc + (c.PT ? 1 : 0), 0);
@@ -542,18 +546,18 @@ const Routing = React.memo((props) => {
         if (nbPT <= 5) { nbPT = 0; }
         for (const c of allResults[i].cargos[j].TripOnly) {
           if (c.PT) {
-            const key = c.from+'-'+c.to;
+            const key = c.from + '-' + c.to;
             if (!feeHistory[key]) { feeHistory[key] = 0; }
             feeHistory[key] = Math.max(feeHistory[key], nbPT);
             // The assignment has reached is destination, get the highest fee and apply it
-            if (c.to === allResults[i].icaos[j+1]) {
+            if (c.to === allResults[i].icaos[j + 1]) {
               feeBooking += c.pay * feeHistory[key] / 100;
             }
           }
         }
         // Ensure to clean fee history for the current destination
         for (const key of Object.keys(feeHistory)) {
-          if (key.endsWith(allResults[i].icaos[j+1])) {
+          if (key.endsWith(allResults[i].icaos[j + 1])) {
             delete feeHistory[key];
           }
         }
@@ -570,7 +574,7 @@ const Routing = React.memo((props) => {
       if (type === 'rent') {
         let lowestCost = null;
         const startIcao = allResults[i].icaos[0];
-        const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
+        const endIcao = allResults[i].icaos[allResults[i].icaos.length - 1];
         for (const p of props.options.planes[allResults[i].icaos[0]]) {
           if (p.model !== plane.model) { continue; }
           let cost = null;
@@ -593,9 +597,9 @@ const Routing = React.memo((props) => {
             // Compute bonus
             b = Math.round(
               (
-                  convertDistance(getDistance(props.options.icaodata[endIcao], props.options.icaodata[p.home]), 'sm')
+                convertDistance(getDistance(props.options.icaodata[endIcao], props.options.icaodata[p.home]), 'sm')
                 -
-                  convertDistance(getDistance(props.options.icaodata[startIcao], props.options.icaodata[p.home]), 'sm')
+                convertDistance(getDistance(props.options.icaodata[startIcao], props.options.icaodata[p.home]), 'sm')
               )
               * p.bonus / 100);
             cost += b;
@@ -627,10 +631,10 @@ const Routing = React.memo((props) => {
         fuelCost = 0;
       }
 
-      allResults[i].payNM = pay/totalDistance;
-      allResults[i].payLeg = pay/allResults[i].icaos.length;
-      allResults[i].payTime = pay/time;
-      allResults[i].time = h+'H'+(min > 9 ? min : "0"+min);
+      allResults[i].payNM = pay / totalDistance;
+      allResults[i].payLeg = pay / allResults[i].icaos.length;
+      allResults[i].payTime = pay / time;
+      allResults[i].time = h + 'H' + (min > 9 ? min : "0" + min);
       allResults[i].timeNb = time;
       allResults[i].pay = Math.round(pay);
       allResults[i].distance = Math.round(totalDistance);
@@ -676,7 +680,7 @@ const Routing = React.memo((props) => {
 
     // Job src
     const src = {};
-    const addIcao = function(icao) {
+    const addIcao = function (icao) {
       if (!src[icao]) {
         src[icao] = {
           c: [props.options.icaodata[icao].lon, props.options.icaodata[icao].lat],
@@ -731,6 +735,16 @@ const Routing = React.memo((props) => {
     }
     const total = icaos.length;
 
+    const minExpiration = new Date();
+    minExpiration.setTime(
+      minExpiration.getTime() +
+      parseInt(jobExpiration ?? 0) * 60 * 60 * 1000
+    );
+    const checkJobExpiration = ({ expire }) => {
+      const expiresAt = new Date(expire);
+      return expiresAt >= minExpiration;
+    };
+
     // Compute jobs matching airplane specs
     for (const k of [...new Set([...Object.keys(props.options.jobs), ...Object.keys(props.options.flight)])]) {
       const [fr, to] = k.split('-');
@@ -748,28 +762,28 @@ const Routing = React.memo((props) => {
         if (v.kg) {
           if (v.kg['Trip-Only'] && !vipOnly) {
             for (const c of v.kg['Trip-Only']) {
-              if (c.nb > planeMaxKg) { continue; }
-              obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+              if (c.nb > planeMaxKg || !checkJobExpiration(c)) { continue; }
+              obj.cargos.TripOnly.push({ pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false });
             }
           }
-          if (v.kg['VIP']) {
+          if (v.kg['VIP'] && !tripOnly) {
             for (const c of v.kg['VIP']) {
-              if (c.nb > planeMaxKg) { continue; }
-              obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+              if (c.nb > planeMaxKg || !checkJobExpiration(c)) { continue; }
+              obj.cargos.VIP.push({ pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false });
             }
           }
         }
         if (v.passengers) {
           if (v.passengers['Trip-Only'] && !vipOnly) {
             for (const c of v.passengers['Trip-Only']) {
-              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-              obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
+              if (c.nb * 77 > planeMaxKg || c.nb > planeMaxPax || !checkJobExpiration(c)) { continue; }
+              obj.cargos.TripOnly.push({ pax: c.nb, kg: c.nb * 77, pay: c.pay, from: fr, to: to, PT: c.PT === true });
             }
           }
-          if (v.passengers['VIP']) {
+          if (v.passengers['VIP'] && !tripOnly) {
             for (const c of v.passengers['VIP']) {
-              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-              obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
+              if (c.nb * 77 > planeMaxKg || c.nb > planeMaxPax || !checkJobExpiration(c)) { continue; }
+              obj.cargos.VIP.push({ pax: c.nb, kg: c.nb * 77, pay: c.pay, from: fr, to: to, PT: false });
             }
           }
         }
@@ -814,7 +828,7 @@ const Routing = React.memo((props) => {
         break;
     }
     if (resultLimit) {
-      resultLimit = Math.round(resultLimit/Math.min(total, maxWorkers));
+      resultLimit = Math.round(resultLimit / Math.min(total, maxWorkers));
     }
 
     const execute = (worker, icao) => {
@@ -835,19 +849,20 @@ const Routing = React.memo((props) => {
         options: {
           maxKg: planesSpecs[model].maxKg,
           maxPax: planesSpecs[model].maxPax,
-          minPaxLoad: planesSpecs[model].maxPax*minLoad/100,
-          minKgLoad: planesSpecs[model].maxKg*minLoad/100,
+          minPaxLoad: planesSpecs[model].maxPax * minLoad / 100,
+          minKgLoad: planesSpecs[model].maxKg * minLoad / 100,
           range: planesSpecs[model].range,
           maxStops: maxStops,
           maxEmptyLeg: maxEmptyLeg,
           model: model,
-          resultLimit: resultLimit
+          resultLimit: resultLimit,
+          jobExpiration
         },
         maxHops: maxHops,
         maxBadLegs: maxBadLegs
       });
     };
-    const onmessage = ({data}, worker) => {
+    const onmessage = ({ data }, worker) => {
       if (data.status === 'finished') {
         allResults = allResults.concat(data.results);
         setNbResults(allResults.length);
@@ -864,7 +879,7 @@ const Routing = React.memo((props) => {
         }
       }
       else if (data.status === 'progress') {
-        setProgress(prev => prev + (data.progress/total));
+        setProgress(prev => prev + (data.progress / total));
       }
       else {
         console.log(data);
@@ -880,7 +895,8 @@ const Routing = React.memo((props) => {
       maxStops: maxStops,
       maxEmptyLeg: maxEmptyLeg,
       maxHops: maxHops,
-      maxBadLegs: maxBadLegs
+      maxBadLegs: maxBadLegs,
+      jobExpiration
     });
     const workers = [];
     for (var i = 0; i < maxWorkers; i++) {
@@ -976,13 +992,13 @@ const Routing = React.memo((props) => {
               </Grid>
               <Timeline align="right">
                 {focus.icaos.map((icao, i) => {
-                  const onboard = i < focus.icaos.length-1 ? focus.cargos[i].TripOnly.reduce((acc, elm) => elm.from === icao ? acc : [...acc, elm], []) : [];
+                  const onboard = i < focus.icaos.length - 1 ? focus.cargos[i].TripOnly.reduce((acc, elm) => elm.from === icao ? acc : [...acc, elm], []) : [];
                   return (
                     <TimelineItem key={i}>
                       <TimelineOppositeContent className={classes.tlOp}>
-                        { i === 0 && 
+                        {i === 0 &&
                           <React.Fragment>
-                            { focus.reg &&
+                            {focus.reg &&
                               <React.Fragment>
                                 <Typography variant="body2">Rent {focus.reg} {focus.rentalType} ({focus.plane.model})</Typography>
                                 <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
@@ -991,28 +1007,28 @@ const Routing = React.memo((props) => {
                             <Typography variant="body2" paragraph>Fuel usage : {focus.fuel} gallons</Typography>
                           </React.Fragment>
                         }
-                        {i < focus.icaos.length-1 && focus.cargos[i].TripOnly.length > 0 &&
+                        {i < focus.icaos.length - 1 && focus.cargos[i].TripOnly.length > 0 &&
                           <Paper variant="outlined" className={classes.tlPaper}>
                             {focus.cargos[i].TripOnly.map((cargo, j) =>
-                            cargo.from === icao
-                              ? cargo.pax
-                                ? <Typography variant="body2" key={j}>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                                : <Typography variant="body2" key={j}>{cargo.kg}kg to {cargo.to} (${cargo.pay})</Typography>
-                              : null
+                              cargo.from === icao
+                                ? cargo.pax
+                                  ? <Typography variant="body2" key={j}>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
+                                  : <Typography variant="body2" key={j}>{cargo.kg}kg to {cargo.to} (${cargo.pay})</Typography>
+                                : null
                             )}
-                            { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
-                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
+                            {onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography>}
+                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly, false)}</Typography>
                           </Paper>
                         }
-                        {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
+                        {i < focus.icaos.length - 1 && focus.cargos[i].VIP.length > 0 &&
                           <Paper variant="outlined" className={classes.tlPaper}>
                             {focus.cargos[i].VIP.map((cargo, j) =>
-                            cargo.pax ?
+                              cargo.pax ?
                                 <Typography variant="body2" key={j}>{cargo.pax} VIP passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                              :
+                                :
                                 <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
                             )}
-                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
+                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP, false)}</Typography>
                           </Paper>
                         }
                       </TimelineOppositeContent>
@@ -1020,28 +1036,28 @@ const Routing = React.memo((props) => {
                         <TimelineDot
                           color={
                             (
-                                i < focus.icaos.length-1
+                              i < focus.icaos.length - 1
                               &&
+                              (
                                 (
-                                    (
-                                        focus.cargos[i].TripOnly.length
-                                      &&
-                                        focus.cargos[i].TripOnly.reduce((acc, cargo) => acc && cargo.from !== icao, true)
-                                    )
-                                  ||
-                                    (
-                                        !focus.cargos[i].TripOnly.length
-                                      &&
-                                        !focus.cargos[i].VIP.length
-                                    )
+                                  focus.cargos[i].TripOnly.length
+                                  &&
+                                  focus.cargos[i].TripOnly.reduce((acc, cargo) => acc && cargo.from !== icao, true)
                                 )
+                                ||
+                                (
+                                  !focus.cargos[i].TripOnly.length
+                                  &&
+                                  !focus.cargos[i].VIP.length
+                                )
+                              )
                             ) ? 'grey' : 'primary'
                           }
                         />
                         <TimelineConnector />
                       </TimelineSeparator>
                       <TimelineContent className={classes.tlCt}>
-                        <Link href="#" onClick={evt => {evt.preventDefault(); props.actions.current.goTo(icao) }}>{icao}</Link>
+                        <Link href="#" onClick={evt => { evt.preventDefault(); props.actions.current.goTo(icao) }}>{icao}</Link>
                       </TimelineContent>
                     </TimelineItem>
                   )
@@ -1050,7 +1066,7 @@ const Routing = React.memo((props) => {
             </div>
           </React.Fragment>
 
-        :
+          :
 
           <React.Fragment>
             <div className={classes.topResults}>
@@ -1077,7 +1093,7 @@ const Routing = React.memo((props) => {
                   keepMounted
                   open={Boolean(filterMenu)}
                   onClose={() => setFilterMenu(null)}
-                  classes={{paper: classes.filters}}
+                  classes={{ paper: classes.filters }}
                 >
                   <Typography variant="body1">Route filters:</Typography>
                   <Grid container spacing={1}>
@@ -1192,7 +1208,7 @@ const Routing = React.memo((props) => {
                             <b className={classes.searchIcao}>{a.icao}</b>
                             <span className={classes.searchInfos}>
                               <span className={classes.searchName}>{a.name}</span>
-                              <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                              <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state + ', ' : ''}{a.country}</Typography>
                             </span>
                           </span>
                         }
@@ -1202,7 +1218,7 @@ const Routing = React.memo((props) => {
                           // If not enough results, search for city name
                           if (filtered.length < 5) {
                             const add = filter(options, { inputValue: filterIcaosInput, getOptionLabel: (a) => a.name });
-                            filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                            filtered = filtered.concat(add.slice(0, 5 - filtered.length));
                           }
                           return filtered;
                         }}
@@ -1243,8 +1259,8 @@ const Routing = React.memo((props) => {
                   size="small"
                   select
                   className={classes.filterBtn}
-                  InputProps={{style:{fontSize:"1em"}}}
-                  InputLabelProps={{style:{fontSize:"1em"}}}
+                  InputProps={{ style: { fontSize: "1em" } }}
+                  InputLabelProps={{ style: { fontSize: "1em" } }}
                 >
                   <MenuItem value="payNM">Pay per NM</MenuItem>
                   <MenuItem value="payLeg">Pay per leg</MenuItem>
@@ -1258,7 +1274,7 @@ const Routing = React.memo((props) => {
               {
                 filteredResults.length > 0 ?
                   <Typography variant="body2">{filteredResults.length} routes found.</Typography>
-                :
+                  :
                   <Typography variant="body2">No route found.</Typography>
               }
             </div>
@@ -1283,9 +1299,9 @@ const Routing = React.memo((props) => {
             </div>
           </React.Fragment>
 
-      :
+        :
 
-        <div className={classes.content+' '+classes.form}>
+        <div className={classes.content + ' ' + classes.form}>
 
           <ToggleButtonGroup
             value={type}
@@ -1300,11 +1316,11 @@ const Routing = React.memo((props) => {
             }}
             className={classes.typeButtons}
           >
-            <ToggleButton value="rent" style={{flexGrow:1}}>Available planes</ToggleButton>
-            <ToggleButton value="free" style={{flexGrow:1}}>Free search</ToggleButton>
+            <ToggleButton value="rent" style={{ flexGrow: 1 }}>Available planes</ToggleButton>
+            <ToggleButton value="free" style={{ flexGrow: 1 }}>Free search</ToggleButton>
           </ToggleButtonGroup>
 
-          { type === "rent" ?
+          {type === "rent" ?
             <React.Fragment>
               {availableModels.length ?
                 <Autocomplete
@@ -1323,7 +1339,7 @@ const Routing = React.memo((props) => {
                     />
                   }
                 />
-              :
+                :
                 <Alert severity="error" className={classes.formLabel}>You first need to load planes.</Alert>
               }
               <FormControlLabel
@@ -1332,11 +1348,11 @@ const Routing = React.memo((props) => {
                 className={classes.formLabel}
               />
             </React.Fragment>
-          :
+            :
             <React.Fragment>
               <Typography variant="body1" className={classes.formLabel}>Restrict search to specific route:</Typography>
               <Grid container spacing={1}>
-                <Grid item xs={6}>
+                <Grid item xs={5}>
                   <Autocomplete
                     options={icaodataArr}
                     getOptionLabel={(a) => a.icao ? a.icao : ''}
@@ -1345,7 +1361,7 @@ const Routing = React.memo((props) => {
                         <b className={classes.searchIcao}>{a.icao}</b>
                         <span className={classes.searchInfos}>
                           <span className={classes.searchName}>{a.name}</span>
-                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state + ', ' : ''}{a.country}</Typography>
                         </span>
                       </span>
                     }
@@ -1355,7 +1371,7 @@ const Routing = React.memo((props) => {
                       // If not enough results, search for city name
                       if (filtered.length < 5) {
                         const add = filter(options, { inputValue: fromIcaoInput, getOptionLabel: (a) => a.name });
-                        filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                        filtered = filtered.concat(add.slice(0, 5 - filtered.length));
                       }
                       return filtered;
                     }}
@@ -1385,7 +1401,25 @@ const Routing = React.memo((props) => {
                     selectOnFocus={false}
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={2}>
+                  <Tooltip title="Swap From/To">
+                    <IconButton
+                      variant="contained"
+                      onClick={() => {
+                        if (!fromIcao || !toIcao) return;
+                        const aux = fromIcao;
+                        setFromIcao(toIcao);
+                        setToIcao(aux);
+                      }}
+                      disabled={
+                        !fromIcao || !toIcao || fromIcao === toIcao
+                      }
+                    >
+                      <CompareArrowsIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={5}>
                   <Autocomplete
                     options={icaodataArr}
                     getOptionLabel={(a) => a.icao ? a.icao : ''}
@@ -1394,7 +1428,7 @@ const Routing = React.memo((props) => {
                         <b className={classes.searchIcao}>{a.icao}</b>
                         <span className={classes.searchInfos}>
                           <span className={classes.searchName}>{a.name}</span>
-                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state + ', ' : ''}{a.country}</Typography>
                         </span>
                       </span>
                     }
@@ -1404,7 +1438,7 @@ const Routing = React.memo((props) => {
                       // If not enough results, search for city name
                       if (filtered.length < 5) {
                         const add = filter(options, { inputValue: toIcaoInput, getOptionLabel: (a) => a.name });
-                        filtered = filtered.concat(add.slice(0, 5-filtered.length));
+                        filtered = filtered.concat(add.slice(0, 5 - filtered.length));
                       }
                       return filtered;
                     }}
@@ -1435,7 +1469,7 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
 
-              { toIcao &&
+              {toIcao &&
                 <Alert severity="info" className={classes.formLabel}>
                   Recommended algorithm parameters when setting a destination:
                   <ul>
@@ -1471,9 +1505,9 @@ const Routing = React.memo((props) => {
                 }
               />
 
-              {editSpecs ? 
+              {editSpecs ?
                 <React.Fragment>
-                  <Grid container spacing={1} style={{marginTop:12}}>
+                  <Grid container spacing={1} style={{ marginTop: 12 }}>
                     <Grid item xs={6}>
                       <TextField
                         label="Max passengers"
@@ -1498,7 +1532,7 @@ const Routing = React.memo((props) => {
                       />
                     </Grid>
                   </Grid>
-                  <Grid container spacing={1} style={{marginTop:12}}>
+                  <Grid container spacing={1} style={{ marginTop: 12 }}>
                     <Grid item xs={6}>
                       <Tooltip title="Used to compute an estimated flight duration.">
                         <TextField
@@ -1530,7 +1564,7 @@ const Routing = React.memo((props) => {
                       </Tooltip>
                     </Grid>
                   </Grid>
-                  <Grid container spacing={1} style={{marginTop:12}}>
+                  <Grid container spacing={1} style={{ marginTop: 12 }}>
                     <Grid item xs={6}>
                       <Tooltip title="Used to compute an estimated fuel consumption cost.">
                         <TextField
@@ -1560,7 +1594,7 @@ const Routing = React.memo((props) => {
                       </TextField>
                     </Grid>
                   </Grid>
-                  <Grid container spacing={1} style={{marginTop:12}}>
+                  <Grid container spacing={1} style={{ marginTop: 12 }}>
                     <Grid item xs={6}>
                       <Tooltip title="Leave it to 0 if using your own plane.">
                         <TextField
@@ -1591,8 +1625,8 @@ const Routing = React.memo((props) => {
                     </Grid>
                   </Grid>
                 </React.Fragment>
-              :
-                <Link href="#" onClick={(e) => { e.preventDefault(); setEditSpecs(true)}}>Edit aircraft specifications</Link>
+                :
+                <Link href="#" onClick={(e) => { e.preventDefault(); setEditSpecs(true) }}>Edit aircraft specifications</Link>
               }
             </React.Fragment>
           }
@@ -1633,7 +1667,7 @@ const Routing = React.memo((props) => {
                   </Tooltip>
                 </Grid>
               </Grid>
-              <Grid container spacing={1} style={{marginTop:12}}>
+              <Grid container spacing={1} style={{ marginTop: 12 }}>
                 <Grid item xs={6}>
                   <Tooltip title="Try to always keep the plane at least this full.">
                     <TextField
@@ -1662,7 +1696,7 @@ const Routing = React.memo((props) => {
                   </Tooltip>
                 </Grid>
               </Grid>
-              <Grid container spacing={1} style={{marginTop:12}}>
+              <Grid container spacing={1} style={{ marginTop: 12 }}>
                 <Grid item xs={6}>
                   <Tooltip title="Maximum length of entirely empty legs (no cargo/pax at all). Do not set this too high, it quickly becomes very computer intensive.">
                     <TextField
@@ -1674,6 +1708,26 @@ const Routing = React.memo((props) => {
                       required
                       InputProps={{
                         endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={6}>
+                  <Tooltip title="Select only jobs that expires in, at least, this many hours.">
+                    <TextField
+                      label="Min job expiration"
+                      variant="outlined"
+                      placeholder="0"
+                      value={jobExpiration}
+                      onChange={(evt) =>
+                        setJobExpiration(
+                          evt.target.value.replace(/[^0-9]/g, '')
+                        )
+                      }
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">hours</InputAdornment>
+                        ),
                       }}
                     />
                   </Tooltip>
@@ -1731,7 +1785,7 @@ const Routing = React.memo((props) => {
                   </Tooltip>
                 </Grid>
               </Grid>
-              <Grid container spacing={1} style={{marginTop:12}}>
+              <Grid container spacing={1} style={{ marginTop: 12 }}>
                 <Grid item xs={6}>
                   <Tooltip title="Added to the leg straight distance, to account for approach circuits.">
                     <TextField
@@ -1776,7 +1830,7 @@ const Routing = React.memo((props) => {
                       }
                     }}
                   >
-                    <MenuItem value="No" style={{display:'none'}}>
+                    <MenuItem value="No" style={{ display: 'none' }}>
                       <Checkbox checked={fees.indexOf("No") > -1} />
                       <ListItemText primary="No" />
                     </MenuItem>
@@ -1800,11 +1854,28 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
 
-              <FormControlLabel
-                control={<Switch checked={vipOnly} onChange={(evt) => setVipOnly(evt.target.checked)} />}
-                label="VIP jobs only"
-                className={classes.formLabel}
-              />
+              <Grid container spacing={1} style={{ marginTop: 12 }}>
+                <Grid item xs={6}>
+                  <FormControlLabel
+                    control={<Switch checked={vipOnly} onChange={(evt) => {
+                      setVipOnly(evt.target.checked);
+                      setTripOnly(false);
+                    }} />}
+                    label="VIP jobs only"
+                    className={classes.formLabel}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControlLabel
+                    control={<Switch checked={tripOnly} onChange={(evt) => {
+                      setTripOnly(evt.target.checked);
+                      setVipOnly(false);
+                    }} />}
+                    label="Trip only jobs"
+                    className={classes.formLabel}
+                  />
+                </Grid>
+              </Grid>
 
             </div>
           }
@@ -1818,9 +1889,9 @@ const Routing = React.memo((props) => {
                 onClick={startSearch}
                 disabled={
                   !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
-                           || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
-                           || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range || !aircraftSpecsModel))
-                           || (type === "rent" && (!availableModels.length))
+                  || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
+                  || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range || !aircraftSpecsModel))
+                  || (type === "rent" && (!availableModels.length))
                 }
               >
                 Find best routes

@@ -121,7 +121,8 @@ const defaultSettings = {
     fees: ['Ground', 'Booking', 'Rental', 'Fuel'],
     overheadLength: 0,
     approachLength: 10,
-    memory: 'normal'
+    memory: 'normal',
+    jobExpiration: 0,
   }
 };
 

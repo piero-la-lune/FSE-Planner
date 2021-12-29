@@ -365,6 +365,7 @@ function SettingsPopup(props) {
                 <Setting s={s} setS={setS} label="Min plane load" setting='routeFinder.minLoad' xs={6} end="%" helperText="Try to always keep the plane at least this full." />
                 <Setting s={s} setS={setS} label="Max bad legs" setting='routeFinder.maxBadLegs' xs={6} helperText="Number of possible legs bellow the minimum plane load." />
                 <Setting s={s} setS={setS} label="Max empty legs" setting='routeFinder.maxEmptyLeg' xs={6} end="NM" helperText="Maximum length of entirely empty legs (no cargo/pax at all). Do not set this too high, it quickly becomes very computer intensive."/>
+                <Setting s={s} setS={setS} label="Min job expiration" setting="routeFinder.jobExpiration" end="hours" xs={6} helperText="Select only jobs that expires in, at least, this many hours."/>
                 <SettingSelect s={s} setS={setS} label="Memory usage" setting='routeFinder.memory' xs={6} options={memoryOptions} helperText="Adjust this setting if Route Finder is crashing" />
               </Grid>
               <Typography variant="body1" className={classes.formLabel}>Route parameters:</Typography>
