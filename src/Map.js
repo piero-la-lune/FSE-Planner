@@ -6,7 +6,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { MapContainer, TileLayer } from "react-leaflet";
 import { getBounds } from "geolib";
 import L from "leaflet";
 
@@ -46,20 +45,62 @@ const useStyles = makeStyles(theme => ({
 const FSEMap = React.memo(function FSEMap(props) {
 
   const s = props.options.settings;
-  const mapRef = props.mapRef;
   const classes = useStyles();
-  const canvasRendererRef = React.useRef(new Canvas({ padding: 0.5 }));
-  const maxBounds=[[-90, s.display.map.center-180], [90, s.display.map.center+180]];
   const [contextMenu, setContextMenu] = React.useState(null);
+  const [basemap, setBasemap] = React.useState(s.display.map.basemap);
   const [init, setInit] = React.useState(false);
-  const basemapRef = React.useRef(false);
+  const basemapRef = React.useRef(null);
+  const mapRef = React.useRef(null);
+
+  // Initialize map
+  React.useEffect(() => {
+    if (mapRef.current) { return; }
+    const canvas = new Canvas({ padding: 0.5 });
+    mapRef.current = L.map('map', {
+      center: [46.5344, 3.42167],
+      zoom: 6,
+      minZoom: 2,
+      maxZoom: 12,
+      maxBounds: [[-90,-180], [90,180]],
+      renderer: canvas,
+      zoomControl: false,
+      attributionControl: false,
+    });
+    mapRef.current.on('contextmenu', (evt) => {
+      evt.originalEvent.stopPropagation();
+      evt.originalEvent.preventDefault();
+      const lat = Math.round((evt.latlng.lat + Number.EPSILON) * 10000) / 10000;
+      const lon = Math.round((evt.latlng.lng + Number.EPSILON) * 10000) / 10000;
+      setContextMenu({
+        mouseX: evt.originalEvent.clientX,
+        mouseY: evt.originalEvent.clientY,
+        title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
+        actions: []
+      });
+    })
+    setInit(true);
+  }, []);
+
+  // Pass map reference to parent App
+  React.useEffect(() => {
+    props.mapRef.current = mapRef.current;
+  }, [props.mapRef]);
+
+  // Change basemap
+  React.useEffect(() => {
+    if (!basemapRef.current) {
+      basemapRef.current = L.tileLayer(baselayerURL[basemap]);
+      basemapRef.current.addTo(mapRef.current);
+    }
+    else {
+      basemapRef.current.setUrl(baselayerURL[basemap]);
+    }
+  }, [basemap]);
 
   // Display search marker
   const searchRef = React.useRef(null);
   const prevSearchRef = React.useRef(null);
   React.useEffect(() => {
-    if (!mapRef.current) { return; }
-
     // If marker already exists remove it
     if (searchRef.current) {
       searchRef.current.remove();
@@ -94,10 +135,8 @@ const FSEMap = React.memo(function FSEMap(props) {
     s.display.sim,
     s.display.markers.colors.selected,
     s.display.markers.sizes.selected,
-    props.actions,
-    mapRef
+    props.actions
   ]);
-
 
   // Set search marker on top at each render
   React.useEffect(() => {
@@ -108,13 +147,11 @@ const FSEMap = React.memo(function FSEMap(props) {
 
   // Clear canvas cache on settings change
   React.useEffect(() => {
-    canvasRendererRef.current.clearCache();
+    mapRef.current.options.renderer.clearCache();
   }, [s]);
-
 
   // Auto zoom map on jobs
   React.useEffect(() => {
-    if (!mapRef.current) { return; }
     const icaos = new Set();
     Object.keys(props.options.jobs).forEach(key => icaos.add(key.split('-')[0]));
     const points = [...icaos].map(elm => props.options.icaodata[elm]);
@@ -122,11 +159,10 @@ const FSEMap = React.memo(function FSEMap(props) {
       const b = getBounds(points);
       mapRef.current.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]], {animate:false});
     }
-  }, [props.options.jobs, props.options.icaodata, mapRef]);
+  }, [props.options.jobs, props.options.icaodata]);
 
   // Auto zoom on route
   React.useEffect(() => {
-    if (!mapRef.current) { return; }
     if (props.route) {
       const b = getBounds(props.route.icaos.map(elm => props.options.icaodata[elm]));
       const bounds = L.latLngBounds([b.minLat, b.minLng], [b.maxLat, b.maxLng]);
@@ -135,33 +171,12 @@ const FSEMap = React.memo(function FSEMap(props) {
         mapRef.current.fitBounds(mapBounds.extend(bounds));
       }
     }
-  }, [props.route, props.options.icaodata, mapRef]);
+  }, [props.route, props.options.icaodata]);
 
   // Change map bounds when map center changes
   React.useEffect(() => {
-    if (!mapRef.current) { return; }
     mapRef.current.setMaxBounds([[-90, s.display.map.center-180], [90, s.display.map.center+180]]);
-  }, [s.display.map.center, mapRef]);
-
-  // Right click on map
-  const onContextMenu = (evt) => {
-    evt.originalEvent.stopPropagation();
-    evt.originalEvent.preventDefault();
-    const lat = Math.round((evt.latlng.lat + Number.EPSILON) * 10000) / 10000;
-    const lon = Math.round((evt.latlng.lng + Number.EPSILON) * 10000) / 10000;
-    setContextMenu({
-      mouseX: evt.originalEvent.clientX,
-      mouseY: evt.originalEvent.clientY,
-      title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
-      actions: []
-    });
-  }
-
-  const whenCreated = (map) => {
-    map.on('contextmenu', onContextMenu);
-    mapRef.current = map;
-    setInit(true);
-  }
+  }, [s.display.map.center]);
 
   props.actions.current.contextMenu = setContextMenu;
 
@@ -169,53 +184,37 @@ const FSEMap = React.memo(function FSEMap(props) {
     setContextMenu(null);
   };
 
-  const setBasemap = React.useCallback(basemap => {
-    if (!basemapRef.current) { return; }
-    basemapRef.current.setUrl(baselayerURL[basemap]);
-  }, []);
-
   return (
     <div className={classes.map}>
-      <MapContainer
-        center={[46.5344, 3.42167]}
-        zoom={6}
-        maxBounds={maxBounds}
-        attributionControl={false}
-        minZoom={2}
-        maxZoom={12}
-        zoomControl={false}
-        renderer={canvasRendererRef.current}
-        whenCreated={whenCreated}
-      >
-        {contextMenu &&
-          <Popover
-            open={true}
-            onClose={closeContextMenu}
-            anchorReference="anchorPosition"
-            anchorPosition={
-              { top: contextMenu.mouseY, left: contextMenu.mouseX }
-            }
-            onContextMenu={(evt) => {evt.preventDefault(); evt.stopPropagation();}}
-            classes={{paper:classes.contextMenu}}
-          >
-            <Typography variant="body1" className={classes.contextMenuTitle}>{contextMenu.title}</Typography>
-            {contextMenu.actions.length > 0 &&
-              <MenuList className={classes.contextMenuList}>
-                { contextMenu.actions.map((action, i) =>
-                  {
-                    if (action.divider) {
-                      return <Divider />
-                    } else {
-                      return <MenuItem dense key={i} onClick={() => { action.onClick(); closeContextMenu(); }}>{action.name}</MenuItem>
-                    }
+      <div id="map">
+      </div>
+      {contextMenu &&
+        <Popover
+          open={true}
+          onClose={closeContextMenu}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            { top: contextMenu.mouseY, left: contextMenu.mouseX }
+          }
+          onContextMenu={(evt) => {evt.preventDefault(); evt.stopPropagation();}}
+          classes={{paper:classes.contextMenu}}
+        >
+          <Typography variant="body1" className={classes.contextMenuTitle}>{contextMenu.title}</Typography>
+          {contextMenu.actions.length > 0 &&
+            <MenuList className={classes.contextMenuList}>
+              { contextMenu.actions.map((action, i) =>
+                {
+                  if (action.divider) {
+                    return <Divider />
+                  } else {
+                    return <MenuItem dense key={i} onClick={() => { action.onClick(); closeContextMenu(); }}>{action.name}</MenuItem>
                   }
-                )}
-              </MenuList>
-            }
-          </Popover>
-        }
-        <TileLayer url={baselayerURL[s.display.map.basemap]} ref={basemapRef} />
-      </MapContainer>
+                }
+              )}
+            </MenuList>
+          }
+        </Popover>
+      }
       {init &&
         <LayerControl
           map={mapRef.current}
