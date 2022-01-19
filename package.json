@@ -22,7 +22,7 @@
     "react": "^17.0.2",
     "react-app-rewired": "^2.1.8",
     "react-dom": "^17.0.2",
-    "react-papaparse": "^3.17.2",
+    "react-papaparse": "^4.0.0",
     "react-scripts": "4.0.3",
     "reactour": "^1.18.6",
     "styled-components": "^5.3.1",

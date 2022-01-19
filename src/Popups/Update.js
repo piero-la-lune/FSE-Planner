@@ -20,7 +20,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { readString } from 'react-papaparse';
+import { usePapaParse } from 'react-papaparse';
 import { isPointInPolygon } from "geolib";
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
@@ -234,6 +234,7 @@ function UpdatePopup(props) {
   const [userList, setUserList] = React.useState([]);
   const [username, setUsername] = React.useState(storage.get('username', ''));
   const classes = useStyles();
+  const { readString } = usePapaParse();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
@@ -610,7 +611,7 @@ function UpdatePopup(props) {
                 }
                 else {
                   setJobsAreas(value);
-                  setJobsRequests(getIcaoList(value, jobsCustom, props.icaodata, props.icaos).length)  
+                  setJobsRequests(getIcaoList(value, jobsCustom, props.icaodata, props.icaos).length)
                 }
               }}
               value={jobsAreas}
