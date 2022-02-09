@@ -1,43 +1,43 @@
 import React from 'react';
-import Button from '@material-ui/core/Button';
-import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
-import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-import Tooltip from '@material-ui/core/Tooltip';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Breadcrumbs from '@material-ui/core/Breadcrumbs';
-import NavigateNextIcon from '@material-ui/icons/NavigateNext';
-import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
-import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
-import FilterListIcon from '@material-ui/icons/FilterList';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import TimerIcon from '@material-ui/icons/Timer';
-import Link from '@material-ui/core/Link';
-import Timeline from '@material-ui/lab/Timeline';
-import TimelineItem from '@material-ui/lab/TimelineItem';
-import TimelineSeparator from '@material-ui/lab/TimelineSeparator';
-import TimelineConnector from '@material-ui/lab/TimelineConnector';
-import TimelineContent from '@material-ui/lab/TimelineContent';
-import TimelineDot from '@material-ui/lab/TimelineDot';
-import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
-import Popover from '@material-ui/core/Popover';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
-import AssignmentIcon from '@material-ui/icons/Assignment';
-import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import Checkbox from '@material-ui/core/Checkbox';
-import ListItemText from '@material-ui/core/ListItemText';
-import Alert from '@material-ui/lab/Alert';
-import Popper from '@material-ui/core/Popper';
-import { makeStyles } from '@material-ui/core/styles';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
+import Tooltip from '@mui/material/Tooltip';
+import InputAdornment from '@mui/material/InputAdornment';
+import Breadcrumbs from '@mui/material/Breadcrumbs';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import Link from '@mui/material/Link';
+import Timeline from '@mui/lab/Timeline';
+import TimelineItem from '@mui/lab/TimelineItem';
+import TimelineSeparator from '@mui/lab/TimelineSeparator';
+import TimelineConnector from '@mui/lab/TimelineConnector';
+import TimelineContent from '@mui/lab/TimelineContent';
+import TimelineDot from '@mui/lab/TimelineDot';
+import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
+import Popover from '@mui/material/Popover';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import LinearProgress from '@mui/material/LinearProgress';
+import Checkbox from '@mui/material/Checkbox';
+import ListItemText from '@mui/material/ListItemText';
+import Alert from '@mui/material/Alert';
+import Popper from '@mui/material/Popper';
+import Box from '@mui/material/Box';
 
 import { getDistance, convertDistance, getBounds } from "geolib";
 import { pdf } from '@react-pdf/renderer';
@@ -49,193 +49,36 @@ import log from "./util/logger.js";
 
 import aircrafts from "./data/aircraft.json";
 
-const useStyles = makeStyles(theme => ({
-  routing: {
-    width: 400,
-    background: "#eee",
-    boxShadow: "0 0 20px rgba(0, 0, 0, 0.3)",
-    zIndex: 1000,
-    display: "flex",
-    flexDirection: "column"
-  },
-  title: {
-    textAlign: "center",
-    marginTop: theme.spacing(3),
-    marginBottom: theme.spacing(3),
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
-    fontWeight: 300,
-    position: "relative"
-  },
-  pMore: {
-    textAlign: "center",
-    marginTop: theme.spacing(2)
-  },
-  more: {
-    color: "#666",
-    cursor: "pointer",
-    "&:hover": {
-      color: "#000"
-    }
-  },
-  pButtons: {
-    marginTop: theme.spacing(4),
-    marginBottom: theme.spacing(2),
-    textAlign: "center"
-  },
+const styles = {
   content: {
     overflowX: "hidden",
     overflowY: "auto",
     scrollbarWidth: "thin",
     background: "#fff"
   },
-  result: {
-    padding: theme.spacing(3),
-    borderBottom: "1px solid #eee",
-    cursor: "pointer",
-    "&:hover": {
-      background: "#f9f9f9"
-    },
-    position: "relative"
-  },
-  separator: {
-    marginLeft: 1,
-    marginRight: 1
-  },
   icon: {
-    marginRight: theme.spacing(0.2)
-  },
-  grid: {
-    marginTop: theme.spacing(1),
-    marginLeft: -theme.spacing(2)
+    marginRight: 0.2
   },
   gridText: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
-  sortByValue: {
-    position: "absolute",
-    top: theme.spacing(1),
-    right: theme.spacing(1),
-    color: "#aaa",
-    fontSize: "0.8em"
-  },
-  form: {
-    padding: theme.spacing(2),
-  },
   formLabel: {
-    marginBottom: theme.spacing(1.5),
-    marginTop: theme.spacing(3)
-  },
-  typeButtons: {
-    marginBottom: theme.spacing(1),
-    marginTop: theme.spacing(2),
-    width: '100%'
-  },
-  tlOp: {
-    flex: 10
-  },
-  tlCt: {
-    minWidth: 50,
-    fontSize: '1.2em',
-    marginTop: '-4px'
-  },
-  tlPaper: {
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1)
-  },
-  tlGrid: {
-    marginTop: theme.spacing(1)
+    marginBottom: 1.5,
+    marginTop: 3
   },
   tlGridText: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
-  tlTotal: {
-    marginTop: theme.spacing(1)
-  },
-  back: {
-    padding: theme.spacing(3),
-    borderBottom: "1px solid #eee",
-    cursor: "pointer",
-    background: "#fff",
-    display: "flex",
-    "&:hover": {
-      background: "#f9f9f9"
-    }
-  },
-  backText: {
-    verticalAlign: 'middle',
-    display: 'inline-flex'
-  },
-  topResults: {
-    background: "#fff",
-    display: "flex",
-    alignItems: "center"
-  },
-  nbResults: {
-    background: "#fff",
-    borderBottom: "1px solid #eee",
-    padding: theme.spacing(1)
-  },
-  backSearch: {
-    cursor: "pointer",
-    height: "100%",
-    "&:hover": {
-      background: "#f9f9f9"
-    }
-  },
-  backSearchText: {
-    lineHeight: 0.8,
-    textAlign: "center",
-    paddingTop: theme.spacing(2),
-    paddingBottom: theme.spacing(2),
-    paddingLeft: theme.spacing(1.5),
-    paddingRight: theme.spacing(1.5)
-  },
-  topResultsDiv: {
-    paddingTop: theme.spacing(2),
-    paddingBottom: theme.spacing(2),
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1)
-  },
-  filterBtn: {
-    width: 150,
-    fontSize: "0.8em"
-  },
-  filters: {
-    maxWidth: 300,
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
-  },
   filtersInput: {
-    width: "100%"
-  },
-  filtersApply: {
-    marginTop: theme.spacing(1)
-  },
-  closeButton: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    color: theme.palette.grey[500],
-  },
-  progressBar: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  focusActions: {
-    textAlign: 'center',
+    width: "100%",
+    mb: 1
   },
   focusAction: {
-    marginTop: theme.spacing(2),
-    margin: '0 6px 0 6px'
+    margin: '16px 6px 0 6px'
   },
   searchOption: {
     display: 'flex',
@@ -245,7 +88,7 @@ const useStyles = makeStyles(theme => ({
   searchInfos: {
     display: 'flex',
     flexDirection: 'column',
-    marginLeft: theme.spacing(2),
+    marginLeft: 2,
     overflow: 'hidden',
   },
   searchLocation: {
@@ -262,8 +105,8 @@ const useStyles = makeStyles(theme => ({
   searchIcao: {
     minWidth: 40,
     textAlign: 'center'
-  },
-}));
+  }
+};
 
 const filter = createFilterOptions({limit: 5});
 const PopperMy = function (props) {
@@ -305,18 +148,31 @@ function filterText(sortBy, result) {
   }
 }
 
-const Results = React.memo(({results, classes, showDetail, goTo, setRoute, nbDisplay, sortBy}) => {
+const Results = React.memo(({results, showDetail, goTo, setRoute, nbDisplay, sortBy}) => {
   return (
     results.slice(0, nbDisplay).map(result =>
-      <div
-        className={classes.result}
+      <Box
+        sx={{
+          padding: 3,
+          borderBottom: "1px solid #eee",
+          cursor: "pointer",
+          "&:hover": {
+            background: "#f9f9f9"
+          },
+          position: "relative"
+        }}
         key={result.id}
         onClick={() => showDetail(result)}
         onMouseEnter={() => setRoute(result)}
       >
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize="small" />}
-          classes={{separator:classes.separator}}
+          sx={{
+            '& .MuiBreadcrumbs-separator': {
+              marginLeft: '1px',
+              marginRight: '1px'
+            }
+          }}
           maxItems={5}
           itemsBeforeCollapse={3}
         >
@@ -332,19 +188,30 @@ const Results = React.memo(({results, classes, showDetail, goTo, setRoute, nbDis
             >{icao}</Link>
           )}
         </Breadcrumbs>
-        <Grid container spacing={1} className={classes.grid}>
+        <Grid container spacing={1} sx={{ mt: 1, ml: -2 }}>
           <Grid item xs={4}>
-            <Typography variant="body2" className={classes.gridText}><MonetizationOnIcon className={classes.icon} />{result.pay}</Typography>
+            <Typography variant="body2" sx={styles.gridText}><AttachMoneyIcon sx={styles.icon} />{result.pay}</Typography>
           </Grid>
           <Grid item xs={4}>
-            <Typography variant="body2" className={classes.gridText}><SettingsEthernetIcon className={classes.icon} />{result.distance} NM</Typography>
+            <Typography variant="body2" sx={styles.gridText}><SettingsEthernetIcon sx={styles.icon} />{result.distance} NM</Typography>
           </Grid>
           <Grid item xs={4}>
-            <Typography variant="body2" className={classes.gridText}><TimerIcon className={classes.icon} />{result.time}</Typography>
+            <Typography variant="body2" sx={styles.gridText}><AccessTimeIcon sx={styles.icon} />{result.time}</Typography>
           </Grid>
         </Grid>
-        <Typography variant="body2" className={classes.sortByValue}>{filterText(sortBy, result)}</Typography>
-      </div>
+        <Typography
+          variant="body2"
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            color: "#aaa",
+            fontSize: "0.8em"
+          }}
+        >
+          {filterText(sortBy, result)}
+        </Typography>
+      </Box>
     )
   );
 });
@@ -403,7 +270,6 @@ const Routing = React.memo((props) => {
   const [editSpecs, setEditSpecs] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const icaodataArr = React.useMemo(() => Object.values(props.options.icaodata), [props.options.icaodata]);
-  const classes = useStyles();
 
   const sortFunctions = {
     payNM: (a, b) => b.payNM - a.payNM,
@@ -906,10 +772,37 @@ const Routing = React.memo((props) => {
   if (props.hidden) { return null; }
 
   return (
-    <div className={classes.routing}>
-      <Typography variant="h4" className={classes.title}>
+    <Box
+      sx={{
+        width: 400,
+        background: "#eee",
+        boxShadow: "0 0 20px rgba(0, 0, 0, 0.3)",
+        zIndex: 1000,
+        display: "flex",
+        flexDirection: "column"
+      }}
+    >
+      <Typography
+        variant="h4"
+        sx={{
+          textAlign: "center",
+          my: 3,
+          mx: 2,
+          fontWeight: 300,
+          position: "relative"
+        }}
+      >
         Route finder
-        <IconButton className={classes.closeButton} onClick={props.close}>
+        <IconButton
+          sx={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            color: 'grey[500]',
+          }}
+          onClick={props.close}
+          size="large"
+        >
           <CloseIcon />
         </IconButton>
       </Typography>
@@ -919,27 +812,49 @@ const Routing = React.memo((props) => {
         focus ?
 
           <React.Fragment>
-            <div className={classes.back} onClick={() => setFocus(null)}>
-              <Typography variant="body1" className={classes.backText}><ArrowBackIcon />&nbsp;Back to results</Typography>
-            </div>
+            <Box
+              onClick={() => setFocus(null)}
+              sx={{
+                padding: 3,
+                borderBottom: "1px solid #eee",
+                cursor: "pointer",
+                background: "#fff",
+                display: "flex",
+                "&:hover": {
+                  background: "#f9f9f9"
+                }
+              }}
+            >
+              <Typography
+                variant="body1"
+                sx={{
+                  verticalAlign: 'middle',
+                  display: 'inline-flex'
+                }}
+              >
+                <ArrowBackIcon />&nbsp;Back to results
+              </Typography>
+            </Box>
 
-            <div className={classes.content}>
-              <div className={classes.focusActions}>
+            <Box sx={styles.content}>
+              <Box sx={{
+                textAlign: 'center',
+              }}>
                 <Tooltip title={copied ? 'Copied!' : 'Copy route to clipboard'}>
                   <IconButton
-                    className={classes.focusAction}
+                    sx={styles.focusAction}
                     onClick={() => {
                       navigator.clipboard.writeText(focus.icaos.join(' '));
                       setTimeout(() => setCopied(false), 1000);
                       setCopied(true);
                     }}
-                  >
+                    size="large">
                     <AssignmentIcon />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Export route to PDF document">
                   <IconButton
-                    className={classes.focusAction}
+                    sx={styles.focusAction}
                     onClick={() => {
                       const blob = pdf(
                         <PDFRoute
@@ -958,20 +873,20 @@ const Routing = React.memo((props) => {
                         window.open(fileURL);
                       });
                     }}
-                  >
+                    size="large">
                     <PictureAsPdfIcon />
                   </IconButton>
                 </Tooltip>
-              </div>
-              <Grid container spacing={1} className={classes.tlGrid}>
+              </Box>
+              <Grid container spacing={1} sx={{ mt: 1 }}>
                 <Grid item xs={4}>
-                  <Typography variant="body1" className={classes.tlGridText}><MonetizationOnIcon className={classes.icon} />{focus.pay}</Typography>
+                  <Typography variant="body1" sx={styles.tlGridText}><AttachMoneyIcon sx={styles.icon} />{focus.pay}</Typography>
                 </Grid>
                 <Grid item xs={4}>
-                  <Typography variant="body1" className={classes.tlGridText}><SettingsEthernetIcon className={classes.icon} />{focus.distance} NM</Typography>
+                  <Typography variant="body1" sx={styles.tlGridText}><SettingsEthernetIcon sx={styles.icon} />{focus.distance} NM</Typography>
                 </Grid>
                 <Grid item xs={4}>
-                  <Typography variant="body1" className={classes.tlGridText}><TimerIcon className={classes.icon} />{focus.time}</Typography>
+                  <Typography variant="body1" sx={styles.tlGridText}><AccessTimeIcon sx={styles.icon} />{focus.time}</Typography>
                 </Grid>
               </Grid>
               <Timeline align="right">
@@ -979,42 +894,14 @@ const Routing = React.memo((props) => {
                   const onboard = i < focus.icaos.length-1 ? focus.cargos[i].TripOnly.reduce((acc, elm) => elm.from === icao ? acc : [...acc, elm], []) : [];
                   return (
                     <TimelineItem key={i}>
-                      <TimelineOppositeContent className={classes.tlOp}>
-                        { i === 0 && 
-                          <React.Fragment>
-                            { focus.reg &&
-                              <React.Fragment>
-                                <Typography variant="body2">Rent {focus.reg} {focus.rentalType} ({focus.plane.model})</Typography>
-                                <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
-                              </React.Fragment>
-                            }
-                            <Typography variant="body2" paragraph>Fuel usage : {focus.fuel} gallons</Typography>
-                          </React.Fragment>
-                        }
-                        {i < focus.icaos.length-1 && focus.cargos[i].TripOnly.length > 0 &&
-                          <Paper variant="outlined" className={classes.tlPaper}>
-                            {focus.cargos[i].TripOnly.map((cargo, j) =>
-                            cargo.from === icao
-                              ? cargo.pax
-                                ? <Typography variant="body2" key={j}>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                                : <Typography variant="body2" key={j}>{cargo.kg}kg to {cargo.to} (${cargo.pay})</Typography>
-                              : null
-                            )}
-                            { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
-                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
-                          </Paper>
-                        }
-                        {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
-                          <Paper variant="outlined" className={classes.tlPaper}>
-                            {focus.cargos[i].VIP.map((cargo, j) =>
-                            cargo.pax ?
-                                <Typography variant="body2" key={j}>{cargo.pax} VIP passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                              :
-                                <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
-                            )}
-                            <Typography variant="body2" className={classes.tlTotal}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
-                          </Paper>
-                        }
+                      <TimelineOppositeContent
+                        sx={{
+                          minWidth: 50,
+                          fontSize: '1.2em',
+                          marginTop: '-4px'
+                        }}
+                      >
+                        <Link href="#" onClick={evt => {evt.preventDefault(); props.actions.current.goTo(icao) }}>{icao}</Link>
                       </TimelineOppositeContent>
                       <TimelineSeparator>
                         <TimelineDot
@@ -1040,31 +927,87 @@ const Routing = React.memo((props) => {
                         />
                         <TimelineConnector />
                       </TimelineSeparator>
-                      <TimelineContent className={classes.tlCt}>
-                        <Link href="#" onClick={evt => {evt.preventDefault(); props.actions.current.goTo(icao) }}>{icao}</Link>
+                      <TimelineContent sx={{ flex: 10 }}>
+                        { i === 0 &&
+                          <React.Fragment>
+                            { focus.reg &&
+                              <React.Fragment>
+                                <Typography variant="body2">Rent {focus.reg} {focus.rentalType} ({focus.plane.model})</Typography>
+                                <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
+                              </React.Fragment>
+                            }
+                            <Typography variant="body2" paragraph>Fuel usage : {focus.fuel} gallons</Typography>
+                          </React.Fragment>
+                        }
+                        {i < focus.icaos.length-1 && focus.cargos[i].TripOnly.length > 0 &&
+                          <Paper variant="outlined" sx={{ px: 2, py: 1 }}>
+                            {focus.cargos[i].TripOnly.map((cargo, j) =>
+                            cargo.from === icao
+                              ? cargo.pax
+                                ? <Typography variant="body2" key={j}>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
+                                : <Typography variant="body2" key={j}>{cargo.kg}kg to {cargo.to} (${cargo.pay})</Typography>
+                              : null
+                            )}
+                            { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
+                            <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
+                          </Paper>
+                        }
+                        {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
+                          <Paper variant="outlined" sx={{ px: 2, py: 1 }}>
+                            {focus.cargos[i].VIP.map((cargo, j) =>
+                            cargo.pax ?
+                                <Typography variant="body2" key={j}>{cargo.pax} VIP passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
+                              :
+                                <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
+                            )}
+                            <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
+                          </Paper>
+                        }
                       </TimelineContent>
                     </TimelineItem>
                   )
                 })}
               </Timeline>
-            </div>
+            </Box>
           </React.Fragment>
 
         :
 
           <React.Fragment>
-            <div className={classes.topResults}>
-              <div
-                className={classes.backSearch}
+            <Box
+              sx={{
+                background: "#fff",
+                display: "flex",
+                alignItems: "center"
+              }}
+            >
+              <Box
+                sx={{
+                  cursor: "pointer",
+                  height: "100%",
+                  "&:hover": {
+                    background: "#f9f9f9"
+                  }
+                }}
                 onClick={() => {
                   setFilteredResults(null);
                   props.setRoute(null);
                   results.current = null;
                 }}
               >
-                <Typography variant="body2" className={classes.backSearchText}><ArrowBackIcon /><br />New search</Typography>
-              </div>
-              <div className={classes.topResultsDiv}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    lineHeight: 0.8,
+                    textAlign: "center",
+                    py: 2,
+                    px: 1.5
+                  }}
+                >
+                  <ArrowBackIcon /><br />New search
+                </Typography>
+              </Box>
+              <Box sx={{ py: 2, px: 1 }}>
                 <Button
                   variant="contained"
                   onClick={(evt) => setFilterMenu(evt.currentTarget)}
@@ -1077,9 +1020,15 @@ const Routing = React.memo((props) => {
                   keepMounted
                   open={Boolean(filterMenu)}
                   onClose={() => setFilterMenu(null)}
-                  classes={{paper: classes.filters}}
+                  sx={{
+                    '& .MuiPaper-root': {
+                      maxWidth: 300,
+                      py: 1,
+                      px: 2
+                    }
+                  }}
                 >
-                  <Typography variant="body1">Route filters:</Typography>
+                  <Typography variant="body1" sx={{ mb: 2 }}>Route filters:</Typography>
                   <Grid container spacing={1}>
                     <Grid item xs={6}>
                       <TextField
@@ -1093,8 +1042,8 @@ const Routing = React.memo((props) => {
                         InputLabelProps={{
                           shrink: true,
                         }}
-                        margin="dense"
-                        className={classes.filtersInput}
+                        size="small"
+                        sx={styles.filtersInput}
                       />
                     </Grid>
                     <Grid item xs={6}>
@@ -1109,8 +1058,8 @@ const Routing = React.memo((props) => {
                         InputLabelProps={{
                           shrink: true,
                         }}
-                        margin="dense"
-                        className={classes.filtersInput}
+                        size="small"
+                        sx={styles.filtersInput}
                       />
                     </Grid>
                     <Grid item xs={6}>
@@ -1128,8 +1077,8 @@ const Routing = React.memo((props) => {
                         InputLabelProps={{
                           shrink: true,
                         }}
-                        margin="dense"
-                        className={classes.filtersInput}
+                        size="small"
+                        sx={styles.filtersInput}
                       />
                     </Grid>
                     <Grid item xs={6}>
@@ -1147,8 +1096,8 @@ const Routing = React.memo((props) => {
                         InputLabelProps={{
                           shrink: true,
                         }}
-                        margin="dense"
-                        className={classes.filtersInput}
+                        size="small"
+                        sx={styles.filtersInput}
                       />
                     </Grid>
                     <Grid item xs={6}>
@@ -1163,8 +1112,8 @@ const Routing = React.memo((props) => {
                         InputLabelProps={{
                           shrink: true,
                         }}
-                        margin="dense"
-                        className={classes.filtersInput}
+                        size="small"
+                        sx={styles.filtersInput}
                       />
                     </Grid>
                     <Grid item xs={6}>
@@ -1179,22 +1128,24 @@ const Routing = React.memo((props) => {
                         InputLabelProps={{
                           shrink: true,
                         }}
-                        margin="dense"
-                        className={classes.filtersInput}
+                        size="small"
+                        sx={styles.filtersInput}
                       />
                     </Grid>
                     <Grid item xs={12}>
                       <Autocomplete
                         options={icaodataArr}
                         getOptionLabel={(a) => a.icao ? a.icao : ''}
-                        renderOption={(a) =>
-                          <span className={classes.searchOption}>
-                            <b className={classes.searchIcao}>{a.icao}</b>
-                            <span className={classes.searchInfos}>
-                              <span className={classes.searchName}>{a.name}</span>
-                              <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
-                            </span>
-                          </span>
+                        renderOption={(props, a) =>
+                          <li {...props}>
+                            <Box component="span" sx={styles.searchOption}>
+                              <Box component="b" sx={styles.searchIcao}>{a.icao}</Box>
+                              <Box component="span" sx={styles.searchInfos}>
+                                <Box component="span" sx={styles.searchName}>{a.name}</Box>
+                                <Typography variant="caption" sx={styles.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                              </Box>
+                            </Box>
+                          </li>
                         }
                         filterOptions={(options, params) => {
                           // Search for ICAO
@@ -1214,8 +1165,8 @@ const Routing = React.memo((props) => {
                             InputLabelProps={{
                               shrink: true,
                             }}
-                            margin="dense"
-                            className={classes.filtersInput}
+                            size="small"
+                            sx={styles.filtersInput}
                           />
                         }
                         PopperComponent={PopperMy}
@@ -1231,10 +1182,10 @@ const Routing = React.memo((props) => {
                       />
                     </Grid>
                   </Grid>
-                  <Button variant="contained" color="primary" onClick={filterResults} className={classes.filtersApply}>Apply</Button>
+                  <Button variant="contained" color="primary" onClick={filterResults} sx={{ mt: 1 }}>Apply</Button>
                 </Popover>
-              </div>
-              <div className={classes.topResultsDiv}>
+              </Box>
+              <Box sx={{ py: 2, px: 1 }}>
                 <TextField
                   value={sortBy}
                   onChange={changeSortBy}
@@ -1242,7 +1193,10 @@ const Routing = React.memo((props) => {
                   variant="outlined"
                   size="small"
                   select
-                  className={classes.filterBtn}
+                  sx={{
+                    width: 150,
+                    fontSize: "0.8em"
+                  }}
                   InputProps={{style:{fontSize:"1em"}}}
                   InputLabelProps={{style:{fontSize:"1em"}}}
                 >
@@ -1252,19 +1206,25 @@ const Routing = React.memo((props) => {
                   <MenuItem value="pay">Total pay</MenuItem>
                   {type === "rent" && <MenuItem value="bonus">Plane bonus</MenuItem>}
                 </TextField>
-              </div>
-            </div>
-            <div className={classes.nbResults}>
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                background: "#fff",
+                borderBottom: "1px solid #eee",
+                padding: 1
+              }}
+            >
               {
                 filteredResults.length > 0 ?
                   <Typography variant="body2">{filteredResults.length} routes found.</Typography>
                 :
                   <Typography variant="body2">No route found.</Typography>
               }
-            </div>
-            <div
+            </Box>
+            <Box
               ref={resultsDiv}
-              className={classes.content}
+              sx={styles.content}
               onScroll={() => {
                 if (resultsDiv.current.scrollHeight - resultsDiv.current.scrollTop - resultsDiv.current.clientHeight < 400 && nbDisplay < filteredResults.length) {
                   setNbDisplay(nbDisplay + 20);
@@ -1273,19 +1233,18 @@ const Routing = React.memo((props) => {
             >
               <Results
                 results={filteredResults}
-                classes={classes}
                 showDetail={showDetail}
                 goTo={props.actions.current.goTo}
                 setRoute={props.setRoute}
                 nbDisplay={nbDisplay}
                 sortBy={sortBy}
               />
-            </div>
+            </Box>
           </React.Fragment>
 
       :
 
-        <div className={classes.content+' '+classes.form}>
+        <Box sx={{ ...styles.content, ...{ p: 2 }}}>
 
           <ToggleButtonGroup
             value={type}
@@ -1298,7 +1257,11 @@ const Routing = React.memo((props) => {
                 }
               }
             }}
-            className={classes.typeButtons}
+            sx={{
+              marginBottom: 1,
+              marginTop: 2,
+              width: '100%'
+            }}
           >
             <ToggleButton value="rent" style={{flexGrow:1}}>Available planes</ToggleButton>
             <ToggleButton value="free" style={{flexGrow:1}}>Free search</ToggleButton>
@@ -1319,35 +1282,37 @@ const Routing = React.memo((props) => {
                       label='Aircraft model(s)'
                       variant='outlined'
                       helperText='Leave empty for all available models'
-                      className={classes.formLabel}
+                      sx={styles.formLabel}
                     />
                   }
                 />
               :
-                <Alert severity="error" className={classes.formLabel}>You first need to load planes.</Alert>
+                <Alert severity="error" sx={styles.formLabel}>You first need to load planes.</Alert>
               }
               <FormControlLabel
                 control={<Switch checked={loop} onChange={(evt) => setLoop(evt.target.checked)} />}
                 label="Return plane to starting airport"
-                className={classes.formLabel}
+                sx={styles.formLabel}
               />
             </React.Fragment>
           :
             <React.Fragment>
-              <Typography variant="body1" className={classes.formLabel}>Restrict search to specific route:</Typography>
+              <Typography variant="body1" sx={styles.formLabel}>Restrict search to specific route:</Typography>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
                   <Autocomplete
                     options={icaodataArr}
                     getOptionLabel={(a) => a.icao ? a.icao : ''}
-                    renderOption={(a) =>
-                      <span className={classes.searchOption}>
-                        <b className={classes.searchIcao}>{a.icao}</b>
-                        <span className={classes.searchInfos}>
-                          <span className={classes.searchName}>{a.name}</span>
-                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
-                        </span>
-                      </span>
+                    renderOption={(props, a) =>
+                      <li {...props}>
+                        <Box component="span" sx={styles.searchOption}>
+                          <Box component="b" sx={styles.searchIcao}>{a.icao}</Box>
+                          <Box component="span" sx={styles.searchInfos}>
+                            <Box component="span" sx={styles.searchName}>{a.name}</Box>
+                            <Typography variant="caption" sx={styles.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                          </Box>
+                        </Box>
+                      </li>
                     }
                     filterOptions={(options, params) => {
                       // Search for ICAO
@@ -1389,14 +1354,16 @@ const Routing = React.memo((props) => {
                   <Autocomplete
                     options={icaodataArr}
                     getOptionLabel={(a) => a.icao ? a.icao : ''}
-                    renderOption={(a) =>
-                      <span className={classes.searchOption}>
-                        <b className={classes.searchIcao}>{a.icao}</b>
-                        <span className={classes.searchInfos}>
-                          <span className={classes.searchName}>{a.name}</span>
-                          <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
-                        </span>
-                      </span>
+                    renderOption={(props, a) =>
+                      <li {...props}>
+                        <Box component="span" sx={styles.searchOption}>
+                          <Box component="b" sx={styles.searchIcao}>{a.icao}</Box>
+                          <Box component="span" sx={styles.searchInfos}>
+                            <Box component="span" sx={styles.searchName}>{a.name}</Box>
+                            <Typography variant="caption" sx={styles.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
+                          </Box>
+                        </Box>
+                      </li>
                     }
                     filterOptions={(options, params) => {
                       // Search for ICAO
@@ -1436,7 +1403,7 @@ const Routing = React.memo((props) => {
               </Grid>
 
               { toIcao &&
-                <Alert severity="info" className={classes.formLabel}>
+                <Alert severity="info" sx={styles.formLabel}>
                   Recommended algorithm parameters when setting a destination:
                   <ul>
                     <li><i>Iterations</i>: 10 or more</li>
@@ -1446,7 +1413,7 @@ const Routing = React.memo((props) => {
                 </Alert>
               }
 
-              <Typography variant="body1" className={classes.formLabel}>Aircraft specifications:</Typography>
+              <Typography variant="body1" sx={styles.formLabel}>Aircraft specifications:</Typography>
               <Autocomplete
                 options={Object.keys(aircrafts)}
                 onChange={(evt, model) => {
@@ -1471,7 +1438,7 @@ const Routing = React.memo((props) => {
                 }
               />
 
-              {editSpecs ? 
+              {editSpecs ?
                 <React.Fragment>
                   <Grid container spacing={1} style={{marginTop:12}}>
                     <Grid item xs={6}>
@@ -1598,15 +1565,33 @@ const Routing = React.memo((props) => {
           }
 
           {!moreSettings &&
-            <Typography variant="body1" className={classes.pMore}>
-              <span className={classes.more} onClick={() => setMoreSettings(true)}>More options...</span>
+            <Typography
+              variant="body1"
+              sx={{
+                textAlign: "center",
+                marginTop: 2
+              }}
+            >
+              <Box
+                component="span"
+                sx={{
+                  color: "#666",
+                  cursor: "pointer",
+                  "&:hover": {
+                    color: "#000"
+                  }
+                }}
+                onClick={() => setMoreSettings(true)}
+              >
+                More options...
+              </Box>
             </Typography>
           }
 
           {moreSettings &&
             <div>
 
-              <Typography variant="body1" className={classes.formLabel}>Advanced algorithm parameters:</Typography>
+              <Typography variant="body1" sx={styles.formLabel}>Advanced algorithm parameters:</Typography>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
                   <Tooltip title="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops.">
@@ -1698,7 +1683,7 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
 
-              <Typography variant="body1" className={classes.formLabel}>Route parameters:</Typography>
+              <Typography variant="body1" sx={styles.formLabel}>Route parameters:</Typography>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
                   <Tooltip title="Time spent on ground at each stop (flight checks, taxi, etc.)">
@@ -1803,13 +1788,19 @@ const Routing = React.memo((props) => {
               <FormControlLabel
                 control={<Switch checked={vipOnly} onChange={(evt) => setVipOnly(evt.target.checked)} />}
                 label="VIP jobs only"
-                className={classes.formLabel}
+                sx={styles.formLabel}
               />
 
             </div>
           }
 
-          <div className={classes.pButtons}>
+          <Box
+            sx={{
+              marginTop: 4,
+              marginBottom: 2,
+              textAlign: "center"
+            }}
+          >
             {!loading &&
               <Button
                 variant="contained"
@@ -1826,7 +1817,7 @@ const Routing = React.memo((props) => {
                 Find best routes
               </Button>
             }
-            {loading && <LinearProgress variant="determinate" value={progress} className={classes.progressBar} />}
+            {loading && <LinearProgress variant="determinate" value={progress} sx={{ my: 2 }} />}
             {cancel !== null &&
               <div>
                 <Typography variant="body2" gutterBottom>{nbResults} routes found</Typography>
@@ -1835,10 +1826,10 @@ const Routing = React.memo((props) => {
                 </Button>
               </div>
             }
-          </div>
-        </div>
+          </Box>
+        </Box>
       }
-    </div>
+    </Box>
   );
 
 });

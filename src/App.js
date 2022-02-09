@@ -1,29 +1,29 @@
 import React from 'react';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Tooltip from '@material-ui/core/Tooltip';
-import Button from '@material-ui/core/Button';
-import InputBase from '@material-ui/core/InputBase';
-import Typography from '@material-ui/core/Typography';
-import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
-import IconButton from '@material-ui/core/IconButton';
-import Popper from '@material-ui/core/Popper';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import StarIcon from '@material-ui/icons/Star';
-import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
-import FlightIcon from '@material-ui/icons/Flight';
-import PeopleIcon from '@material-ui/icons/People';
-import BusinessCenterIcon from '@material-ui/icons/BusinessCenter';
-import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
-import FlightLandIcon from '@material-ui/icons/FlightLand';
-import ExploreIcon from '@material-ui/icons/Explore';
-import UpdateIcon from '@material-ui/icons/Update';
-import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
-import CloseIcon from '@material-ui/icons/Close';
-import TuneIcon from '@material-ui/icons/Tune';
-import DirectionsIcon from '@material-ui/icons/Directions';
-import { makeStyles } from '@material-ui/core/styles';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import Tooltip from '@mui/material/Tooltip';
+import Button from '@mui/material/Button';
+import InputBase from '@mui/material/InputBase';
+import Typography from '@mui/material/Typography';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import IconButton from '@mui/material/IconButton';
+import Popper from '@mui/material/Popper';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import StarIcon from '@mui/icons-material/Star';
+import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
+import FlightIcon from '@mui/icons-material/Flight';
+import PeopleIcon from '@mui/icons-material/People';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import FlightLandIcon from '@mui/icons-material/FlightLand';
+import ExploreIcon from '@mui/icons-material/Explore';
+import UpdateIcon from '@mui/icons-material/Update';
+import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
+import CloseIcon from '@mui/icons-material/Close';
+import TuneIcon from '@mui/icons-material/Tune';
+import DirectionsIcon from '@mui/icons-material/Directions';
 
 import { default as _clone } from 'lodash/cloneDeep';
 import { default as _mergeWith } from 'lodash/mergeWith';
@@ -139,55 +139,43 @@ function wrap(num, center) {
   return 0;
 }
 
-const useStyles = makeStyles(theme => ({
+const styles = {
   tgBtn: {
     color: "rgba(255, 255, 255, 0.5)",
-    borderColor: "rgba(255, 255, 255, 0.5)"
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    '&.Mui-selected': {
+      color: "rgba(255, 255, 255, 1) !important"
+    }
   },
-  tgBtnSelected: {
-    color: "rgba(255, 255, 255, 1) !important"
+  tooltip: {
+    backgroundColor: 'primary.dark',
+    border: '1px solid #fff',
+    fontSize: '0.9em',
+    fontWeight: 'normal',
+    marginTop: '5px',
+    '& .MuiTooltip-arrow': {
+      color: 'primary.dark',
+      "&:before": {
+        border: '1px solid #fff'
+      }
+    }
   },
   box: {
-    marginLeft: theme.spacing(2),
-    marginTop: theme.spacing(1)/2,
-    marginBottom: theme.spacing(1)/2,
-  },
-  input: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    color: "#fff",
-    borderRadius: theme.shape.borderRadius,
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
-    width: "60px"
-  },
-  inputNb: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    color: "#fff",
-    borderRadius: theme.shape.borderRadius,
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
-    width: "50px"
-  },
-  inputSearch: {
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-    color: "#fff",
-    borderRadius: theme.shape.borderRadius,
-    paddingLeft: theme.spacing(1),
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
-    width: "120px"
+    marginLeft: 2,
+    marginTop: 0.5,
+    marginBottom: 0.5,
   },
   boxBorder: {
-    borderRadius: theme.shape.borderRadius,
+    borderRadius: 1,
     border: '1px solid',
     borderColor: "rgba(255, 255, 255, 0.5)",
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
+    paddingLeft: 1,
+    paddingRight: 1,
     paddingTop: '7px',
     paddingBottom: '7px',
-    marginLeft: theme.spacing(2),
-    marginTop: theme.spacing(1)/2,
-    marginBottom: theme.spacing(1)/2,
+    marginLeft: 2,
+    marginTop: 0.5,
+    marginBottom: 0.5,
     display: 'flex',
     alignItems: 'center'
   },
@@ -196,96 +184,48 @@ const useStyles = makeStyles(theme => ({
     "&:hover": {
       color: "#fff"
     },
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2)
+    marginTop: 1,
+    marginBottom: 1,
+    marginLeft: 2,
   },
-  popover: {
-    padding: theme.spacing(2),
-    marginTop: '24px'
+  input: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    color: "#fff",
+    borderRadius: 1,
+    paddingLeft: 1,
+    paddingRight: 1,
+    width: "60px"
   },
-  tooltip: {
-    backgroundColor: theme.palette.primary.dark,
-    border: '1px solid #fff',
-    fontSize: '0.9em',
-    fontWeight: 'normal',
-    marginTop: '5px'
+  inputNb: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    color: "#fff",
+    borderRadius: 1,
+    paddingLeft: 1,
+    paddingRight: 1,
+    width: "50px"
   },
-  tooltipArrow: {
-    color: theme.palette.primary.dark,
-    "&:before": {
-      border: '1px solid #fff'
-    }
-  },
-  title: {
-    flexGrow: 1,
-    display: 'flex',
-    alignItems: 'baseline',
-    flexWrap: 'wrap'
-  },
-  h6: {
-    lineHeight: 1
-  },
-  version: {
-    marginLeft: theme.spacing(1),
-    paddingLeft: '2px',
-    paddingRight: '2px',
-    paddingTop: theme.spacing(0.5),
-    paddingBottom: theme.spacing(0.5),
-    fontWeight: 'normal',
-    color: '#fff',
-    letterSpacing: 'normal',
-    textTransform: 'none',
-    minWidth: 'auto'
-  },
-  filters: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    margin: theme.spacing(1)/2,
-    justifyContent: 'flex-end'
-  },
-  search: {
-    display: 'flex',
-    alignItems: 'center'
-  },
-  searchOption: {
-    display: 'flex',
-    alignItems: 'center',
-    overflow: 'hidden'
-  },
-  searchInfos: {
-    display: 'flex',
-    flexDirection: 'column',
-    marginLeft: theme.spacing(2),
-    overflow: 'hidden',
-  },
-  searchLocation: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    color: '#aaa'
-  },
-  searchName: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap'
-  },
-  searchIcao: {
-    minWidth: 40,
-    textAlign: 'center'
-  },
-  body: {
-    display: 'flex',
-    flexWrap: 'nowrap',
-    flexGrow: '1',
-    overflow: 'hidden'
+  inputSearch: {
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    color: "#fff",
+    borderRadius: 1,
+    paddingLeft: 1,
+    paddingTop: 1,
+    paddingBottom: 1,
+    width: "120px"
   }
-}));
+}
 
-const TooltipToggleButton = ({ children, title, tclasses, ...props }) => (
-  <Tooltip title={title} classes={tclasses} arrow>
-    <ToggleButton {...props}>{children}</ToggleButton>
+const MyTooltip = ({ children, ...props}) => (
+  <Tooltip componentsProps={{ tooltip: { sx: styles.tooltip }}} arrow {...props}>
+    {children}
   </Tooltip>
-)
+);
+
+const TooltipToggleButton = ({ children, title, ...props }) => (
+  <MyTooltip title={title}>
+    <ToggleButton sx={styles.tgBtn} {...props}>{children}</ToggleButton>
+  </MyTooltip>
+);
 
 
 function transformPlanes(p) {
@@ -367,7 +307,6 @@ function App() {
   const [routeFinder, setRouteFinder] = React.useState(false);
   const [route, setRoute] = React.useState(null);
   const mapRef = React.useRef();
-  const classes = useStyles();
 
   const options = React.useMemo(() => ({
     min: cargo === 'passengers' ? minPax : minKg,
@@ -494,36 +433,115 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div style={{
+      <Box style={{
         display: "flex",
         flexFlow: "column",
         height: "100vh",
       }}>
         <AppBar position="static">
           <Toolbar>
-            <div className={classes.title}>
-              <Typography variant="h6" className={classes.h6}>
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: 'flex',
+                alignItems: 'baseline',
+                flexWrap: 'wrap'
+              }}
+            >
+              <Typography variant="h6" sx={{ lineHeight: 1 }}>
                 FSE Planner
               </Typography>
               <Tooltip title="Changelog & credits">
-                <Button className={classes.version} onClick={() => setCreditsPopup(true)} data-tour="Step9" size="small">
+                <Button
+                  sx={{
+                    marginLeft: 1,
+                    paddingLeft: '2px',
+                    paddingRight: '2px',
+                    paddingTop: 0.5,
+                    paddingBottom: 0.5,
+                    fontWeight: 'normal',
+                    color: '#fff',
+                    letterSpacing: 'normal',
+                    textTransform: 'none',
+                    minWidth: 'auto'
+                  }}
+                  onClick={() => setCreditsPopup(true)}
+                  data-tour="Step9"
+                  size="small"
+                >
                   v{process.env.REACT_APP_VERSION}
                 </Button>
               </Tooltip>
-            </div>
-            <div className={classes.filters}>
-              <div className={classes.search}>
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                margin: 0.5,
+                justifyContent: 'flex-end'
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
                 <Autocomplete
                   options={icaodataSrcArr}
                   getOptionLabel={(a) => a.icao ? a.icao : ''}
-                  renderOption={(a) =>
-                    <span className={classes.searchOption}>
-                      <b className={classes.searchIcao}>{a.icao}</b>
-                      <span className={classes.searchInfos}>
-                        <span className={classes.searchName}>{a.name}</span>
-                        <Typography variant="caption" className={classes.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
-                      </span>
-                    </span>
+                  renderOption={(props, a) =>
+                    <li {...props}>
+                      <Box
+                        component="span"
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        <Box
+                          component="b"
+                          sx={{
+                            minWidth: '40px',
+                            textAlign: 'center'
+                          }}
+                        >
+                          {a.icao}
+                        </Box>
+                        <Box
+                          component="span"
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            marginLeft: 2,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <Box
+                            component="span"
+                            sx={{
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {a.name}
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                              color: '#aaa'
+                            }}
+                          >
+                            {a.city}, {a.state ? a.state+', ' : ''}{a.country}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </li>
                   }
                   filterOptions={(options, params) => {
                     // If input is empty and search history is not, display search history
@@ -542,7 +560,7 @@ function App() {
                   renderInput={(params) =>
                     <InputBase
                       placeholder="Search..."
-                      className={classes.inputSearch}
+                      sx={styles.inputSearch}
                       ref={params.InputProps.ref}
                       inputProps={params.inputProps}
                       endAdornment={params.inputProps.value ?
@@ -581,153 +599,160 @@ function App() {
                   autoHighlight={true}
                   selectOnFocus={false}
                 />
-              </div>
-              <Tooltip title='Jobs radiating FROM this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                <div className={classes.boxBorder} data-tour="Step7">
-                  <FlightTakeoffIcon className={fromIcao === null ? classes.tgBtn : null}/>
+              </Box>
+              <MyTooltip title='Jobs radiating FROM this airport'>
+                <Box sx={styles.boxBorder} data-tour="Step7">
+                  <FlightTakeoffIcon sx={fromIcao === null ? styles.tgBtn : null}/>
                   &nbsp;&nbsp;
                   <InputBase
                     placeholder="ICAO"
-                    className={classes.input}
+                    sx={styles.input}
                     inputProps={{maxLength:4}}
                     value={fromIcaoInput}
                     onChange={evt => setFrom(evt.target.value)}
                   />
-                </div>
-              </Tooltip>
-              <Tooltip title='Jobs radiating TO this airport' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                <div className={classes.boxBorder}>
-                  <FlightLandIcon className={toIcao === null ? classes.tgBtn : null} />
+                </Box>
+              </MyTooltip>
+              <MyTooltip title='Jobs radiating TO this airport'>
+                <Box sx={styles.boxBorder}>
+                  <FlightLandIcon sx={toIcao === null ? styles.tgBtn : null} />
                   &nbsp;&nbsp;
                   <InputBase
                     placeholder="ICAO"
-                    className={classes.input}
+                    sx={styles.input}
                     inputProps={{maxLength:4}}
                     value={toIcaoInput}
                     onChange={evt => setTo(evt.target.value)}
                   />
-                </div>
-              </Tooltip>
-              <Tooltip title='Jobs going in this direction (+/- 30°)' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
-                <div className={classes.boxBorder}>
-                  <ExploreIcon className={direction === '' ? classes.tgBtn : null}/>
+                </Box>
+              </MyTooltip>
+              <MyTooltip title='Jobs going in this direction (+/- 30°)'>
+                <Box sx={styles.boxBorder}>
+                  <ExploreIcon sx={direction === '' ? styles.tgBtn : null}/>
                   &nbsp;&nbsp;
                   <InputBase
                     placeholder="145°"
-                    className={classes.input}
+                    sx={styles.input}
                     inputProps={{maxLength:3}}
                     value={direction}
                     onChange={evt => { setDirection(evt.target.value); }}
                   />
-                </div>
-              </Tooltip>
-              <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} className={classes.box} exclusive>
-                <TooltipToggleButton value="Trip-Only" title="Trip only" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                </Box>
+              </MyTooltip>
+              <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} sx={styles.box} exclusive>
+                <TooltipToggleButton value="Trip-Only" title="Trip Only">
                   <EmojiPeopleIcon />
                 </TooltipToggleButton>
-                <TooltipToggleButton value="VIP" title="VIP" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                <TooltipToggleButton value="VIP" title="VIP">
                   <StarIcon />
                 </TooltipToggleButton>
-                <TooltipToggleButton value="All-In" title="All in" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                <TooltipToggleButton value="All-In" title="All In">
                   <FlightIcon />
                 </TooltipToggleButton>
               </ToggleButtonGroup>
-              <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} className={classes.box} exclusive>
-                <TooltipToggleButton value="passengers" title="Passengers" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+              <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} sx={styles.box} exclusive>
+                <TooltipToggleButton value="passengers" title="Passengers">
                   <PeopleIcon />
                 </TooltipToggleButton>
-                <TooltipToggleButton value="kg" title="Cargo" classes={{root: classes.tgBtn, selected: classes.tgBtnSelected}} tclasses={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}}>
+                <TooltipToggleButton value="kg" title="Cargo">
                   <BusinessCenterIcon />
                 </TooltipToggleButton>
               </ToggleButtonGroup>
-              <div className={classes.boxBorder}>
+              <Box sx={styles.boxBorder}>
                 {cargo === 'passengers' ?
                   <React.Fragment>
-                    <PeopleIcon className={minPax === '' && maxPax === '' ? classes.tgBtn : null} />
+                    <PeopleIcon sx={minPax === '' && maxPax === '' ? styles.tgBtn : null} />
                     &nbsp;
-                    <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                    <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
                       <InputBase
                         placeholder="min"
-                        className={classes.inputNb}
+                        sx={styles.inputNb}
                         value={minPax}
                         onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinPax(nb); }}
                       />
-                    </Tooltip>
+                    </MyTooltip>
                     -
-                    <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                    <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
                       <InputBase
                         placeholder="max"
-                        className={classes.inputNb}
+                        sx={styles.inputNb}
                         value={maxPax}
                         onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxPax(nb); }}
                       />
-                    </Tooltip>
+                    </MyTooltip>
                   </React.Fragment>
                 :
                   <React.Fragment>
-                    <BusinessCenterIcon className={minKg === '' && maxKg === '' ? classes.tgBtn : null} />
+                    <BusinessCenterIcon sx={minKg === '' && maxKg === '' ? styles.tgBtn : null} />
                     &nbsp;
-                    <Tooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                    <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
                       <InputBase
                         placeholder="min"
-                        className={classes.inputNb}
+                        sx={styles.inputNb}
                         value={minKg}
                         onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinKg(nb); }}
                       />
-                    </Tooltip>
+                    </MyTooltip>
                     -
-                    <Tooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"} classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                    <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
                       <InputBase
                         placeholder="max"
-                        className={classes.inputNb}
+                        sx={styles.inputNb}
                         value={maxKg}
                         onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxKg(nb); }}
                       />
-                    </Tooltip>
+                    </MyTooltip>
                   </React.Fragment>
                 }
 
-              </div>
-              <div className={classes.boxBorder}>
-                <SettingsEthernetIcon className={minDist === '' && maxDist === '' ? classes.tgBtn : null} />
+              </Box>
+              <Box sx={styles.boxBorder}>
+                <SettingsEthernetIcon sx={minDist === '' && maxDist === '' ? styles.tgBtn : null} />
                 &nbsp;
-                <Tooltip title='Minimum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <MyTooltip title='Minimum job distance in NM'>
                   <InputBase
                     placeholder="min"
-                    className={classes.inputNb}
+                    sx={styles.inputNb}
                     value={minDist}
                     onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinDist(nb); }}
                   />
-                </Tooltip>
+                </MyTooltip>
                 -
-                <Tooltip title='Maximum job distance in NM' classes={{tooltip: classes.tooltip, arrow: classes.tooltipArrow}} arrow>
+                <MyTooltip title='Maximum job distance in NM'>
                   <InputBase
                     placeholder="max"
-                    className={classes.inputNb}
+                    sx={styles.inputNb}
                     value={maxDist}
                     onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxDist(nb); }}
                   />
-                </Tooltip>
-              </div>
-              <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setSettingsPopup(true)} data-tour="Step8">
+                </MyTooltip>
+              </Box>
+              <IconButton sx={styles.icon} size="small" onClick={() => setSettingsPopup(true)} data-tour="Step8">
                 <Tooltip title="More options">
                   <TuneIcon />
                 </Tooltip>
               </IconButton>
-              <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setRouteFinder(!routeFinder)} data-tour="Step8b">
+              <IconButton sx={styles.icon} size="small" onClick={() => setRouteFinder(!routeFinder)} data-tour="Step8b">
                 <Tooltip title="Route finder">
                   <DirectionsIcon />
                 </Tooltip>
               </IconButton>
-              <IconButton className={classes.icon+' '+classes.box} size="small" onClick={() => setUpdatePopup(true)} data-tour="Step2">
+              <IconButton sx={styles.icon} size="small" onClick={() => setUpdatePopup(true)} data-tour="Step2">
                 <Tooltip title="Load data from FSE">
                   <UpdateIcon />
                 </Tooltip>
               </IconButton>
-            </div>
+            </Box>
           </Toolbar>
         </AppBar>
-        <div className={classes.body}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'nowrap',
+            flexGrow: '1',
+            overflow: 'hidden'
+          }}
+        >
           <Routing
             options={options}
             setRoute={setRoute}
@@ -745,7 +770,7 @@ function App() {
             mapRef={mapRef}
             actions={actions}
           />
-        </div>
+        </Box>
         <UpdatePopup
           open={updatePopup}
           setUpdatePopup={setUpdatePopup}
@@ -776,7 +801,7 @@ function App() {
           updatePopup={updatePopup}
           setUpdatePopup={setUpdatePopup}
         />
-      </div>
+      </Box>
     </ErrorBoundary>
   );
 }

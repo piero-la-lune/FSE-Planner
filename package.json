@@ -5,10 +5,12 @@
   "author": "piero-la-lune",
   "private": true,
   "dependencies": {
-    "@material-ui/core": "^4.12.3",
-    "@material-ui/icons": "^4.11.2",
-    "@material-ui/lab": "^4.0.0-alpha.60",
-    "@material-ui/styles": "^4.11.4",
+    "@emotion/react": "^11.7.1",
+    "@emotion/styled": "^11.6.0",
+    "@mui/icons-material": "^5.3.0",
+    "@mui/lab": "^5.0.0-alpha.65",
+    "@mui/material": "^5.3.0",
+    "@mui/styles": "^5.3.0",
     "@react-pdf/renderer": "^2.0.19",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
@@ -25,7 +27,6 @@
     "react-papaparse": "^4.0.0",
     "react-scripts": "4.0.3",
     "reactour": "^1.18.6",
-    "styled-components": "^5.3.1",
     "worker-loader": "^3.0.8"
   },
   "scripts": {

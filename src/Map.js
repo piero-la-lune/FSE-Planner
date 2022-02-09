@@ -1,10 +1,10 @@
 import React from 'react';
-import Divider from '@material-ui/core/Divider';
-import Popover from '@material-ui/core/Popover';
-import MenuList from '@material-ui/core/MenuList';
-import MenuItem from '@material-ui/core/MenuItem';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import Divider from '@mui/material/Divider';
+import Popover from '@mui/material/Popover';
+import MenuList from '@mui/material/MenuList';
+import MenuItem from '@mui/material/MenuItem';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
 import { getBounds } from "geolib";
 import L from "leaflet";
@@ -18,34 +18,10 @@ const baselayerURL = [
   'https://api.maptiler.com/maps/topo/{z}/{x}/{y}.png?key='+process.env.REACT_APP_MAPTILER_KEY
 ];
 
-const useStyles = makeStyles(theme => ({
-  map: {
-    display: 'flex',
-    flex: '1 1 auto',
-    position: 'relative'
-  },
-  contextMenu: {
-    minWidth: 200
-  },
-  contextMenuTitle: {
-    margin: theme.spacing(1),
-    fontWeight: 'bold'
-  },
-  contextMenuList: {
-    paddingTop: 0
-  },
-  progress: {
-    position: 'absolute',
-    top: 22,
-    left: 60,
-    zIndex: 1000
-  }
-}));
 
 const FSEMap = React.memo(function FSEMap(props) {
 
   const s = props.options.settings;
-  const classes = useStyles();
   const [contextMenu, setContextMenu] = React.useState(null);
   const [basemap, setBasemap] = React.useState(s.display.map.basemap);
   const [init, setInit] = React.useState(false);
@@ -185,7 +161,13 @@ const FSEMap = React.memo(function FSEMap(props) {
   };
 
   return (
-    <div className={classes.map}>
+    <Box
+      sx={{
+        display: 'flex',
+        flex: '1 1 auto',
+        position: 'relative'
+      }}
+    >
       <div id="map">
       </div>
       {contextMenu &&
@@ -197,11 +179,19 @@ const FSEMap = React.memo(function FSEMap(props) {
             { top: contextMenu.mouseY, left: contextMenu.mouseX }
           }
           onContextMenu={(evt) => {evt.preventDefault(); evt.stopPropagation();}}
-          classes={{paper:classes.contextMenu}}
+          sx={{ '& .MuiPaper-root': { minWidth: 200 } }}
         >
-          <Typography variant="body1" className={classes.contextMenuTitle}>{contextMenu.title}</Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              margin: 1,
+              fontWeight: 'bold'
+            }}
+          >
+            {contextMenu.title}
+          </Typography>
           {contextMenu.actions.length > 0 &&
-            <MenuList className={classes.contextMenuList}>
+            <MenuList sx={{ pt: 0 }}>
               { contextMenu.actions.map((action, i) =>
                 {
                   if (action.divider) {
@@ -226,7 +216,7 @@ const FSEMap = React.memo(function FSEMap(props) {
           icaos={props.icaos}
         />
       }
-    </div>
+    </Box>
   );
 
 });

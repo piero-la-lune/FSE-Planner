@@ -1,24 +1,24 @@
 import React from 'react';
-import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
-import CloseIcon from '@material-ui/icons/Close';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import Tooltip from '@material-ui/core/Tooltip';
-import Link from '@material-ui/core/Link';
-import Typography from '@material-ui/core/Typography';
-import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import AspectRatioIcon from '@material-ui/icons/AspectRatio';
-import Alert from '@material-ui/lab/Alert';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Grid from '@material-ui/core/Grid';
-import { makeStyles } from '@material-ui/core/styles';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
+import CloseIcon from '@mui/icons-material/Close';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import Tooltip from '@mui/material/Tooltip';
+import Link from '@mui/material/Link';
+import Typography from '@mui/material/Typography';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import CircularProgress from '@mui/material/CircularProgress';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import Alert from '@mui/material/Alert';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 
 import { usePapaParse } from 'react-papaparse';
 import { isPointInPolygon } from "geolib";
@@ -165,46 +165,27 @@ function cleanJobs(list, icaodata) {
 }
 
 
-const useStyles = makeStyles(theme => ({
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-  alert: {
-    marginBottom: theme.spacing(2)
-  },
+const styles = {
   buttonProgress: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    marginTop: -12,
-    marginLeft: -12,
-  },
-  span: {
-    display: 'flex',
-    fontWeight: 'bold'
-  },
-  divider: {
-    margin: theme.spacing(3) + 'px 0'
-  },
-  dialog: {
-    padding: theme.spacing(3)
+    marginTop: '-12px',
+    marginLeft: '-12px',
   },
   accSummary: {
-    alignItems: 'center'
+    '& .MuiAccordionSummary-content': {
+      alignItems: 'center',
+      mr: 2
+    }
   },
   accDetails: {
     flexDirection: 'column'
   },
   title: {
     flexGrow: 1
-  },
-  ownedPlanes: {
-    marginTop: theme.spacing(2)
   }
-}));
+};
 
 const filter = createFilterOptions();
 const filter10 = createFilterOptions({limit: 10});
@@ -233,7 +214,6 @@ function UpdatePopup(props) {
   const [customIcaosVal, setCustomIcaosVal] = React.useState(props.customIcaos.join(' '));
   const [userList, setUserList] = React.useState([]);
   const [username, setUsername] = React.useState(storage.get('username', ''));
-  const classes = useStyles();
   const { readString } = usePapaParse();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
@@ -530,221 +510,248 @@ function UpdatePopup(props) {
     <Dialog onClose={handleClose} open={props.open} fullWidth={true} maxWidth="sm">
       <DialogTitle>
         Load data from FSE
-        <IconButton className={classes.closeButton} onClick={handleClose}>
+        <IconButton
+          onClick={handleClose}
+          size="large"
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: 'grey[500]',
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers className={classes.dialog}>
+      <DialogContent dividers sx={{ p: 3 }}>
 
-        <Alert severity="warning" className={classes.alert}>You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
+        <Alert severity="warning" sx={{ mb: 2 }}>You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
 
-        <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')} data-tour="Step4">
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>FSE information</Typography>
-          </AccordionSummary>
-          <AccordionDetails className={classes.accDetails}>
-            <Grid container spacing={3}>
-              <Grid item xs={6}>
-                <TextField
-                  label="Read Access Key"
-                  type="text"
-                  onChange={(evt) => {
-                    let k = evt.target.value;
-                    setKey(k);
-                    storage.set('key', k);
-                  }}
-                  value={key}
-                  helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}
-                  variant='outlined'
-                  fullWidth
-                  required
-                />
+        <Box>
+          <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')} data-tour="Step4">
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography>FSE information</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={styles.accDetails}>
+              <Grid container spacing={3}>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Read Access Key"
+                    type="text"
+                    onChange={(evt) => {
+                      let k = evt.target.value;
+                      setKey(k);
+                      storage.set('key', k);
+                    }}
+                    value={key}
+                    helperText={<span>Can be found <Link href="https://server.fseconomy.net/datafeeds.jsp" target="_blank">here</Link></span>}
+                    variant='outlined'
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Username"
+                    type="text"
+                    onChange={(evt) => {
+                      let u = evt.target.value;
+                      setUsername(u);
+                      storage.set('username', u);
+                    }}
+                    value={username}
+                    variant='outlined'
+                    fullWidth
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Username"
-                  type="text"
-                  onChange={(evt) => {
-                    let u = evt.target.value;
-                    setUsername(u);
-                    storage.set('username', u);
-                  }}
-                  value={username}
-                  variant='outlined'
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
+            </AccordionDetails>
+          </Accordion>
 
-        <Accordion expanded={expanded === 'panel2'} onChange={panelChange('panel2')} data-tour="Step5">
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
-            <Typography className={classes.title}>Jobs</Typography>
-            <Button color="secondary" onClick={clearJobs}>
-              Clear
-            </Button>
-            &nbsp;
-            <Tooltip title={<span>Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</span>}>
-              <span>
-                <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading !== false || !key || !jobsAreas.length || jobsRequests > 10}>
-                  Update
-                  {loading === 'panel2' && <CircularProgress size={24} className={classes.buttonProgress} />}
-                </Button>
-              </span>
-            </Tooltip>
-          </AccordionSummary>
-          <AccordionDetails className={classes.accDetails}>
-            <Autocomplete
-              multiple
-              limitTags={2}
-              options={areas}
-              renderInput={(params) => (
-                jobsRequests > 1 ?
-                  <TextField {...params} label='Included countries' variant='outlined' error helperText={'Selected area is very large, it will require '+jobsRequests+' requests (10 max)'} />
-                :
-                  <TextField {...params} label='Included countries' variant='outlined' />
-              )}
-              onChange={(evt, value) => {
-                if (value.includes('Custom area') && !jobsAreas.includes('Custom area')) {
-                  setOpenCustom(true);
-                }
-                else {
-                  setJobsAreas(value);
-                  setJobsRequests(getIcaoList(value, jobsCustom, props.icaodata, props.icaos).length)
-                }
-              }}
-              value={jobsAreas}
-              filterOptions={(options, params) => {
-                const filtered = filter(options, params);
-                if (!filtered.includes('Custom area')) {
-                  filtered.unshift('Custom area');
-                }
-                return filtered;
-              }}
-              selectOnFocus
-              clearOnBlur
-              handleHomeEndKeys
-              renderOption={option => (option === 'Custom area') ? <span className={classes.span}><AspectRatioIcon />&nbsp;Select custom area on map</span> : option}
-            />
-            <CustomAreaPopup
-              open={openCustom}
-              handleClose={() => setOpenCustom(false)}
-              setArea={(bounds) => {
-                const a = [...jobsAreas, 'Custom area'];
-                setJobsCustom(bounds);
-                setJobsAreas(a);
-                setJobsRequests(getIcaoList(a, bounds, props.icaodata, props.icaos).length);
-              }}
-              bounds={jobsCustom}
-              settings={props.settings}
-            />
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion expanded={expanded === 'panel3'} onChange={panelChange('panel3')} data-tour="Step6">
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
-            <Typography className={classes.title}>Available planes</Typography>
-            <Button color="secondary" onClick={clearPlanes}>
-              Clear
-            </Button>
-            &nbsp;
-            <Tooltip title={<span>Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</span>}>
-              <span>
-                <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading !== false || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
-                  Update
-                  {loading === 'panel3' && <CircularProgress size={24} className={classes.buttonProgress} />}
-                </Button>
-              </span>
-            </Tooltip>
-          </AccordionSummary>
-          <AccordionDetails className={classes.accDetails}>
-            <Autocomplete
-              multiple
-              limitTags={2}
-              options={Object.keys(aircrafts)}
-              renderInput={(params) => (
-                rentablePlanesRequests > 1 ?
-                  <TextField {...params} label='Rentable planes: aircraft models' variant='outlined' error helperText={rentablePlanesRequests+' models selected, it will require '+rentablePlanesRequests+' requests (10 max)'} />
-                :
-                  <TextField {...params} label='Rentable planes: aircraft model' variant='outlined' />
-              )}
-              onChange={(evt, value) => {
-                setPlaneModel(value);
-                setRentablePlanesRequests(value.length);
-              }}
-              value={planeModel}
-            />
-            <Autocomplete
-              multiple
-              limitTags={2}
-              options={userList}
-              renderInput={(params) => (
-                ownedPlanesRequests > 1 ?
-                  <TextField {...params} label='Owned & leased planes: user or group names' variant='outlined' error helperText={ownedPlanesRequests+' users/groups selected, it will require '+ownedPlanesRequests+' requests (10 max)'} />
-                :
-                  <TextField {...params} label='Owned & leased planes: user or group name' variant='outlined' />
-              )}
-              onChange={(evt, value) => {
-                setPlaneUser(value);
-                setOwnedPlanesRequests(value.length);
-              }}
-              filterOptions={(options, params) => filter10(options, params)}
-              getOptionLabel={option => he.decode(option)}
-              value={planeUser}
-              className={classes.ownedPlanes}
-            />
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion expanded={expanded === 'panel4'} onChange={panelChange('panel4')}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
-            <Typography className={classes.title}>My flight</Typography>
-            <Button color="secondary" onClick={clearFlight}>
-              Clear
-            </Button>
-            &nbsp;
-            <Tooltip title={<span>Last update : {flightTime ? ((new Date(flightTime)).toLocaleString()) : "never"}</span>}>
-              <span>
-                <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading !== false || !key}>
-                  Update
-                  {loading === 'panel4' && <CircularProgress size={24} className={classes.buttonProgress} />}
-                </Button>
-              </span>
-            </Tooltip>
-          </AccordionSummary>
-        </Accordion>
-
-        <Accordion expanded={expanded === 'panel5'} onChange={panelChange('panel5')}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: classes.accSummary}}>
-            <Typography className={classes.title}>Custom markers</Typography>
-            <Button color="secondary" onClick={clearCustom}>
-              Clear
-            </Button>
-            &nbsp;
-            <span>
-              <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading !== false}>
-                Apply
-                {loading === 'panel5' && <CircularProgress size={24} className={classes.buttonProgress} />}
+          <Accordion expanded={expanded === 'panel2'} onChange={panelChange('panel2')} data-tour="Step5">
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
+              <Typography sx={styles.title}>Jobs</Typography>
+              <Button color="secondary" onClick={clearJobs}>
+                Clear
               </Button>
-            </span>
-          </AccordionSummary>
-          <AccordionDetails className={classes.accDetails}>
-            <Alert severity="info" style={{marginBottom: 32}}>These airports will form an highlighted route on the map (you can hide the path to only highlight the aiports in the display settings). You may add new aiports directly on the map with a right click.</Alert>
-            <TextField
-              label="List of FSE ICAOs"
-              multiline
-              rows={4}
-              variant="outlined"
-              placeholder="LFLY EGLL LFPO [...]"
-              helperText="ICAOs can be seperated by a white space, a new line or a coma."
-              value={customIcaosVal}
-              onChange={(evt) => {
-                setCustomIcaosVal(evt.target.value);
-              }}
-            />
-          </AccordionDetails>
-        </Accordion>
+              &nbsp;
+              <Tooltip title={<span>Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</span>}>
+                <span>
+                  <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading !== false || !key || !jobsAreas.length || jobsRequests > 10}>
+                    Update
+                    {loading === 'panel2' && <CircularProgress size={24} sx={styles.buttonProgress} />}
+                  </Button>
+                </span>
+              </Tooltip>
+            </AccordionSummary>
+            <AccordionDetails sx={styles.accDetails}>
+              <Autocomplete
+                multiple
+                limitTags={2}
+                options={areas}
+                renderInput={(params) => (
+                  jobsRequests > 1 ?
+                    <TextField {...params} label='Included countries' variant='outlined' error helperText={'Selected area is very large, it will require '+jobsRequests+' requests (10 max)'} />
+                  :
+                    <TextField {...params} label='Included countries' variant='outlined' />
+                )}
+                onChange={(evt, value) => {
+                  if (value.includes('Custom area') && !jobsAreas.includes('Custom area')) {
+                    setOpenCustom(true);
+                  }
+                  else {
+                    setJobsAreas(value);
+                    setJobsRequests(getIcaoList(value, jobsCustom, props.icaodata, props.icaos).length)
+                  }
+                }}
+                value={jobsAreas}
+                filterOptions={(options, params) => {
+                  const filtered = filter(options, params);
+                  if (!filtered.includes('Custom area')) {
+                    filtered.unshift('Custom area');
+                  }
+                  return filtered;
+                }}
+                selectOnFocus
+                clearOnBlur
+                handleHomeEndKeys
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    { option === 'Custom area' ?
+                      <Box
+                        component="span"
+                        sx={{
+                          display: 'flex',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        <AspectRatioIcon />&nbsp;Select custom area on map
+                      </Box>
+                    :
+                      option
+                    }
+                  </li>
+                )}
+              />
+              <CustomAreaPopup
+                open={openCustom}
+                handleClose={() => setOpenCustom(false)}
+                setArea={(bounds) => {
+                  const a = [...jobsAreas, 'Custom area'];
+                  setJobsCustom(bounds);
+                  setJobsAreas(a);
+                  setJobsRequests(getIcaoList(a, bounds, props.icaodata, props.icaos).length);
+                }}
+                bounds={jobsCustom}
+                settings={props.settings}
+              />
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion expanded={expanded === 'panel3'} onChange={panelChange('panel3')} data-tour="Step6">
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
+              <Typography sx={styles.title}>Available planes</Typography>
+              <Button color="secondary" onClick={clearPlanes}>
+                Clear
+              </Button>
+              &nbsp;
+              <Tooltip title={<span>Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</span>}>
+                <span>
+                  <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading !== false || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
+                    Update
+                    {loading === 'panel3' && <CircularProgress size={24} sx={styles.buttonProgress} />}
+                  </Button>
+                </span>
+              </Tooltip>
+            </AccordionSummary>
+            <AccordionDetails sx={styles.accDetails}>
+              <Autocomplete
+                multiple
+                limitTags={2}
+                options={Object.keys(aircrafts)}
+                renderInput={(params) => (
+                  rentablePlanesRequests > 1 ?
+                    <TextField {...params} label='Rentable planes: aircraft models' variant='outlined' error helperText={rentablePlanesRequests+' models selected, it will require '+rentablePlanesRequests+' requests (10 max)'} />
+                  :
+                    <TextField {...params} label='Rentable planes: aircraft model' variant='outlined' />
+                )}
+                onChange={(evt, value) => {
+                  setPlaneModel(value);
+                  setRentablePlanesRequests(value.length);
+                }}
+                value={planeModel}
+              />
+              <Autocomplete
+                multiple
+                limitTags={2}
+                options={userList}
+                renderInput={(params) => (
+                  ownedPlanesRequests > 1 ?
+                    <TextField {...params} label='Owned & leased planes: user or group names' variant='outlined' error helperText={ownedPlanesRequests+' users/groups selected, it will require '+ownedPlanesRequests+' requests (10 max)'} />
+                  :
+                    <TextField {...params} label='Owned & leased planes: user or group name' variant='outlined' />
+                )}
+                onChange={(evt, value) => {
+                  setPlaneUser(value);
+                  setOwnedPlanesRequests(value.length);
+                }}
+                filterOptions={(options, params) => filter10(options, params)}
+                getOptionLabel={option => he.decode(option)}
+                value={planeUser}
+                sx={{ mt: 2 }}
+              />
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion expanded={expanded === 'panel4'} onChange={panelChange('panel4')}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
+              <Typography sx={styles.title}>My flight</Typography>
+              <Button color="secondary" onClick={clearFlight}>
+                Clear
+              </Button>
+              &nbsp;
+              <Tooltip title={<span>Last update : {flightTime ? ((new Date(flightTime)).toLocaleString()) : "never"}</span>}>
+                <span>
+                  <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading !== false || !key}>
+                    Update
+                    {loading === 'panel4' && <CircularProgress size={24} sx={styles.buttonProgress} />}
+                  </Button>
+                </span>
+              </Tooltip>
+            </AccordionSummary>
+          </Accordion>
+
+          <Accordion expanded={expanded === 'panel5'} onChange={panelChange('panel5')}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
+              <Typography sx={styles.title}>Custom markers</Typography>
+              <Button color="secondary" onClick={clearCustom}>
+                Clear
+              </Button>
+              &nbsp;
+              <span>
+                <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading !== false}>
+                  Apply
+                  {loading === 'panel5' && <CircularProgress size={24} sx={styles.buttonProgress} />}
+                </Button>
+              </span>
+            </AccordionSummary>
+            <AccordionDetails sx={styles.accDetails}>
+              <Alert severity="info" style={{marginBottom: 32}}>These airports will form an highlighted route on the map (you can hide the path to only highlight the aiports in the display settings). You may add new aiports directly on the map with a right click.</Alert>
+              <TextField
+                label="List of FSE ICAOs"
+                multiline
+                rows={4}
+                variant="outlined"
+                placeholder="LFLY EGLL LFPO [...]"
+                helperText="ICAOs can be seperated by a white space, a new line or a coma."
+                value={customIcaosVal}
+                onChange={(evt) => {
+                  setCustomIcaosVal(evt.target.value);
+                }}
+              />
+            </AccordionDetails>
+          </Accordion>
+        </Box>
 
       </DialogContent>
     </Dialog>

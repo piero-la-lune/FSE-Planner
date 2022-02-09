@@ -1,29 +1,13 @@
 import React from 'react';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
-import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
-import CloseIcon from '@material-ui/icons/Close';
-import { makeStyles } from '@material-ui/core/styles';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
+import CloseIcon from '@mui/icons-material/Close';
 import L from "leaflet";
 import "leaflet-path-transform";
-
-const useStyles = makeStyles(theme => ({
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-  popup: {
-    height: '90vh'
-  },
-  popupContent: {
-    display: 'flex'
-  }
-}));
 
 
 function Map({mapCenter, bounds, setBounds}) {
@@ -71,17 +55,35 @@ function Map({mapCenter, bounds, setBounds}) {
 function CustomAreaPopup(props) {
 
   const [bounds, setBounds] = React.useState(null);
-  const classes = useStyles();
 
   return (
-    <Dialog onClose={props.handleClose} open={props.open} fullWidth={true} maxWidth="lg" classes={{paper: classes.popup}}>
+    <Dialog
+      onClose={props.handleClose}
+      open={props.open}
+      fullWidth={true}
+      maxWidth="lg"
+      sx={{
+        '& .MuiPaper-root': {
+          height: '90vh'
+        }
+      }}
+    >
       <DialogTitle>
         Select custom area
-        <IconButton className={classes.closeButton} onClick={props.handleClose}>
+        <IconButton
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: 'grey[500]',
+          }}
+          onClick={props.handleClose}
+          size="large"
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent className={classes.popupContent}>
+      <DialogContent sx={{ display: 'flex' }}>
         <Map
           mapCenter={props.settings.display.map.center}
           bounds={props.bounds}

@@ -1,31 +1,30 @@
 import React from 'react';
-import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
-import CloseIcon from '@material-ui/icons/Close';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
-import Typography from '@material-ui/core/Typography';
-import Slider from '@material-ui/core/Slider';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
-import FlightLandIcon from '@material-ui/icons/FlightLand';
-import ExploreIcon from '@material-ui/icons/Explore';
-import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
-import BusinessIcon from '@material-ui/icons/Business';
-import DirectionsIcon from '@material-ui/icons/Directions';
-import Grid from '@material-ui/core/Grid';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
-import MenuItem from '@material-ui/core/MenuItem';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Alert from '@material-ui/lab/Alert';
-import { makeStyles } from '@material-ui/core/styles';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
+import CloseIcon from '@mui/icons-material/Close';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
+import Slider from '@mui/material/Slider';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import FlightLandIcon from '@mui/icons-material/FlightLand';
+import ExploreIcon from '@mui/icons-material/Explore';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import BusinessIcon from '@mui/icons-material/Business';
+import DirectionsIcon from '@mui/icons-material/Directions';
+import Grid from '@mui/material/Grid';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import MenuItem from '@mui/material/MenuItem';
+import InputAdornment from '@mui/material/InputAdornment';
+import Alert from '@mui/material/Alert';
 
 import {default as _set} from 'lodash/set';
 import {default as _clone} from 'lodash/cloneDeep';
@@ -33,23 +32,6 @@ import {default as _clone} from 'lodash/cloneDeep';
 import Storage from '../Storage.js';
 
 const storage = new Storage();
-
-
-const useStyles = makeStyles(theme => ({
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-  dialog: {
-    padding: theme.spacing(3)
-  },
-  formLabel: {
-    marginTop: theme.spacing(3),
-    marginBottom: theme.spacing(2)
-  }
-}));
 
 
 function Setting({xs, setting, s, setS, end, ...props}) {
@@ -191,7 +173,6 @@ function SettingsPopup(props) {
     setExpanded(isExpanded ? panel : false);
   };
   const [s, setS] = React.useState(() => _clone(props.settings));
-  const classes = useStyles();
 
   const surfaceOptions = [
     [1, 'Asphalt'],
@@ -238,11 +219,20 @@ function SettingsPopup(props) {
     <Dialog onClose={handleClose} open={props.open} fullWidth={true} maxWidth="md">
       <DialogTitle>
         Settings
-        <IconButton className={classes.closeButton} onClick={handleClose}>
+        <IconButton
+          onClick={handleClose}
+          size="large"
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: 'grey[500]',
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers className={classes.dialog}>
+      <DialogContent dividers sx={{ p: 3 }}>
         <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Display settings</Typography>
@@ -358,7 +348,7 @@ function SettingsPopup(props) {
           <AccordionDetails>
             <div>
               <Alert severity="warning">After saving, you will need to refresh the app in order to see the changes in Route Finder.</Alert>
-              <Typography variant="body1" className={classes.formLabel}>Advanced algorithm parameters:</Typography>
+              <Typography variant="body1" sx={{ my: 3 }}>Advanced algorithm parameters:</Typography>
               <Grid container spacing={3}>
                 <Setting s={s} setS={setS} label="Iterations" setting='routeFinder.maxHops' xs={6} helperText="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops." />
                 <Setting s={s} setS={setS} label="Max stops" setting='routeFinder.maxStops' xs={6} helperText="Number of possible stops along a leg to drop passengers/cargo, in order to better fill the plane part of the leg." />
@@ -367,7 +357,7 @@ function SettingsPopup(props) {
                 <Setting s={s} setS={setS} label="Max empty legs" setting='routeFinder.maxEmptyLeg' xs={6} end="NM" helperText="Maximum length of entirely empty legs (no cargo/pax at all). Do not set this too high, it quickly becomes very computer intensive."/>
                 <SettingSelect s={s} setS={setS} label="Memory usage" setting='routeFinder.memory' xs={6} options={memoryOptions} helperText="Adjust this setting if Route Finder is crashing" />
               </Grid>
-              <Typography variant="body1" className={classes.formLabel}>Route parameters:</Typography>
+              <Typography variant="body1" sx={{ my: 3 }}>Route parameters:</Typography>
               <Grid container spacing={3}>
                 <Setting s={s} setS={setS} label="Idle and taxi time" setting='routeFinder.idleTime' end="min" xs={6} helperText="Time spent on ground at each stop (flight checks, taxi, etc.)" />
                 <Setting s={s} setS={setS} label="Distance overhead" setting='routeFinder.overheadLength' end="%" xs={6} helperText="Added to the leg straight distance, to account for not straight routes." />

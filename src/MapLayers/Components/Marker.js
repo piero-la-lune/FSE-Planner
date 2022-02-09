@@ -1,11 +1,13 @@
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
-import Link from '@material-ui/core/Link';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import NavigationIcon from '@material-ui/icons/Navigation';
-import CenterFocusStrongIcon from '@material-ui/icons/CenterFocusStrong';
-import Breadcrumbs from '@material-ui/core/Breadcrumbs';
-import { makeStyles } from '@material-ui/core/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Link from '@mui/material/Link';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import NavigationIcon from '@mui/icons-material/Navigation';
+import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
+import Breadcrumbs from '@mui/material/Breadcrumbs';
+import Theme from '../../Theme.js';
 
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import ReactDOM from "react-dom";
@@ -15,60 +17,13 @@ import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
 import { airportSurface, simName } from "../../utility.js"
 
-const useStyles = makeStyles(theme => ({
-  striked: {
-    display: 'inline-block',
-    marginRight: theme.spacing(1),
-    textDecoration: 'line-through',
-    textDecorationStyle: 'double',
-    fontWeight: 300
-  },
-  popupHeader: {
-    background: theme.palette.primary.main,
-    color: '#fff',
-    padding: '3px 32px 6px 8px',
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3
-  },
+
+const styles = {
   popupPart: {
     padding: '6px 8px 12px 8px'
   },
   popupLabel: {
     margin: '8px 0 0 0 !important'
-  },
-  icao: {
-    display: 'flex',
-    alignItems: 'center'
-  },
-  icon: {
-    display: 'inline-flex',
-    marginRight: theme.spacing(1)
-  },
-  toFSE: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(2),
-    color: 'rgba(255, 255, 255, 0.5) !important',
-    fontSize: '0.8em',
-    '&:hover': {
-      color: '#fff !important'
-    }
-  },
-  name: {
-    margin: '0 0 0 28px !important',
-    fontWeight: 300,
-  },
-  simSeparator: {
-    marginLeft: 4,
-    marginRight: 4
-  },
-  model: {
-    background: theme.palette.primary.light,
-    color: '#fff',
-    margin: '0 !important',
-    padding: '2px 4px',
-    borderRadius: 3
   },
   plane: {
     display: 'flex',
@@ -85,8 +40,8 @@ const useStyles = makeStyles(theme => ({
   planeSearch: {
     display: 'inline-flex',
     alignItems: 'center',
-    marginLeft: theme.spacing(0.5),
-    marginRight: theme.spacing(0.5),
+    marginLeft: 0.5,
+    marginRight: 0.5,
     '&:hover': {
       textDecoration: 'none'
     }
@@ -94,30 +49,20 @@ const useStyles = makeStyles(theme => ({
   toFSEPlane: {
     display: 'inline-flex',
     alignItems: 'center',
-    marginRight: theme.spacing(0.2),
-    marginLeft: theme.spacing(0.2)
+    marginRight: 0.2,
+    marginLeft: 0.2
   },
-  ils: {
-    background: '#fff',
-    color: theme.palette.primary.main,
-    fontSize: '0.5em',
-    fontWeight: 'bold',
-    marginLeft: theme.spacing(1),
-    padding: '0px 3px'
-  }
-}));
+}
 
 const SVGs = new AirportSVG('#fff', '#3f51b5', 20);
 
 
 function PlaneHome({plane, icaodata, icao, actions}) {
-  const classes = useStyles();
-
   if (plane.home === icao) {
     return (
-      <Typography variant="body2" className={classes.plane}>
+      <Typography variant="body2" sx={styles.plane}>
         {plane.reg}
-        <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane} title="Go to FSE">
+        <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" sx={styles.toFSEPlane} title="Go to FSE">
           <OpenInNewIcon fontSize="inherit" />
         </Link>
         : {plane.dry ? '$'+plane.dry : '-'}/{plane.wet ? '$'+plane.wet : '-'} (${plane.bonus})
@@ -137,16 +82,16 @@ function PlaneHome({plane, icaodata, icao, actions}) {
 
   return (
     <React.Fragment>
-      <Typography variant="body2" className={classes.plane}>
+      <Typography variant="body2" sx={styles.plane}>
         {plane.reg}
-        <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" className={classes.toFSEPlane} title="Go to FSE">
+        <Link href={"https://server.fseconomy.net//aircraftlog.jsp?id="+plane.id} target="fse" sx={styles.toFSEPlane} title="Go to FSE">
           <OpenInNewIcon fontSize="inherit" />
         </Link>
         : {plane.dry ? '$'+plane.dry : '-'}/{plane.wet ? '$'+plane.wet : '-'} (${plane.bonus}<NavigationIcon fontSize="inherit" style={{marginLeft: 3, transform: 'rotate('+dir+'deg)'}} />)
       </Typography>
-      <Typography variant="body2" className={classes.planeHome}>
+      <Typography variant="body2" sx={styles.planeHome}>
         Home:
-        <Link href="#" onClick={handleClick} className={classes.planeSearch} title="Go to home location">
+        <Link href="#" onClick={handleClick} sx={styles.planeSearch} title="Go to home location">
           <CenterFocusStrongIcon fontSize="inherit" />
           {plane.home}
         </Link>
@@ -158,7 +103,6 @@ function PlaneHome({plane, icaodata, icao, actions}) {
 
 function Popup(props) {
   const {icao, icaodata, planes, siminfo} = props;
-  const classes = useStyles();
 
   const iconRef = React.useRef(null);
   React.useEffect(() => {
@@ -175,55 +119,139 @@ function Popup(props) {
 
   return (
     <React.Fragment>
-      <div className={classes.popupHeader}>
-        <Typography variant="h5" className={classes.icao}>
-          <span ref={iconRef} className={classes.icon}></span>
+      <Box
+        sx={{
+          bgcolor: 'primary.main',
+          color: '#fff',
+          padding: '3px 32px 6px 8px',
+          borderTopLeftRadius: 3,
+          borderTopRightRadius: 3
+        }}
+      >
+        <Typography
+          variant="h5"
+          sx={{
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Box
+            component="span"
+            ref={iconRef}
+            sx={{
+              display: 'inline-flex',
+              marginRight: 1
+            }}
+          />
           {
             icaodata[icao][siminfo][0] === icao ?
               icao
             :
               <React.Fragment>
-                <span className={classes.striked}>{icao}</span>{icaodata[icao][siminfo][0]}
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline-block',
+                    marginRight: 1,
+                    textDecoration: 'line-through',
+                    textDecorationStyle: 'double',
+                    fontWeight: 300
+                  }}
+                >
+                  {icao}
+                </Box>
+                {icaodata[icao][siminfo][0]}
               </React.Fragment>
           }
           {
-            icaodata[icao].ils && <span className={classes.ils}>ILS</span>
+            icaodata[icao].ils &&
+            <Box
+              component="span"
+              sx={{
+                bgcolor: '#fff',
+                color: 'primary.main',
+                fontSize: '0.5em',
+                fontWeight: 'bold',
+                marginLeft: 1,
+                padding: '0px 3px'
+              }}
+            >
+              ILS
+            </Box>
           }
-          <Link href={"https://server.fseconomy.net/airport.jsp?icao="+icao} target="fse" className={classes.toFSE} title="Go to FSE">
+          <Link
+            href={"https://server.fseconomy.net/airport.jsp?icao="+icao}
+            target="fse"
+            title="Go to FSE"
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              marginLeft: 1,
+              marginRight: 2,
+              color: 'rgba(255, 255, 255, 0.5) !important',
+              fontSize: '0.8em',
+              '&:hover': {
+                color: '#fff !important'
+              }
+            }}
+          >
             <OpenInNewIcon fontSize="inherit" />
           </Link>
         </Typography>
-        <Typography variant="body2" className={classes.name}>{icaodata[icao].name}</Typography>
-      </div>
-      <div className={classes.popupPart}>
-        <Typography variant="body2" className={classes.popupLabel}>Position: {Math.abs(icaodata[icao].lat)}{icaodata[icao].lat >= 0 ? 'N' : 'S'} {Math.abs(icaodata[icao].lon)}{icaodata[icao].lon >= 0 ? 'E' : 'W'}, {icaodata[icao].elev} feet</Typography>
-        <Typography variant="body2" className={classes.popupLabel}>Runway: {icaodata[icao].runway} feet of {airportSurface(icaodata[icao].surface)}</Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            margin: '0 0 0 28px !important',
+            fontWeight: 300,
+          }}
+        >
+          {icaodata[icao].name}
+        </Typography>
+      </Box>
+      <Box sx={styles.popupPart}>
+        <Typography variant="body2" sx={styles.popupLabel}>Position: {Math.abs(icaodata[icao].lat)}{icaodata[icao].lat >= 0 ? 'N' : 'S'} {Math.abs(icaodata[icao].lon)}{icaodata[icao].lon >= 0 ? 'E' : 'W'}, {icaodata[icao].elev} feet</Typography>
+        <Typography variant="body2" sx={styles.popupLabel}>Runway: {icaodata[icao].runway} feet of {airportSurface(icaodata[icao].surface)}</Typography>
         { props.forsale &&
-          <Typography variant="body2" className={classes.popupLabel}>For sale: ${props.forsale.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Typography>
+          <Typography variant="body2" sx={styles.popupLabel}>For sale: ${props.forsale.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Typography>
         }
         {
           icaodata[icao][siminfo].length > 1 &&
             <React.Fragment>
-              <Typography variant="body2" className={classes.popupLabel}>{ simName(siminfo) } alternatives:</Typography>
+              <Typography variant="body2" sx={styles.popupLabel}>{ simName(siminfo) } alternatives:</Typography>
               <Breadcrumbs
                 separator={null}
                 maxItems={4}
                 itemsBeforeCollapse={4}
                 itemsAfterCollapse={0}
-                classes={{separator: classes.simSeparator}}
+                sx={{
+                  '& .MuiBreadcrumbs-separator': {
+                    mx: 0.5
+                  }
+                }}
                 component='span'
               >
                 {icaodata[icao][siminfo].slice(1).map(elm => <span key={elm}>{elm}</span>)}
               </Breadcrumbs>
             </React.Fragment>
         }
-      </div>
+      </Box>
       {
         planes && Object.entries(models).map(([model, planes]) =>
-          <div className={classes.popupPart} key={model}>
-            <Typography variant="body1" className={classes.model}>{model}</Typography>
+          <Box sx={styles.popupPart} key={model}>
+            <Typography
+              variant="body1"
+              sx={{
+                bgcolor: 'primary.light',
+                color: '#fff',
+                margin: '0 !important',
+                padding: '2px 4px',
+                borderRadius: 1
+              }}
+            >
+              {model}
+            </Typography>
             {planes.map(plane => <PlaneHome key={plane.reg} plane={plane} {...props} />)}
-          </div>
+          </Box>
         )
       }
     </React.Fragment>
@@ -250,10 +278,18 @@ function Marker({position, size, color, sim, id, allJobs, ...props}) {
     .bindPopup(() => {
       var div = document.createElement('div');
       if (sim) {
-        ReactDOM.render(<Typography variant="h5" style={{padding:'3px 24px 3px 8px'}}>{props.icao}</Typography>, div);
+        ReactDOM.render((
+          <ThemeProvider theme={Theme}>
+            <Typography variant="h5" style={{padding:'3px 24px 3px 8px'}}>{props.icao}</Typography>
+          </ThemeProvider>
+        ), div);
       }
       else {
-        ReactDOM.render(<Popup {...props} />, div);
+        ReactDOM.render((
+          <ThemeProvider theme={Theme}>
+            <Popup {...props} />
+          </ThemeProvider>
+        ), div);
       }
       return div;
     }, {
