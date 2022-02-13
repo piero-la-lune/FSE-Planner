@@ -1,46 +1,11 @@
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import Link from '@material-ui/core/Link';
-import { withStyles } from '@material-ui/core/styles';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
+import Box from '@mui/material/Box';
 
 import { downloadReport } from './util/logger.js';
 
-const styles = theme => ({
-  root: {
-    background: theme.palette.primary.main,
-    width: '100vw',
-    height: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'column',
-    padding: 12,
-    boxSizing: 'border-box'
-  },
-  inner: {
-    maxWidth: '100%',
-    width: 800,
-    borderRadius: 4,
-    background: '#fff',
-    padding: 24,
-    marginTop: 24,
-    boxSizing: 'border-box'
-  },
-  title: {
-    color: '#fff'
-  },
-  list: {
-    margin: 0
-  },
-  buttons: {
-    marginTop: 24,
-    textAlign: 'center'
-  },
-  btn: {
-    margin: 8
-  }
-});
 
 class ErrorBoundary extends React.Component {
 
@@ -75,30 +40,58 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      const { classes } = this.props;
       return (
-        <div className={classes.root}>
-        <Typography variant="h2" className={classes.title}>Something went wrong :(</Typography>
-          <div className={classes.inner}>
+        <Box
+          sx={{
+            backgroundColor: 'primary.main',
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
+            padding: 12,
+            boxSizing: 'border-box'
+          }}
+        >
+          <Typography variant="h2" sx={{ color: '#fff' }}>
+            Something went wrong :(
+          </Typography>
+          <Box
+            sx={{
+              maxWidth: '100%',
+              width: 800,
+              borderRadius: 1,
+              background: '#fff',
+              padding: 3,
+              marginTop: 3,
+              boxSizing: 'border-box'
+            }}
+          >
             <Typography variant="body1" gutterBottom>Something unexpected happened and broke FSE Planner.</Typography>
             <Typography variant="body1" gutterBottom>Try reloading this page.</Typography>
             <Typography variant="body1" gutterBottom>If the error persists, please:</Typography>
-            <ol className={classes.list}>
+            <Box component="ol" sx={{ m: 0 }}>
               <li><Typography variant="body1" gutterBottom>Download this <Link href="#" onClick={this.report}>bug report</Link></Typography></li>
               <li><Typography variant="body1" gutterBottom>Report the issue on <Link href="https://github.com/piero-la-lune/FSE-Planner/issues" target="_blank">GitHub</Link>, attaching the previously downloaded bug report</Typography></li>
               <li><Typography variant="body1" gutterBottom>Click the "Reset" button bellow to get FSE Planner working again</Typography></li>
-            </ol>
-            <div className={classes.buttons}>
-              <Button variant="contained" className={classes.btn} color="primary" onClick={this.refresh}>Reload</Button>
-              <Button variant="contained" className={classes.btn} color="secondary" onClick={this.reset}>Reset</Button>
-            </div>
-          </div>
-        </div>
+            </Box>
+            <Box
+              sx={{
+                marginTop: 3,
+                textAlign: 'center'
+              }}
+            >
+              <Button variant="contained" sx={{ m: 1 }} color="primary" onClick={this.refresh}>Reload</Button>
+              <Button variant="contained" sx={{ m: 1 }} color="secondary" onClick={this.reset}>Reset</Button>
+            </Box>
+          </Box>
+        </Box>
       );
     }
-    return this.props.children; 
+    return this.props.children;
   }
 
 }
 
-export default withStyles(styles)(ErrorBoundary);
+export default ErrorBoundary;

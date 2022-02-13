@@ -1,27 +1,27 @@
 import React from 'react';
-import Paper from '@material-ui/core/Paper';
-import LayersIcon from '@material-ui/icons/Layers';
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import AddIcon from '@material-ui/icons/Add';
-import Button from '@material-ui/core/Button';
-import CancelIcon from '@material-ui/icons/Cancel';
-import EditIcon from '@material-ui/icons/Edit';
-import Popover from '@material-ui/core/Popover';
-import MenuList from '@material-ui/core/MenuList';
-import MenuItem from '@material-ui/core/MenuItem';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import TextField from '@material-ui/core/TextField';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
-import Tooltip from '@material-ui/core/Tooltip';
-import Alert from '@material-ui/lab/Alert';
-import ShareIcon from '@material-ui/icons/Share';
-import { makeStyles } from '@material-ui/core/styles';
+import Paper from '@mui/material/Paper';
+import LayersIcon from '@mui/icons-material/Layers';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import AddIcon from '@mui/icons-material/Add';
+import Button from '@mui/material/Button';
+import CancelIcon from '@mui/icons-material/Cancel';
+import EditIcon from '@mui/icons-material/Edit';
+import Popover from '@mui/material/Popover';
+import MenuList from '@mui/material/MenuList';
+import MenuItem from '@mui/material/MenuItem';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
+import Tooltip from '@mui/material/Tooltip';
+import Alert from '@mui/material/Alert';
+import ShareIcon from '@mui/icons-material/Share';
+import Box from '@mui/material/Box';
 
 import { getBounds } from "geolib";
 import {default as _clone} from 'lodash/cloneDeep';
@@ -38,222 +38,206 @@ import Storage from "../Storage.js";
 const storage = new Storage();
 
 
-const useStylesBasemapBtn = makeStyles(theme => ({
-  span: {
-    display: 'inline-block',
-    position: 'relative',
-    borderRadius: 8,
-    padding: 2,
-    margin: '0px 8px',
-    border: '2px solid #fff',
-    cursor: 'pointer',
-    transition: 'all .1s ease-in',
-    '&:hover img': {
-      filter: 'brightness(0.95)'
-    },
-    '&:hover p': {
-      background: theme.palette.primary.main,
-      color: '#fff',
-    }
-  },
-  spanS: {
-    borderColor: theme.palette.secondary.main,
-  },
-  img: {
-    display: 'block',
-    borderRadius: 5,
-    transition: 'all .1s ease-in'
-  },
-  label: {
-    position: 'absolute',
-    top: 2,
-    left: 2,
-    background: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: '4px 0 4px 0',
-    padding: '1px 4px',
-    fontSize: '0.7rem',
-    transition: 'all .1s ease-in'
-  }
-}));
-
 function BasemapBtn(props) {
-  const classes = useStylesBasemapBtn();
-
   return (
-    <span className={classes.span+' '+(props.selected ? classes.spanS : '')} onClick={props.onClick}>
-      <img className={classes.img} src={props.src} alt={props.label} />
-      <Typography variant="body2" className={classes.label}>{props.label}</Typography>
-    </span>
+    <Box
+      component="span"
+      sx={{
+        display: 'inline-block',
+        position: 'relative',
+        borderRadius: '8px',
+        padding: '2px',
+        margin: '0px 8px',
+        border: '2px solid #fff',
+        borderColor: props.selected ? 'secondary.main' : '#fff',
+        cursor: 'pointer',
+        transition: 'all .1s ease-in',
+        '&:hover img': {
+          filter: 'brightness(0.95)'
+        },
+        '&:hover p': {
+          backgroundColor: 'primary.main',
+          color: '#fff',
+        }
+      }}
+      onClick={props.onClick}
+    >
+      <img
+        style={{
+          display: 'block',
+          borderRadius: '5px',
+          transition: 'all .1s ease-in'
+        }}
+        src={props.src}
+        alt={props.label}
+      />
+      <Typography
+        variant="body2"
+        sx={{
+          position: 'absolute',
+          top: 2,
+          left: 2,
+          background: 'rgba(255, 255, 255, 0.8)',
+          borderRadius: '4px 0 4px 0',
+          padding: '1px 4px',
+          fontSize: '0.7rem',
+          transition: 'all .1s ease-in'
+        }}>
+          {props.label}
+        </Typography>
+    </Box>
   )
 }
 
-const useStylesLayer = makeStyles(theme => ({
-  div: {
-    width: 100,
-    textAlign: 'center',
-    cursor: 'pointer',
-    position: 'relative',
-    '&:hover img': {
-      filter: 'brightness(0.95)'
-    },
-    '&:hover div': {
-      filter: 'brightness(0.95)'
-    },
-    '&:hover p': {
-      color: theme.palette.primary.main
-    },
-    '&:hover button': {
-      display: 'block'
-    }
-  },
-  span: {
-    display: 'inline-block',
-    position: 'relative',
-    borderRadius: 8,
-    padding: 2,
-    border: '2px solid #fff',
-    transition: 'all .1s ease-in'
-  },
-  spanS: {
-    borderColor: theme.palette.secondary.main
-  },
-  img: {
-    display: 'block',
-    borderRadius: 5,
-    transition: 'all .1s ease-in'
-  },
-  label: {
-    lineHeight: 1,
-    transition: 'all .1s ease-in'
-  },
-  progress: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -12,
-    marginLeft: -12
-  },
-  divImg: {
-    width: 50,
-    height: 50,
-    borderRadius: 5,
-    transition: 'all .1s ease-in',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff'
-  },
-  delete: {
-    position: 'absolute',
-    top: -8,
-    right: 12,
-    background: '#fff',
-    display: 'none',
-    '&:hover': {
-      background: '#fff'
-    },
-    '&:hover span': {
-      color: '#000'
-    }
-  },
-  edit: {
-    position: 'absolute',
-    top: -8,
-    left: 12,
-    background: '#fff',
-    display: 'none',
-    '&:hover': {
-      background: '#fff'
-    },
-    '&:hover span': {
-      color: '#000'
-    }
-  }
-}));
 
 function Layer(props) {
-  const classes = useStylesLayer();
   return (
-    <div className={classes.div} onClick={() => props.onChange(!props.visible)} onContextMenu={props.onContextMenu}>
-      <span className={classes.span+' '+(props.visible ? classes.spanS : '')}>
-        {props.img ?
-          <img className={classes.img} src={props.img} alt={props.label} />
-        :
-          <div className={classes.divImg} style={{backgroundColor: props.color ? props.color : 'transparent'}}>
-            {props.shared && <ShareIcon />}
-          </div>
+    <Box
+      sx={{
+        width: 100,
+        textAlign: 'center',
+        cursor: 'pointer',
+        position: 'relative',
+        '&:hover img': {
+          filter: 'brightness(0.95)'
+        },
+        '&:hover div': {
+          filter: 'brightness(0.95)'
+        },
+        '&:hover p': {
+          color: 'primary.main'
+        },
+        '&:hover .layerBtn': {
+          display: 'block'
         }
-        {props.loading && <CircularProgress size={24} thickness={10} color="secondary" className={classes.progress} disableShrink />}
-      </span>
-      <Typography variant="body2" className={classes.label}>{props.label}</Typography>
+      }}
+      onClick={() => props.onChange(!props.visible)}
+      onContextMenu={props.onContextMenu}
+    >
+      <Box
+        component="span"
+        sx={{
+          display: 'inline-block',
+          position: 'relative',
+          borderRadius: '8px',
+          padding: '2px',
+          border: '2px solid #fff',
+          borderColor: props.visible ? 'secondary.main' : '#fff',
+          transition: 'all .1s ease-in'
+        }}
+      >
+        {props.img ?
+          <img
+            style={{
+              display: 'block',
+              borderRadius: '5px',
+              transition: 'all .1s ease-in'
+            }}
+            src={props.img}
+            alt={props.label}
+          />
+        :
+          <Box
+            sx={{
+              width: 50,
+              height: 50,
+              borderRadius: '5px',
+              transition: 'all .1s ease-in',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              backgroundColor: props.color ? props.color : 'transparent'
+            }}
+          >
+            {props.shared && <ShareIcon />}
+          </Box>
+        }
+        {props.loading &&
+          <CircularProgress
+            size={24}
+            thickness={10}
+            color="secondary"
+            disableShrink
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              marginTop: '-12px',
+              marginLeft: '-12px'
+            }}
+          />
+        }
+      </Box>
+      <Typography
+        variant="body2"
+        sx={{
+          lineHeight: 1,
+          transition: 'all .1s ease-in'
+        }}
+      >
+        {props.label}
+      </Typography>
       { props.handleRemove &&
-        <IconButton
-          className={classes.delete}
+        <Box
+          component="span"
+          sx={{
+            position: 'absolute',
+            top: -8,
+            right: 12,
+            width: 20,
+            height: 20,
+            padding: '3px',
+            borderRadius: '50%',
+            background: '#fafafa',
+            color: '#777',
+            display: 'none',
+            '&:hover': {
+              color: '#000'
+            }
+          }}
+          className="layerBtn"
           onClick={(evt) => {
             evt.stopPropagation();
             props.handleRemove();
           }}
-          size="small"
           alt="Remove layer"
         >
           <CancelIcon fontSize="small" />
-        </IconButton>
+        </Box>
       }
       { props.handleEdit &&
-        <IconButton
-          className={classes.edit}
+        <Box
+          component="span"
+          sx={{
+            position: 'absolute',
+            top: -8,
+            left: 12,
+            width: 20,
+            height: 20,
+            padding: '3px',
+            borderRadius: '50%',
+            background: '#f4f4f4',
+            color: '#777',
+            display: 'none',
+            '&:hover': {
+              color: '#000'
+            }
+          }}
+          className="layerBtn"
           onClick={(evt) => {
             evt.stopPropagation();
             props.handleEdit();
           }}
-          size="small"
           alt="Edit layer"
         >
           <EditIcon fontSize="small" />
-        </IconButton>
+        </Box>
       }
-    </div>
+    </Box>
   )
 }
 
-
-const useStyles = makeStyles(theme => ({
-  paper: {
-    position: 'absolute',
-    top: 22,
-    left: 22,
-    zIndex: 1001,
-    cursor: 'auto',
-    borderRadius: '50%',
-  },
-  'paperHover': {
-    borderRadius: '4px',
-    padding: '8px 16px 16px 16px',
-    width: 320,
-    overflow: 'auto',
-    maxHeight: 'calc(100% - 60px)'
-  },
-  layers: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'left',
-    gap: '20px 0'
-  },
-  add: {
-    textAlign: 'center',
-    marginTop: 16
-  },
-  contextMenu: {
-    minWidth: 200
-  },
-  contextMenuTitle: {
-    margin: theme.spacing(1),
-    fontWeight: 'bold'
-  },
-  contextMenuList: {
-    paddingTop: 0
-  },
-}));
 
 const imgs = [
   "settings/mapDef.png",
@@ -291,7 +275,6 @@ const defaultLayer = {
 
 function LayerControl(props) {
 
-  const classes = useStyles();
   const [, forceUpdate] = React.useReducer(x => x + 1, 0);
   const s = props.options.settings;
   const [hover, setHover] = React.useState(false);
@@ -419,7 +402,7 @@ function LayerControl(props) {
             actions: props.actions,
             route: props.route
           });
-          showLayer(i); 
+          showLayer(i);
         }
         else if (layerRef.type === 'airports-custom') {
           const connections = [];
@@ -439,7 +422,7 @@ function LayerControl(props) {
             connections: s.display.legs.display.custom ? connections : undefined,
             id: "custom"
           });
-          showLayer(i); 
+          showLayer(i);
         }
         else if (layerRef.type === 'airports-sim') {
           if (!simIcaodataRef.current) {
@@ -902,7 +885,21 @@ function LayerControl(props) {
   return (
     <Paper
       elevation={3}
-      className={classes.paper+' '+(hover || openFilter ? classes.paperHover : '')}
+      sx={{
+        position: 'absolute',
+        top: 22,
+        left: 22,
+        zIndex: 1001,
+        cursor: 'auto',
+        borderRadius: '50%',
+        ...((hover || openFilter) && {
+          borderRadius: '4px',
+          padding: '8px 16px 16px 16px',
+          width: 320,
+          overflow: 'auto',
+          maxHeight: 'calc(100% - 60px)'
+        })
+      }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onContextMenu={evt => { evt.preventDefault() }}
@@ -967,7 +964,14 @@ function LayerControl(props) {
           <Typography variant="h6" gutterBottom style={{marginTop: 16}}>
             Layers
           </Typography>
-          <div className={classes.layers}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'left',
+              gap: '20px 0'
+            }}
+          >
             {layersRef.current.map((elm, i) =>
               <Layer
                 label={elm.label}
@@ -983,8 +987,13 @@ function LayerControl(props) {
                 shared={elm.shared}
               />
             )}
-          </div>
-          <div className={classes.add}>
+          </Box>
+          <Box
+            sx={{
+              textAlign: 'center',
+              marginTop: 2
+            }}
+          >
             <Button
               color="primary"
               startIcon={<AddIcon />}
@@ -993,10 +1002,10 @@ function LayerControl(props) {
             >
               New layer
             </Button>
-          </div>
+          </Box>
         </div>
       :
-        <IconButton><LayersIcon /></IconButton>
+        <IconButton size="large"><LayersIcon /></IconButton>
       }
       {contextMenu &&
         <Popover
@@ -1007,11 +1016,19 @@ function LayerControl(props) {
             { top: contextMenu.mouseY, left: contextMenu.mouseX }
           }
           onContextMenu={(evt) => {evt.preventDefault(); evt.stopPropagation();}}
-          classes={{paper:classes.contextMenu}}
+          sx={{ minWidth: 200 }}
         >
-          <Typography variant="body1" className={classes.contextMenuTitle}>{contextMenu.title}</Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              margin: 1,
+              fontWeight: 'bold'
+            }}
+          >
+            {contextMenu.title}
+          </Typography>
           {contextMenu.actions.length > 0 &&
-            <MenuList className={classes.contextMenuList}>
+            <MenuList sx={{ paddingTop: 0 }}>
               { contextMenu.actions.map((action, i) =>
                 <MenuItem dense key={i} onClick={() => { action.onClick(); setContextMenu(null); }}>{action.name}</MenuItem>
               )}
@@ -1044,7 +1061,7 @@ function LayerControl(props) {
                         setTimeout(() => setCopied(false), 1000);
                         setCopied(true);
                       }}
-                    >
+                      size="large">
                       <FileCopyIcon />
                     </IconButton>
                   </Tooltip>
@@ -1076,7 +1093,7 @@ function LayerControl(props) {
                             setTimeout(() => setCopied(false), 1000);
                             setCopied(true);
                           }}
-                        >
+                          size="large">
                           <FileCopyIcon />
                         </IconButton>
                       </Tooltip>

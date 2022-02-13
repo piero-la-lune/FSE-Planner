@@ -1,26 +1,27 @@
 import React from 'react';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogActions from '@material-ui/core/DialogActions';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import LocalAirportIcon from '@material-ui/icons/LocalAirport';
-import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
-import BusinessIcon from '@material-ui/icons/Business';
-import RoomIcon from '@material-ui/icons/Room';
-import InsertDriveFileIcon from '@material-ui/icons/InsertDriveFile';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import Slider from '@material-ui/core/Slider';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
-import Grid from '@material-ui/core/Grid';
-import { makeStyles } from '@material-ui/core/styles';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import LocalAirportIcon from '@mui/icons-material/LocalAirport';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import BusinessIcon from '@mui/icons-material/Business';
+import RoomIcon from '@mui/icons-material/Room';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Slider from '@mui/material/Slider';
+import MenuItem from '@mui/material/MenuItem';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+
 
 const surfaceOptions = [
   [1, 'Asphalt'],
@@ -33,18 +34,11 @@ const surfaceOptions = [
   [8, 'Water']
 ];
 
-const sizePickerStyles = makeStyles(theme => ({
-  input: {
-    maxWidth: 100,
-    marginLeft: theme.spacing(3)
-  }
-}));
 
 function SizePicker(props) {
   const [min, setMin] = React.useState(0);
   const [max, setMax] = React.useState(23500);
   const [value, setValue] = React.useState(["1", "2", "3"]);
-  const classes = sizePickerStyles();
   const { size, setSize } = props;
 
   const handleChange = (evt, newValue) => {
@@ -105,7 +99,7 @@ function SizePicker(props) {
     if (val !== "") {
       val = parseInt(val);
     }
-    else { 
+    else {
       val = 0;
     }
     setValue(computeValue(val, max));
@@ -116,7 +110,7 @@ function SizePicker(props) {
     if (val !== "") {
       val = parseInt(val);
     }
-    else { 
+    else {
       val = 0;
     }
     setValue(computeValue(min, val));
@@ -154,8 +148,12 @@ function SizePicker(props) {
           InputLabelProps={{
             shrink: true,
           }}
-          margin="dense"
-          className={classes.input}
+          size="small"
+          sx={{
+            maxWidth: 100,
+            marginLeft: 3,
+            marginTop: 1
+          }}
         />
         <TextField
           label="Max size"
@@ -165,31 +163,26 @@ function SizePicker(props) {
           InputLabelProps={{
             shrink: true,
           }}
-          margin="dense"
-          className={classes.input}
+          size="small"
+          sx={{
+            maxWidth: 100,
+            marginLeft: 3,
+            marginTop: 1
+          }}
         />
       </div>
     </div>
   );
 }
 
-const lengthPickerStyles = makeStyles(theme => ({
-  div: {
-    marginTop: theme.spacing(3)
-  },
-  input: {
-    margin: '0 20px'
-  }
-}));
 
 function LengthPicker(props) {
-  const classes = lengthPickerStyles();
   const computeVal = val => val > 15000 ? 15000 : val;
   const inverseVal = val => val === 15000 ? 30000 : val;
   return (
-    <div className={classes.div}>
+    <Box sx={{marginTop: 3}}>
       <Typography variant="body2">Airport longest runway (in feet):</Typography>
-      <div className={classes.input}>
+      <Box sx={{margin: '0 20px'}}>
         <Slider
           min={0}
           max={15000}
@@ -199,26 +192,19 @@ function LengthPicker(props) {
           onChange={(evt, value) => props.setLength([inverseVal(value[0]), inverseVal(value[1])])}
           marks={[{value: 5000, label: '5000 feet'}, {value: 10000, label: '10000 feet'}, {value: 15000, label: 'no limit'}]}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 
-const surfacePickerStyles = makeStyles(theme => ({
-  div: {
-    marginTop: theme.spacing(3)
-  }
-}));
 
 function SurfacePicker(props) {
-  const classes = surfacePickerStyles();
   return (
-    <div className={classes.div}>
+    <Box sx={{marginTop: 3}}>
       <TextField
         label="Airport surface"
         variant="outlined"
         fullWidth
-        margin="dense"
         value={props.surface}
         select
         SelectProps={{multiple: true}}
@@ -228,24 +214,14 @@ function SurfacePicker(props) {
       >
         { surfaceOptions.map(([value, label]) => <MenuItem key={value} value={value}>{label}</MenuItem>) }
       </TextField>
-    </div>
+    </Box>
   )
 }
 
-const pricePickerStyles = makeStyles(theme => ({
-  div: {
-    marginBottom: theme.spacing(3)
-  },
-  input: {
-    maxWidth: 150,
-    marginRight: theme.spacing(3)
-  }
-}));
 
 function PricePicker(props) {
-  const classes = pricePickerStyles();
   return (
-    <div className={classes.div}>
+    <Box sx={{marginBottom: 3}}>
       <Typography variant="body2">Price range:</Typography>
       <div>
         <TextField
@@ -258,8 +234,12 @@ function PricePicker(props) {
           InputLabelProps={{
             shrink: true,
           }}
-          margin="dense"
-          className={classes.input}
+          size="small"
+          sx={{
+            maxWidth: 150,
+            marginRight: 3,
+            marginTop: 1
+          }}
         />
         <TextField
           label="Max price"
@@ -271,36 +251,28 @@ function PricePicker(props) {
           InputLabelProps={{
             shrink: true,
           }}
-          margin="dense"
-          className={classes.input}
+          size="small"
+          sx={{
+            maxWidth: 150,
+            marginRight: 3,
+            marginTop: 1
+          }}
         />
       </div>
-    </div>
+    </Box>
   )
 }
 
-const useStyles = makeStyles(theme => ({
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-  popup: {
-
-  },
-  dialog: {
-    paddingTop: theme.spacing(3)
-  },
+const styles = {
   divPickType: {
     display: 'flex',
     justifyContent: 'center',
-    gap: 24
+    gap: 2
   },
   divType: {
     width: 150,
     cursor: 'pointer',
-    padding: theme.spacing(2),
+    padding: 2,
     textAlign: 'center',
     transition: 'all .1s ease-in',
     '&:hover': {
@@ -308,24 +280,15 @@ const useStyles = makeStyles(theme => ({
     }
   },
   divSwitch: {
-    marginTop: theme.spacing(2)
+    marginTop: 2
   },
   iconType: {
     fontSize: '3em'
   },
   inputIconSize: {
-    marginTop: theme.spacing(3)
-  },
-  color: {
-    color: '#fff',
-    padding: '2px 8px'
-  },
-  asterix: {
-    fontStyle: 'italic',
-    color: 'rgba(0, 0, 0, 0.54)',
-    marginTop: theme.spacing(2)
+    marginTop: 3
   }
-}));
+};
 
 
 const sizes = [
@@ -353,7 +316,6 @@ const colors = [
 
 function AirportFilter(props) {
 
-  const classes = useStyles();
   const { layer } = props;
   const [type, setType] = React.useState(layer.type);
   const [name, setName] = React.useState(layer.display.name);
@@ -418,51 +380,60 @@ function AirportFilter(props) {
   }, [props.open, props.layer]);
 
   return (
-    <Dialog open={props.open} fullWidth={true} maxWidth="md" classes={{paper: classes.popup}}>
+    <Dialog open={props.open} fullWidth={true} maxWidth="md">
       <DialogTitle>
         { step === 0 &&  (custom === 0 ? 'Step 1: Layer type' : 'Step 1: Import data') }
         { step === 1 && 'Step 2: Filters' }
         { step === 2 && 'Step 3: Display options' }
       </DialogTitle>
-      <DialogContent dividers className={classes.dialog}>
+      <DialogContent dividers sx={{paddingTop: 3}}>
         { step === 0 && !custom &&
           <div>
             <DialogContentText>Choose the type of layer:</DialogContentText>
-            <div className={classes.divPickType}>
-              <Paper className={classes.divType} onClick={() => setType('all')}>
-                <LocalAirportIcon className={classes.iconType} />
+            <Box sx={styles.divPickType}>
+              <Paper sx={styles.divType} onClick={() => setType('all')}>
+                <LocalAirportIcon sx={styles.iconType} />
                 <Typography variant="body1">All airports</Typography>
               </Paper>
-              <Paper className={classes.divType} onClick={() => setType('forsale')}>
-                <AttachMoneyIcon className={classes.iconType} />
+              <Paper sx={styles.divType} onClick={() => setType('forsale')}>
+                <AttachMoneyIcon sx={styles.iconType} />
                 <Typography variant="body1">Airports with FBOs for sale*</Typography>
               </Paper>
-              <Paper className={classes.divType} onClick={() => setType('unbuilt')}>
-                <BusinessIcon className={classes.iconType} />
+              <Paper sx={styles.divType} onClick={() => setType('unbuilt')}>
+                <BusinessIcon sx={styles.iconType} />
                 <Typography variant="body1">Airports with unbuilt FBO lots*</Typography>
               </Paper>
-              <Paper className={classes.divType} onClick={() => setCustom(1)}>
-                <InsertDriveFileIcon className={classes.iconType} />
+              <Paper sx={styles.divType} onClick={() => setCustom(1)}>
+                <InsertDriveFileIcon sx={styles.iconType} />
                 <Typography variant="body1">Import data</Typography>
               </Paper>
-            </div>
-            <Typography variant="body2" className={classes.asterix}>*Data is updated every 6 hours (02:00, 08:00, 14:00 and 20:00 GMT).</Typography>
+            </Box>
+            <Typography
+              variant="body2"
+              sx={{
+                fontStyle: 'italic',
+                color: 'rgba(0, 0, 0, 0.54)',
+                marginTop: 2
+              }}
+            >
+              *Data is updated every 6 hours (02:00, 08:00, 14:00 and 20:00 GMT).
+            </Typography>
           </div>
         }
         {
           step === 0 && custom === 1 &&
           <div>
             <DialogContentText>Choose the type of data to import:</DialogContentText>
-            <div className={classes.divPickType}>
-              <Paper className={classes.divType} onClick={() => setCustom(3)}>
-                <LocalAirportIcon className={classes.iconType} />
+            <Box sx={styles.divPickType}>
+              <Paper sx={styles.divType} onClick={() => setCustom(3)}>
+                <LocalAirportIcon sx={styles.iconType} />
                 <Typography variant="body1">FSE Airports</Typography>
               </Paper>
-              <Paper className={classes.divType} onClick={() => setCustom(2)}>
-                <RoomIcon className={classes.iconType} />
+              <Paper sx={styles.divType} onClick={() => setCustom(2)}>
+                <RoomIcon sx={styles.iconType} />
                 <Typography variant="body1">GPS coordinates</Typography>
               </Paper>
-            </div>
+            </Box>
           </div>
         }
         { step === 0 && custom === 2 &&
@@ -514,7 +485,7 @@ function AirportFilter(props) {
                 />
               </Grid>
             </Grid>
-            <Grid container spacing={3} justifyContent="center">
+            <Grid container justifyContent="center">
               <Grid item>
                 <Button
                   onClick={() => {
@@ -548,6 +519,7 @@ function AirportFilter(props) {
                   }}
                   color="primary"
                   variant="contained"
+                  sx={{marginTop: 2}}
                 >
                   Load data
                 </Button>
@@ -604,7 +576,7 @@ EGLL LFPO
                 />
               </Grid>
             </Grid>
-            <Grid container spacing={3} justifyContent="center">
+            <Grid container justifyContent="center">
               <Grid item>
                 <Button
                   onClick={() => {
@@ -626,6 +598,7 @@ EGLL LFPO
                   }}
                   color="primary"
                   variant="contained"
+                  sx={{marginTop: 2}}
                 >
                   Load data
                 </Button>
@@ -639,7 +612,7 @@ EGLL LFPO
             <SizePicker size={size} setSize={setSize} />
             <LengthPicker length={length} setLength={setLength} />
             <SurfacePicker surface={surface} setSurface={setSurface} />
-            <div className={classes.divSwitch}>
+            <Box sx={styles.divSwitch}>
               <FormControlLabel
                 control={
                   <Switch
@@ -650,8 +623,8 @@ EGLL LFPO
                 }
                 label="Only display simulator compatible airports"
               />
-            </div>
-            <div className={classes.divSwitch}>
+            </Box>
+            <Box sx={styles.divSwitch}>
               <FormControlLabel
                 control={
                   <Switch
@@ -662,8 +635,8 @@ EGLL LFPO
                 }
                 label="Only display airports that sell building materials"
               />
-            </div>
-            <div className={classes.divSwitch}>
+            </Box>
+            <Box sx={styles.divSwitch}>
               <FormControlLabel
                 control={
                   <Switch
@@ -674,14 +647,13 @@ EGLL LFPO
                 }
                 label="Only display airports with an ILS approach (MSFS)"
               />
-            </div>
+            </Box>
           </div>
         }
         { step === 2 &&
           <div>
             <TextField
               autoFocus
-              margin="dense"
               variant="outlined"
               label="Layer name"
               value={name}
@@ -692,10 +664,9 @@ EGLL LFPO
               label="Icon size"
               variant="outlined"
               fullWidth
-              margin="dense"
               value={iconSize}
               select
-              className={classes.inputIconSize}
+              sx={styles.inputIconSize}
               onChange={(evt) => {
                 setIconSize(parseInt(evt.target.value));
               }}
@@ -706,15 +677,27 @@ EGLL LFPO
               label="Icon color"
               variant="outlined"
               fullWidth
-              margin="dense"
               value={color}
               select
-              className={classes.inputIconSize}
+              sx={styles.inputIconSize}
               onChange={(evt) => {
                 setColor(evt.target.value);
               }}
             >
-              { colors.map(elm => <MenuItem key={elm} value={elm}><span className={classes.color} style={{backgroundColor:elm}}>{elm}</span></MenuItem>) }
+              { colors.map(elm => (
+                <MenuItem key={elm} value={elm}>
+                  <Box
+                    component="span"
+                    sx={{
+                      color: '#fff',
+                      padding: '2px 8px',
+                      backgroundColor: elm
+                    }}
+                  >
+                    {elm}
+                  </Box>
+                </MenuItem>
+              )) }
             </TextField>
           </div>
         }

@@ -1,7 +1,7 @@
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 
 import ReactTour from 'reactour';
 
@@ -9,26 +9,13 @@ import Storage from './Storage.js';
 
 const storage = new Storage();
 
-
-const useStyles = makeStyles(theme => ({
-  title: {
-    marginBottom: theme.spacing(2),
-    paddingRight: theme.spacing(2)
-  },
-  buttons: {
-    marginTop: theme.spacing(2)
-  },
+const styles = {
   button: {
-    marginRight: theme.spacing(2)
-  },
-  p: {
-    marginBottom: theme.spacing(2)
+    marginRight: 2
   }
-}));
+};
 
 function TourStep(props) {
-
-  const classes = useStyles();
 
   const handleNext = () => {
     if (props.onNext) {
@@ -45,23 +32,33 @@ function TourStep(props) {
 
   return (
     <div>
-      {props.title && <Typography variant="h6" className={classes.title}>{props.title}</Typography>}
+      {props.title &&
+        <Typography
+          variant="h6"
+          sx={{
+            marginBottom: 2,
+            paddingRight: 2
+          }}
+        >
+          {props.title}
+        </Typography>
+      }
       {typeof props.text === 'string' ?
         <Typography variant="body2">{props.text}</Typography>
       :
         <React.Fragment>
-          {props.text.map((text, id) => <Typography key={id} variant="body2" className={classes.p}>{text}</Typography>)}
+          {props.text.map((text, id) => <Typography key={id} variant="body2" sx={{marginBottom: 2}}>{text}</Typography>)}
         </React.Fragment>
       }
-      <div className={classes.buttons}>
-        {props.step > 1 && <Button color="secondary" onClick={handlePrev} disableFocusRipple={true} className={classes.button}>Back</Button>}
-        {props.skip && <Button color="secondary" onClick={props.skip} disableFocusRipple={true} className={classes.button}>Skip tutorial</Button>}
-        {props.end ? 
-          <Button color="primary" variant="contained" onClick={props.end} disableFocusRipple={true} className={classes.button}>Done</Button>
+      <Box sx={{marginTop: 2}}>
+        {props.step > 1 && <Button color="secondary" onClick={handlePrev} disableFocusRipple={true} sx={styles.button}>Back</Button>}
+        {props.skip && <Button color="secondary" onClick={props.skip} disableFocusRipple={true} sx={styles.button}>Skip tutorial</Button>}
+        {props.end ?
+          <Button color="primary" variant="contained" onClick={props.end} disableFocusRipple={true} sx={styles.button}>Done</Button>
         :
-          <Button color="primary" variant="contained" onClick={handleNext} disableFocusRipple={true} className={classes.button}>Next</Button>
+          <Button color="primary" variant="contained" onClick={handleNext} disableFocusRipple={true} sx={styles.button}>Next</Button>
         }
-      </div>
+      </Box>
     </div>
   );
 }
@@ -148,7 +145,7 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
     },
     {
       selector: '[data-tour="Step7"]',
-      content: ({goTo}) => 
+      content: ({goTo}) =>
         <TourStep
           step={7}
           title="Step 2: Filtering jobs"
@@ -181,7 +178,7 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
     },
     {
       selector: '[data-tour="Step8b"]',
-      content: ({goTo}) => 
+      content: ({goTo}) =>
         <TourStep
           step={10}
           title="Route finding"
@@ -221,7 +218,7 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
       showCloseButton={false}
     />
 
-  );       
+  );
 
 
 }

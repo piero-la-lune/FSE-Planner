@@ -1,6 +1,8 @@
 import React from 'react';
+import { ThemeProvider } from '@mui/material/styles';
 import JobSegment from "./Components/JobSegment.js";
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
+import Theme from '../Theme.js';
 
 import ReactDOM from "react-dom";
 
@@ -49,7 +51,11 @@ function GPSLayer(props) {
       })
         .bindTooltip(() => {
           var div = document.createElement('div');
-          ReactDOM.render(<Typography variant="body1"><b>{leg.distance} NM</b></Typography>, div);
+          ReactDOM.render((
+            <ThemeProvider theme={Theme}>
+              <Typography variant="body1"><b>{leg.distance} NM</b></Typography>
+            </ThemeProvider>
+          ), div);
           return div;
         }, {sticky: true})
         .addTo(group);

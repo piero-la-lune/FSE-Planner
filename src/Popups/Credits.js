@@ -1,52 +1,39 @@
 import React from 'react';
-import Paper from '@material-ui/core/Paper';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import Typography from '@material-ui/core/Typography';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Link from '@material-ui/core/Link';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import Alert from '@material-ui/lab/Alert';
-import { makeStyles } from '@material-ui/core/styles';
+import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import Typography from '@mui/material/Typography';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import Link from '@mui/material/Link';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import Alert from '@mui/material/Alert';
 import { downloadReport } from '../util/logger.js';
 
 
-const useStyles = makeStyles(theme => ({
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
+const styles = {
   popup: {
     height: '100vh'
   },
-  dialog: {
-    paddingLeft: theme.spacing(3),
-    paddingRight: theme.spacing(3),
-    paddingTop: 0
-  },
   content: {
-    marginTop: theme.spacing(4),
-    marginBottom: theme.spacing(4),
-    padding: theme.spacing(2)
+    my: 4,
+    p: 2
   },
   version: {
-    marginBottom: theme.spacing(1)
+    mb: 1
   },
   level2: {
-    paddingLeft: theme.spacing(4)
+    pl: 4
   }
-}));
+};
 
 
 function IssueLink({id}) {
-  return <Link href={"https://github.com/piero-la-lune/FSE-Planner/issues/"+id} target="_blank">#{id}</Link>
+  return <Link href={"https://github.com/piero-la-lune/FSE-Planner/issues/"+id} target="_blank" sx={{display:'contents'}}>#{id}</Link>
 }
 
 
@@ -65,7 +52,6 @@ function CreditsPopup(props) {
       setExpanded(newValue);
     }
   };
-  const classes = useStyles();
 
   const handleClose = () => {
     setExpanded(0);
@@ -74,7 +60,7 @@ function CreditsPopup(props) {
   };
 
   return (
-    <Dialog onClose={handleClose} open={props.open} fullWidth={true} maxWidth="md" classes={{paper: classes.popup}}>
+    <Dialog onClose={handleClose} open={props.open} fullWidth={true} maxWidth="md">
       <DialogTitle>
         <Tabs
           value={expanded}
@@ -88,14 +74,23 @@ function CreditsPopup(props) {
           <Tab label="Tutorial" />
           <Tab label="Debug" />
         </Tabs>
-        <IconButton className={classes.closeButton} onClick={handleClose}>
+        <IconButton
+          onClick={handleClose}
+          size="large"
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: 'grey[500]',
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers className={classes.dialog}>
+      <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.8.0 (2021-12-08)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.8.0 (2021-12-08)</Typography>
             <Typography variant="h6">New</Typography>
             <List dense>
               <ListItem>Save layers between sessions</ListItem>
@@ -118,8 +113,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.7.0 (2021-10-09)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.7.0 (2021-10-09)</Typography>
             <Typography variant="h6">New</Typography>
             <List dense>
               <ListItem>New custom layers: add custom layers to the map with your own filters and display settings</ListItem>
@@ -145,8 +140,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.6.0 (2021-06-27)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.6.0 (2021-06-27)</Typography>
             <Typography variant="h6">New</Typography>
             <List dense>
               <ListItem>New airport filter: only display airports that sell building materials</ListItem>
@@ -163,8 +158,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.5.2 (2021-04-22)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.5.2 (2021-04-22)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
               <ListItem>Bug that would prevent the route PDF from showing</ListItem>
@@ -172,20 +167,20 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.5.1 (2021-04-22)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.5.1 (2021-04-22)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
               <ListItem>Bug that would prevent the Route Finder from displaying the results in some rare cases</ListItem>
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.5.0 (2021-04-21)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.5.0 (2021-04-21)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Many additions/improvements to the Route Finder:</ListItem>
-              <List dense className={classes.level2}>
+              <List dense sx={styles.level2}>
                 <ListItem>You can now export a route to a PDF document!</ListItem>
                 <ListItem>You can now copy a route to clipboard, to paste it in external tools</ListItem>
                 <ListItem>You can now change the default routing parameters (in the app settings), so that you do not need to change them each time you run the Route Finder</ListItem>
@@ -210,8 +205,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.4.1 (2021-04-16)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.4.1 (2021-04-16)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Debug button: allow any user to easily export debug information, to help investigating bugs. The new button is accessible via the changelog & credits popup</ListItem>
@@ -227,12 +222,12 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.4.0 (2021-03-13)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.4.0 (2021-03-13)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Better and more advanced parameters for the route finder:</ListItem>
-              <List dense className={classes.level2}>
+              <List dense sx={styles.level2}>
                 <ListItem>Net earnings: the ground handling fees, booking fees, rental cost & bonus and fuel cost can be deduced from the total pay</ListItem>
                 <ListItem>When using the 'Available planes' option, no need to set the aircraft specifications anymore (like 'max pax'), it is automatically deduced from the aircraft model</ListItem>
                 <ListItem>New idle/taxi time parameter, to better take into account time spent on the ground</ListItem>
@@ -248,8 +243,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.3.2 (2021-03-05)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.3.2 (2021-03-05)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>You can now load owned planes (by any user or group) on top of / instead of publicly rentable planes</ListItem>
@@ -260,16 +255,16 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.3.1 (2021-01-07)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.3.1 (2021-01-07)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
               <ListItem>Wrong passenger count in Route Finder (<IssueLink id={31} />)</ListItem>
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.3.0 (2021-01-05)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.3.0 (2021-01-05)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>New airport surface and airport runway length filter (<IssueLink id={20} />)</ListItem>
@@ -287,8 +282,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.2.0 (2020-12-11)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.2.0 (2020-12-11)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>New map overlay with unbuilt lots (updated daily)</ListItem>
@@ -305,8 +300,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.1.1 (2020-12-07)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.1.1 (2020-12-07)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Cancel button in Route Finder</ListItem>
@@ -322,8 +317,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.1.0 (2020-12-01)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.1.0 (2020-12-01)</Typography>
             <Alert style={{margin:20}} severity="warning">User settings have been reset</Alert>
             <Typography variant="h6">Added</Typography>
             <List dense>
@@ -349,8 +344,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v1.0.0 (2020-11-06)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.0.0 (2020-11-06)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>New map layer with all FSE airports</ListItem>
@@ -380,8 +375,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v0.5.0 (2020-10-20)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v0.5.0 (2020-10-20)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Auto center/zoom map to jobs on loading</ListItem>
@@ -401,16 +396,16 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v0.4.1 (2020-10-17)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v0.4.1 (2020-10-17)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List>
               <ListItem>"From ICAO" and "To ICAO" filters now work as expected for jobs departing/arriving from/to the selected airport when a maximum angle is set</ListItem>
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v0.4.0 (2020-10-17)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v0.4.0 (2020-10-17)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Highlight leg on mouse over</ListItem>
@@ -429,8 +424,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v0.3.0 (2020-10-14)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v0.3.0 (2020-10-14)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Display settings</ListItem>
@@ -439,8 +434,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v0.2.0 (2020-10-12)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v0.2.0 (2020-10-12)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>You can now select an area on a map to load jobs from, instead of selecting countries</ListItem>
@@ -450,8 +445,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>v0.1.0 (2020-10-11)</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v0.1.0 (2020-10-11)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Show available jobs on map</ListItem>
@@ -463,8 +458,8 @@ function CreditsPopup(props) {
           </Paper>
         </div>
         <div hidden={expanded !== 1}>
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>Contributors</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>Contributors</Typography>
             <List dense>
               <ListItem>piero-la-lune (author)</ListItem>
               <ListItem>icykoneko (contributor)</ListItem>
@@ -473,8 +468,8 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
-          <Paper className={classes.content}>
-            <Typography variant="h5" className={classes.version}>Map</Typography>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>Map</Typography>
             <List dense>
               <ListItem><Link href="https://leafletjs.com/">Leaflet</Link></ListItem>
               <ListItem>&copy;&nbsp;<Link href="https://www.openstreetmap.org/copyright">OpenStreetMap</Link>&nbsp;contributors</ListItem>
