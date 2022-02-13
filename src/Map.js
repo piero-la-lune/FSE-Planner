@@ -8,15 +8,11 @@ import Box from '@mui/material/Box';
 
 import { getBounds } from "geolib";
 import L from "leaflet";
+import "@maplibre/maplibre-gl-leaflet";
 
 import Canvas from "./MapLayers/Components/Canvas.js";
 import Marker from "./MapLayers/Components/Marker.js";
 import LayerControl from "./MapLayers/LayerControl.js";
-
-const baselayerURL = [
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  'https://api.maptiler.com/maps/topo/{z}/{x}/{y}.png?key='+process.env.REACT_APP_MAPTILER_KEY
-];
 
 
 const FSEMap = React.memo(function FSEMap(props) {
@@ -64,12 +60,19 @@ const FSEMap = React.memo(function FSEMap(props) {
 
   // Change basemap
   React.useEffect(() => {
-    if (!basemapRef.current) {
-      basemapRef.current = L.tileLayer(baselayerURL[basemap]);
+    if (basemapRef.current) {
+      basemapRef.current.remove();
+      basemapRef.current = null;
+    }
+    if (basemap === 0) {
+      basemapRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
       basemapRef.current.addTo(mapRef.current);
     }
     else {
-      basemapRef.current.setUrl(baselayerURL[basemap]);
+      basemapRef.current = L.maplibreGL({
+      	style: 'https://map-a.fse-planner.piero-la-lune.fr/styles/default/style.json'
+      });
+      basemapRef.current.addTo(mapRef.current);
     }
   }, [basemap]);
 
