@@ -338,6 +338,7 @@ function SettingsPopup(props) {
               <SettingSelect s={s} setS={setS} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
               <SettingSwitch s={s} setS={setS} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
               <SettingSwitch s={s} setS={setS} label="Only display and use airports with an ILS approach (MSFS)" setting="airport.onlyILS" xs={12} />
+              <SettingSwitch s={s} setS={setS} label="Exclude military airbases" setting="airport.excludeMilitary" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>

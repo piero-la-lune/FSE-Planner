@@ -33,6 +33,12 @@ export function hideAirport(icao, s, sim) {
             &&
               !icaodata[icao].ils
           )
+        ||
+          (
+              s.excludeMilitary
+            &&
+              icaodata[icao].type === 'military'
+          )
       )
   );
 }

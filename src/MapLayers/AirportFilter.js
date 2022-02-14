@@ -327,6 +327,7 @@ function AirportFilter(props) {
   const [onlySim, setOnlySim] = React.useState(layer.filters.onlySim);
   const [onlyBM, setOnlyBM] = React.useState(layer.filters.onlyBM);
   const [onlyILS, setOnlyILS] = React.useState(layer.filters.onlyILS);
+  const [excludeMilitary, setExcludeMilitary] = React.useState(layer.filters.excludeMilitary);
   const [price, setPrice] = React.useState(layer.filters.price);
   const [step, setStep] = React.useState(layer.type && layer.type !== 'custom' && layer.type !== 'gps' ? 1 : 0);
   const [custom, setCustom] = React.useState(layer.type === 'custom' ? 3 : layer.type === 'gps' ? 2 : 0);
@@ -366,6 +367,7 @@ function AirportFilter(props) {
       setOnlySim(props.layer.filters.onlySim);
       setOnlyBM(props.layer.filters.onlyBM);
       setOnlyILS(props.layer.filters.onlyILS);
+      setExcludeMilitary(props.layer.filters.excludeMilitary);
       setPrice(props.layer.filters.price);
       setCustom(props.layer.type === 'custom' ? 3 : props.layer.type === 'gps' ? 2 : 0);
       setCustomIcaos(props.layer.data.icaos);
@@ -648,6 +650,18 @@ EGLL LFPO
                 label="Only display airports with an ILS approach (MSFS)"
               />
             </Box>
+            <Box sx={styles.divSwitch}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={excludeMilitary}
+                    onChange={(evt, value) => { setExcludeMilitary(value); }}
+                    color="primary"
+                  />
+                }
+                label="Exclude military airbases"
+              />
+            </Box>
           </div>
         }
         { step === 2 &&
@@ -725,6 +739,7 @@ EGLL LFPO
                     onlySim: onlySim,
                     onlyBM: onlyBM,
                     onlyILS: onlyILS,
+                    excludeMilitary: excludeMilitary,
                     price: price
                   },
                   display: {
