@@ -259,6 +259,7 @@ const defaultLayer = {
     onlySim: false,
     onlyBM: false,
     onlyILS: false,
+    excludeMilitary: false,
     price: [0, 0]
   },
   display: {
