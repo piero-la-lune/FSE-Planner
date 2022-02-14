@@ -72,7 +72,7 @@ function cleanLegs(jobs, opts) {
     if (opts.settings.pay.min_leg && pay < opts.settings.pay.min_leg) { continue; }
     // Filter out legs with not enougth pax/kg
     if (opts.min && amount < opts.min) { continue; }
-    
+
     legs[keys[i]] = {
       amount: amount,
       pay: pay,
@@ -197,7 +197,7 @@ function Jobs(props) {
     // Compute color
     let color = s.display.legs.colors[props.options.cargo === 'passengers' ? 'passengers' : 'cargo'];
 
-    // Special color and weight if My Flight
+    // Special color and weight if My assignments
     if (leg.flight || (rleg && rleg.flight)) {
       color = s.display.legs.colors.flight;
       weight = parseFloat(s.display.legs.weights.flight);

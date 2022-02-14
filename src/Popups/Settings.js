@@ -253,12 +253,12 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="Custom marker airport size" setting='display.markers.sizes.custom' />
               <Setting s={s} setS={setS} label="Passenger leg color" setting='display.legs.colors.passengers' xs={3} />
               <Setting s={s} setS={setS} label="Cargo leg color" setting='display.legs.colors.cargo' xs={3} />
-              <Setting s={s} setS={setS} label="My Flight leg color" setting='display.legs.colors.flight' xs={3} />
+              <Setting s={s} setS={setS} label="My assignments leg color" setting='display.legs.colors.flight' xs={3} />
               <Setting s={s} setS={setS} label="Highlighted leg color" setting='display.legs.colors.highlight' xs={3} />
               <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" xs={3} />
               <Setting s={s} setS={setS} label="Max passenger leg weight" setting='display.legs.weights.passengers' helperText="Leave empty to disable adaptative weight" xs={3} />
               <Setting s={s} setS={setS} label="Max cargo leg weight" setting='display.legs.weights.cargo' helperText="Leave empty to disable adaptative weight" xs={3} />
-              <Setting s={s} setS={setS} label="My Flight leg weight" setting='display.legs.weights.flight' xs={3} />
+              <Setting s={s} setS={setS} label="My assignments leg weight" setting='display.legs.weights.flight' xs={3} />
               <SettingSelect s={s} setS={setS} label="Default map" setting='display.map.basemap' options={mapOptions} />
               <SettingSelect s={s} setS={setS} label="Simulator" setting='display.sim' options={simOptions} />
               <SettingSlider s={s} setS={setS} label="Map center" setting='display.map.center' xs={12} />

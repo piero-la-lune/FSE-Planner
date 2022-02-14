@@ -6,6 +6,7 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import Tooltip from '@mui/material/Tooltip';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
@@ -17,8 +18,12 @@ import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 
 import { usePapaParse } from 'react-papaparse';
 import { isPointInPolygon } from "geolib";
@@ -134,7 +139,7 @@ function cleanJobs(list, icaodata) {
   for (const job of list) {
     // Do not keep non paying jobs
     if (!parseInt(job.Pay)) { continue; }
-    // Because Airport jobs and My Flight datafeeds do not use the same property names...
+    // Because Airport jobs and My assignments datafeeds do not use the same property names...
     const toIcao = job.ToIcao ? job.ToIcao : job.Destination;
     const unit = job.UnitType ? job.UnitType : job.Units;
 
@@ -191,6 +196,60 @@ const filter = createFilterOptions();
 const filter10 = createFilterOptions({limit: 10});
 
 
+
+function AddButton (props) {
+  const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState('');
+  const [key, setKey] = React.useState('');
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setName('');
+    setKey('');
+    setOpen(false);
+  };
+
+  const handleSave = () => {
+    handleClose();
+    props.onAdd([name, key]);
+  }
+
+  return (
+    <div>
+      <Button onClick={handleClickOpen} sx={{mt: 1}}>
+        Add group
+      </Button>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Group information</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            label="Group name"
+            fullWidth
+            value={name}
+            onChange={evt => setName(evt.target.value)}
+            margin="normal"
+          />
+          <TextField
+            label="Group read access key"
+            fullWidth
+            value={key}
+            onChange={evt => setKey(evt.target.value)}
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" disabled={!name || !key}>Add group</Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+}
+
 function UpdatePopup(props) {
 
   const [key, setKey] = React.useState(storage.get('key', ''));
@@ -214,6 +273,7 @@ function UpdatePopup(props) {
   const [customIcaosVal, setCustomIcaosVal] = React.useState(props.customIcaos.join(' '));
   const [userList, setUserList] = React.useState([]);
   const [username, setUsername] = React.useState(storage.get('username', ''));
+  const [assignmentKeys, setAssignmentKeys] = React.useState(storage.get('assignmentKeys', [{name: 'Personal assignments', enabled: true}]));
   const { readString } = usePapaParse();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
@@ -420,12 +480,22 @@ function UpdatePopup(props) {
     handleClose();
   }
 
-  // My Flight Update button clicked
-  const updateFlight = (evt) => {
-    evt.stopPropagation();
-    setLoading('panel4');
+  // Loop function to get assignments from FSE
+  const updateFlightRequest = (groups, results, callback) => {
+    if (!groups.length) {
+      callback(results);
+      return;
+    }
+    const group = groups.pop();
+    // Check if the group is enabled
+    if (!group.enabled) {
+      updateFlightRequest(groups, results, callback);
+      return;
+    }
+    // If no group key, it is personal assignments
+    const groupKey = group.key ? group.key : key;
     // Build URL
-    const url = 'data?userkey='+key+'&format=csv&query=assignments&search=key&readaccesskey='+key
+    const url = 'data?userkey='+key+'&format=csv&query=assignments&search=key&readaccesskey='+groupKey
     // Fetch job list
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
@@ -440,7 +510,22 @@ function UpdatePopup(props) {
       if (parse.errors.length > 0) {
         throw new Error("Parsing error");
       }
-      const jobs = cleanJobs(parse.data, props.icaodata);
+      updateFlightRequest(groups, [...results, ...parse.data], callback);
+    })
+    .catch(function(error) {
+      log.error("Error while updating assignments", error);
+      console.log(error);
+      alert('Could not get data. Check your read access key and the group keys.');
+      setLoading(false);
+    });
+  }
+
+  // My assignments Update button clicked
+  const updateFlight = (evt) => {
+    evt.stopPropagation();
+    setLoading('panel4');
+    updateFlightRequest([...assignmentKeys], [], arr => {
+      const jobs = cleanJobs(arr, props.icaodata);
       // Update flight
       storage.set('flight', jobs);
       props.setFlight(jobs);
@@ -451,15 +536,9 @@ function UpdatePopup(props) {
       // Close popup
       setLoading(false);
       handleClose();
-    })
-    .catch(function(error) {
-      log.error("Error while updating My Flight", error);
-      console.log(error);
-      alert('Could not get data. Check your read access key.');
-      setLoading(false);
     });
   }
-  // My Flight Clear button clicked
+  // My assignments Clear button clicked
   const clearFlight = (evt) => {
     evt.stopPropagation();
     setLoading('panel4');
@@ -705,7 +784,7 @@ function UpdatePopup(props) {
 
           <Accordion expanded={expanded === 'panel4'} onChange={panelChange('panel4')}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
-              <Typography sx={styles.title}>My flight</Typography>
+              <Typography sx={styles.title}>My assignments</Typography>
               <Button color="secondary" onClick={clearFlight}>
                 Clear
               </Button>
@@ -719,6 +798,37 @@ function UpdatePopup(props) {
                 </span>
               </Tooltip>
             </AccordionSummary>
+            <AccordionDetails>
+              <Stack direction="row" spacing={1}>
+                { assignmentKeys.map((elm, id) => (
+                  <Chip
+                    label={elm.name}
+                    onClick={() => {
+                      const arr = [...assignmentKeys];
+                      arr[id].enabled = !arr[id].enabled;
+                      setAssignmentKeys(arr);
+                      storage.set('assignmentKeys', arr);
+                    }}
+                    onDelete={id === 0 ? null : (() => {
+                      const arr = [...assignmentKeys];
+                      arr.splice(id, 1);
+                      setAssignmentKeys(arr);
+                      storage.set('assignmentKeys', arr);
+                    })}
+                    icon={elm.enabled ? <RadioButtonCheckedIcon /> : <RadioButtonUncheckedIcon />}
+                    key={elm.name+elm.id}
+                  />
+                )) }
+              </Stack>
+              <AddButton
+                onAdd={([name, key]) => {
+                  const arr = [...assignmentKeys];
+                  arr.push({name: name, key: key, enabled: true})
+                  setAssignmentKeys(arr);
+                  storage.set('assignmentKeys', arr);
+                }}
+              />
+            </AccordionDetails>
           </Accordion>
 
           <Accordion expanded={expanded === 'panel5'} onChange={panelChange('panel5')}>
