@@ -37,7 +37,7 @@ function Tooltip({leg, type, rleg, fromIcao, toIcao}) {
       { rleg && rleg.amount > 0 && <Cargo cargo={{[type]: rleg.amount}} pay={rleg.pay} dir={rleg.direction} /> }
       { (leg.flight || (rleg && rleg.flight)) &&
         <div>
-          <Typography variant="body1" sx={{ marginTop: 2 }}><b>My flight</b></Typography>
+          <Typography variant="body1" sx={{ marginTop: 2 }}><b>My assignments</b></Typography>
           {leg.flight && <Cargo cargo={leg.flight} pay={leg.flight.pay} dir={leg.direction} />}
           {rleg && rleg.flight && <Cargo cargo={rleg.flight} pay={rleg.flight.pay} dir={rleg.direction} />}
         </div>
