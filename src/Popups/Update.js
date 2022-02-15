@@ -105,7 +105,7 @@ function getIcaoList(countries, bounds, layers, icaodata, icaos) {
     list.push(start+reminder.slice(0, index));
     reminder = reminder.slice(index+1);
   }
-  return list;
+  return [i, list];
 }
 
 
@@ -143,7 +143,7 @@ function cleanPlanes(list, username, rentable = true) {
   return planes;
 }
 
-function cleanJobs(list, icaodata) {
+function cleanJobs(list, icaodata, icaos = null) {
   const jobs = {};
   for (const job of list) {
     // Do not keep non paying jobs
@@ -153,6 +153,9 @@ function cleanJobs(list, icaodata) {
     const unit = job.UnitType ? job.UnitType : job.Units;
 
     const key = job.Location+"-"+toIcao;
+
+    // Do not keep jobs in the wrong direction
+    if (icaos !== null && !icaos.includes(toIcao)) { continue; }
 
     // Ensure leg exist in jobs object
     if (!jobs.hasOwnProperty(key)) {
@@ -269,7 +272,7 @@ function UpdatePopup(props) {
     return null;
   });
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
-  const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, [], props.icaodata, props.icaos).length);
+  const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, [], props.icaodata, props.icaos)[1].length);
   const [planeModel, setPlaneModel] = React.useState(storage.get('planeModel', []));
   const [planeUser, setPlaneUser] = React.useState(storage.get('planeUser', []));
   const [planesTime, setPlanesTime] = React.useState(storage.get('planesTime'));
@@ -310,7 +313,7 @@ function UpdatePopup(props) {
 
   // Update the number of request for loading jobs each time one input changes
   React.useEffect(() => {
-    setJobsRequests(getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos).length);
+    setJobsRequests(getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos)[1].length);
   }, [jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos]);
 
   // Close popup
@@ -346,7 +349,8 @@ function UpdatePopup(props) {
       callback(jobs);
       return;
     }
-    const url = 'data?userkey='+key+'&format=csv&query=icao&search=jobsfrom&icaos='+icaosList.pop();
+    const dir = props.settings.update.direction === 'to' ? 'jobsto' : 'jobsfrom';
+    const url = 'data?userkey='+key+'&format=csv&query=icao&search='+dir+'&icaos='+icaosList.pop();
     // Fetch job list
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
@@ -375,9 +379,9 @@ function UpdatePopup(props) {
     evt.stopPropagation();
     setLoading('panel2');
     // Compute ICAO list
-    const icaosList = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos);
+    const [icaos, icaosList] = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos);
     updateJobsRequest(icaosList, [], (list) => {
-      const jobs = cleanJobs(list, props.icaodata);
+      const jobs = cleanJobs(list, props.icaodata, props.settings.update.direction === 'both' ? icaos : null);
       // Update jobs
       storage.set('jobs', jobs);
       props.setJobs(jobs);
