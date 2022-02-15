@@ -34,6 +34,7 @@ import GPSLayer from "./GPS.js";
 import AirportFilter from "./AirportFilter.js";
 import { simName, hideAirport } from "../utility.js";
 import Storage from "../Storage.js";
+import uid from "../util/uid.js";
 
 const storage = new Storage();
 
@@ -350,7 +351,7 @@ function LayerControl(props) {
 
   const updateLocalStorage = React.useCallback(() => {
     const ls = layersRef.current.map(l => l.layerInfo ?
-      {visible: l.visible, info: l.layerInfo} :
+      {visible: l.visible, info: l.layerInfo, id: l.id} :
       {visible: l.visible}
     );
     storage.set('layers', ls);
@@ -613,7 +614,8 @@ function LayerControl(props) {
   }, [props.options, props.actions, props.route, props.customIcaos, props.icaos, resetLayer]);
 
   // Layer factory for custom layers
-  const layerFactory = (l) => {
+  const layerFactory = (l, id = null) => {
+    if (!id) { id = uid(); }
     return {
       label: l.display.name,
       visible: true,
@@ -626,7 +628,7 @@ function LayerControl(props) {
       color: l.display.color,
       size: l.display.size,
       filter: l.filters,
-      id: (Math.random() + 1).toString(36).substring(7),
+      id: id,
       layerInfo: l,
       src: l.type,
       shared: l.shareID ? true : false
@@ -655,7 +657,7 @@ function LayerControl(props) {
       const ls = storage.get('layers', [{"visible":true},{"visible":false},{"visible":false},{"visible":true},{"visible":true},{"visible":true}]);
       ls.forEach((l, i) => {
         if (l.info) {
-          const ll = layerFactory(l.info);
+          const ll = layerFactory(l.info, l.id);
           layersRef.current.push(ll);
         }
         if (l.visible) {
@@ -923,6 +925,7 @@ function LayerControl(props) {
           // Edit layer
           else {
             id = layerEditId.current;
+            ll.id = layersRef.current[id].id;
             if (layersRef.current[id].layer) {
               layersRef.current[id].layer.remove();
             }

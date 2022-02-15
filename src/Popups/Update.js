@@ -34,6 +34,7 @@ import he from 'he';
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
 import log from '../util/logger.js';
+import { hideAirport } from "../utility.js";
 
 import aircrafts from "../data/aircraft.json";
 
@@ -54,7 +55,7 @@ function getAreas(icaodata, icaos) {
 }
 
 // Get the list of all airports within the selected countries and custom area
-function getIcaoList(countries, bounds, icaodata, icaos) {
+function getIcaoList(countries, bounds, layers, icaodata, icaos) {
   let points = null;
   // If custom area, compute polygon points
   if (countries.includes('Custom area')) {
@@ -79,6 +80,14 @@ function getIcaoList(countries, bounds, icaodata, icaos) {
       }
       else if (countries.includes(icaodata[icao].country)) {
         i.push(icao);
+      }
+      else {
+        for (const layer of layers) {
+          if (layer.icaos.includes(icao)) {
+            i.push(icao);
+            break;
+          }
+        }
       }
     }
   }
@@ -260,7 +269,7 @@ function UpdatePopup(props) {
     return null;
   });
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
-  const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos).length);
+  const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, [], props.icaodata, props.icaos).length);
   const [planeModel, setPlaneModel] = React.useState(storage.get('planeModel', []));
   const [planeUser, setPlaneUser] = React.useState(storage.get('planeUser', []));
   const [planesTime, setPlanesTime] = React.useState(storage.get('planesTime'));
@@ -274,9 +283,35 @@ function UpdatePopup(props) {
   const [userList, setUserList] = React.useState([]);
   const [username, setUsername] = React.useState(storage.get('username', ''));
   const [assignmentKeys, setAssignmentKeys] = React.useState(storage.get('assignmentKeys', [{name: 'Personal assignments', enabled: true}]));
+  const [layersOptions, setLayersOptions] = React.useState([]);
+  const [jobsLayers, setJobsLayers] = React.useState([]);
   const { readString } = usePapaParse();
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
+
+  // Update available custom layers when opening the popup
+  React.useEffect(() => {
+    if (!props.open) { return false; }
+    const arr = storage.get('layers', []);
+    const l = [];
+    for (const layer of arr) {
+      if (layer.info && layer.info.type === 'all') {
+        l.push({name: layer.info.display.name, id: layer.id, icaos: props.icaos.filter(icao => !hideAirport(icao, layer.info.filters, props.settings.display.sim))});
+      }
+      if (layer.info && layer.info.type === 'custom') {
+        l.push({name: layer.info.display.name, id: layer.id, icaos: layer.info.data.icaos.filter(icao => !hideAirport(icao, layer.info.filters, props.settings.display.sim))});
+      }
+    }
+    const jl = storage.get('jobsLayers', []);
+    const layers = l.filter(elm => jl.includes(elm.id));
+    setLayersOptions(l);
+    setJobsLayers(layers);
+  }, [props.open, props.icaos, props.icaodata, props.settings.display.sim]);
+
+  // Update the number of request for loading jobs each time one input changes
+  React.useEffect(() => {
+    setJobsRequests(getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos).length);
+  }, [jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos]);
 
   // Close popup
   const handleClose = () => {
@@ -340,7 +375,7 @@ function UpdatePopup(props) {
     evt.stopPropagation();
     setLoading('panel2');
     // Compute ICAO list
-    const icaosList = getIcaoList(jobsAreas, jobsCustom, props.icaodata, props.icaos);
+    const icaosList = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos);
     updateJobsRequest(icaosList, [], (list) => {
       const jobs = cleanJobs(list, props.icaodata);
       // Update jobs
@@ -353,6 +388,7 @@ function UpdatePopup(props) {
       // Update area
       storage.set('jobsAreas', jobsAreas);
       storage.set('jobsCustom', jobsCustom);
+      storage.set('jobsLayers', jobsLayers.map(elm => elm.id));
       // Close popup
       setLoading(false);
       handleClose();
@@ -656,7 +692,7 @@ function UpdatePopup(props) {
               &nbsp;
               <Tooltip title={<span>Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</span>}>
                 <span>
-                  <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading !== false || !key || !jobsAreas.length || jobsRequests > 10}>
+                  <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading !== false || !key || (!jobsAreas.length && !jobsLayers.length) || jobsRequests > 10}>
                     Update
                     {loading === 'panel2' && <CircularProgress size={24} sx={styles.buttonProgress} />}
                   </Button>
@@ -669,10 +705,7 @@ function UpdatePopup(props) {
                 limitTags={2}
                 options={areas}
                 renderInput={(params) => (
-                  jobsRequests > 1 ?
-                    <TextField {...params} label='Included countries' variant='outlined' error helperText={'Selected area is very large, it will require '+jobsRequests+' requests (10 max)'} />
-                  :
-                    <TextField {...params} label='Included countries' variant='outlined' />
+                  <TextField {...params} label='Load from geographical area' variant='outlined' margin="normal" />
                 )}
                 onChange={(evt, value) => {
                   if (value.includes('Custom area') && !jobsAreas.includes('Custom area')) {
@@ -680,7 +713,6 @@ function UpdatePopup(props) {
                   }
                   else {
                     setJobsAreas(value);
-                    setJobsRequests(getIcaoList(value, jobsCustom, props.icaodata, props.icaos).length)
                   }
                 }}
                 value={jobsAreas}
@@ -719,11 +751,29 @@ function UpdatePopup(props) {
                   const a = [...jobsAreas, 'Custom area'];
                   setJobsCustom(bounds);
                   setJobsAreas(a);
-                  setJobsRequests(getIcaoList(a, bounds, props.icaodata, props.icaos).length);
                 }}
                 bounds={jobsCustom}
                 settings={props.settings}
               />
+              <Autocomplete
+                multiple
+                options={layersOptions}
+                renderInput={(params) => (
+                  <TextField {...params} label='Load from custom layers' variant='outlined' margin="normal" />
+                )}
+                onChange={(evt, values) => {
+                  setJobsLayers(values);
+                }}
+                value={jobsLayers}
+                selectOnFocus
+                clearOnBlur
+                handleHomeEndKeys
+                getOptionLabel={option => option.name}
+                noOptionsText="No custom layer"
+                margin="normal"
+              />
+              { jobsRequests >= 2 && jobsRequests < 10 && <Alert severity="warning" sx={{ mt: 1 }}>Selected area is very large, it will require {jobsRequests} requests (10 max).</Alert> }
+              { jobsRequests >= 10 && <Alert severity="error" sx={{ mt: 1 }}>Selected area is too big.</Alert> }
             </AccordionDetails>
           </Accordion>
 
