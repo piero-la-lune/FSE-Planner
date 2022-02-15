@@ -839,10 +839,28 @@ function LayerControl(props) {
             }
           }
         });
+        actions.push({
+          name: "Pull latest data",
+          onClick: () => {
+            setLoading(i);
+            fetch(process.env.REACT_APP_API_URL+'/layer/'+layer.layerInfo.shareID).then(response => {
+              if (response.ok) {
+                response.json().then(arr => {
+                  if (arr.info) {
+                    // Update layer
+                    const ll = layerFactory(arr.info, layer.id);
+                    layersRef.current[i] = ll;
+                    show(i, true);
+                  }
+                });
+              }
+            });
+          }
+        })
       }
       if (layer.src !== 'gps') {
         actions.push({
-          name: "Download data",
+          name: "Download data (CSV)",
           onClick: () => {
             let src = props.icaos;
             if (layer.src === 'unbuilt') {
