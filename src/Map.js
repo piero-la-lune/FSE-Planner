@@ -32,7 +32,7 @@ const FSEMap = React.memo(function FSEMap(props) {
       center: [46.5344, 3.42167],
       zoom: 6,
       minZoom: 2,
-      maxZoom: 18,
+      maxZoom: 17,
       maxBounds: [[-90,-180], [90,180]],
       renderer: canvas,
       zoomControl: false,
