@@ -27,7 +27,7 @@ class Storage {
         this.set('settings', settings);
       }
       if (oldVersion < '1.8.1') {
-        const layers = this.get('layers');
+        const layers = this.get('layers', []);
         for (const layer of layers) {
           if (layer.info) {
             layer.id = uid();
