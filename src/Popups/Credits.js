@@ -48,7 +48,7 @@ function CreditsPopup(props) {
     else if (newValue === 3) {
       downloadReport();
     }
-    else {
+    else if (newValue !== 4){
       setExpanded(newValue);
     }
   };
@@ -73,6 +73,15 @@ function CreditsPopup(props) {
           <Tab label="Credits" />
           <Tab label="Tutorial" />
           <Tab label="Debug" />
+          <Tab
+            label="Donate"
+            component="a"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+            href="https://www.patreon.com/fse_planner"
+            target="_blank"
+          />
         </Tabs>
         <IconButton
           onClick={handleClose}
@@ -89,6 +98,32 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.9.0 (2022-02-17)</Typography>
+            <Alert sx={{m:1}} severity="info">Because some of you asked, I have set up a <Link href="https://www.patreon.com/fse_planner" target="_blank">Patreon page</Link>. Any donation is welcome, however FSE Planner is (and will always remain) a FREE and OPEN SOURCE tool: I do not wish anyone to ever feel compelled to donate.</Alert>
+            <Alert sx={{m:1}} severity="warning">I am considering removing the "Custom markers" feature in the next release, because all underlying features are now also available in the custom layers. If you think this is a bad idea, please drop me a message in FSE Forums or Discord before it is too late!</Alert>
+            <Typography variant="h6">New</Typography>
+            <List dense>
+              <ListItem>Load jobs from custom layers (= you can now load jobs from a list of ICAOs instead of a geographical area) (<IssueLink id={95} />, <IssueLink id={100} />) </ListItem>
+              <ListItem>Load group assignments (group read access key needed) (<IssueLink id={96} />)</ListItem>
+              <ListItem>New filter to exclude military airbases (<IssueLink id={103} />)</ListItem>
+              <ListItem>New settings to set job direction when loading jobs from FSE</ListItem>
+              <ListItem>New action to update data of shared layers (to load the latest changes made by the layer author)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Alternative basemap: new personalized map tiles (self hosted), so no more usage limit (unless it becomes too expensive to host...) (<IssueLink id={97} />)</ListItem>
+              <ListItem>Airports with available planes for rent are now highlighted with the same (red by default) color, instead of just the "jobs and plane search" layer as before (<IssueLink id={98} />)</ListItem>
+              <ListItem>Increased the map max zoom</ListItem>
+              <ListItem>Updated plane list to include the new Challenger 650</ListItem>
+              <ListItem>Technical upgrade: updated a lot of libraries and dependencies</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Bug with destination airport elevation on exported route (<IssueLink id={93} />)</ListItem>
+            </List>
+          </Paper>
+
           <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.8.0 (2021-12-08)</Typography>
             <Typography variant="h6">New</Typography>

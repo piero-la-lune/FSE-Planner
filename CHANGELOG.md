@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.9.0] - 2022-02-17
+
+### New
+- Load jobs from custom layers (= you can now load jobs from a list of ICAOs instead of a geographical area) ([#95](https://github.com/piero-la-lune/FSE-Planner/issues/95), [#100](https://github.com/piero-la-lune/FSE-Planner/issues/100))
+- Load group assignments (group read access key needed) ([#96](https://github.com/piero-la-lune/FSE-Planner/issues/96))
+- New filter to exclude military airbases ([#103](https://github.com/piero-la-lune/FSE-Planner/issues/103))
+- New settings to set job direction when loading jobs from FSE
+- New action to update data of shared layers (to load the latest changes made by the layer author)
+
+### Changed
+- Alternative basemap: new personalized map tiles (self hosted), so no more usage limit (unless it becomes too expensive to host...) ([#97](https://github.com/piero-la-lune/FSE-Planner/issues/97))
+- Airports with available planes for rent are now highlighted with the same (red by default) color, instead of just the "jobs and plane search" layer as before ([#98](https://github.com/piero-la-lune/FSE-Planner/issues/98))
+- Increased the map max zoom
+- Updated plane list to include the new Challenger 650
+- Technical upgrade: updated a lot of libraries and dependencies
+
+### Fixed
+- Bug with destination airport elevation on exported route ([#93](https://github.com/piero-la-lune/FSE-Planner/pull/93)) [by jsjunior]
+
+
+
 ## [1.8.0] - 2021-12-08
 
 ### New
