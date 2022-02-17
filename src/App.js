@@ -125,7 +125,7 @@ const defaultSettings = {
     memory: 'normal'
   },
   update: {
-    direction: 'both'
+    direction: 'from'
   }
 };
 
