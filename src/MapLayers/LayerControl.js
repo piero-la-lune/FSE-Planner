@@ -34,6 +34,7 @@ import GPSLayer from "./GPS.js";
 import AirportFilter from "./AirportFilter.js";
 import { simName, hideAirport } from "../utility.js";
 import Storage from "../Storage.js";
+import uid from "../util/uid.js";
 
 const storage = new Storage();
 
@@ -350,7 +351,7 @@ function LayerControl(props) {
 
   const updateLocalStorage = React.useCallback(() => {
     const ls = layersRef.current.map(l => l.layerInfo ?
-      {visible: l.visible, info: l.layerInfo} :
+      {visible: l.visible, info: l.layerInfo, id: l.id} :
       {visible: l.visible}
     );
     storage.set('layers', ls);
@@ -414,14 +415,15 @@ function LayerControl(props) {
             icaos: props.customIcaos,
             icaodata: props.options.icaodata,
             fseicaodata: props.options.icaodata,
+            planes: props.options.planes,
             color: s.display.markers.colors.custom,
             size: s.display.markers.sizes.custom,
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
+            colorPlanes: s.display.markers.colors.rentable,
             siminfo: s.display.sim,
             actions: props.actions,
-            connections: s.display.legs.display.custom ? connections : undefined,
-            id: "custom"
+            connections: s.display.legs.display.custom ? connections : undefined
           });
           showLayer(i);
         }
@@ -445,8 +447,7 @@ function LayerControl(props) {
               size: s.display.markers.sizes.sim,
               siminfo: s.display.sim,
               sim: s.display.sim,
-              actions: props.actions,
-              id: "sim"
+              actions: props.actions
             });
             showLayer(i);
           }
@@ -460,8 +461,7 @@ function LayerControl(props) {
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             actions: props.actions,
-            connections: layerRef.connections,
-            id: layerRef.id
+            connections: layerRef.connections
           });
           showLayer(i);
         }
@@ -506,16 +506,17 @@ function LayerControl(props) {
             icaos: src,
             icaodata: props.options.icaodata,
             fseicaodata: props.options.icaodata,
+            planes: props.options.planes,
             color: layerRef.color ? layerRef.color : s.display.markers.colors.fse,
             size: layerRef.size ? layerRef.size : s.display.markers.sizes.fse,
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
+            colorPlanes: s.display.markers.colors.rentable,
             airportFilter: layerRef.filter ? layerRef.filter : s.airport,
             forsale: forsaleRef.current === null ? null : Object.fromEntries(forsaleRef.current),
             siminfo: s.display.sim,
             actions: props.actions,
-            connections: layerRef.connections ? layerRef.connections : undefined,
-            id: layerRef.id ? layerRef.id : "fse"
+            connections: layerRef.connections ? layerRef.connections : undefined
           });
           showLayer(i);
         }
@@ -613,7 +614,8 @@ function LayerControl(props) {
   }, [props.options, props.actions, props.route, props.customIcaos, props.icaos, resetLayer]);
 
   // Layer factory for custom layers
-  const layerFactory = (l) => {
+  const layerFactory = (l, id = null) => {
+    if (!id) { id = uid(); }
     return {
       label: l.display.name,
       visible: true,
@@ -626,7 +628,7 @@ function LayerControl(props) {
       color: l.display.color,
       size: l.display.size,
       filter: l.filters,
-      id: (Math.random() + 1).toString(36).substring(7),
+      id: id,
       layerInfo: l,
       src: l.type,
       shared: l.shareID ? true : false
@@ -655,7 +657,7 @@ function LayerControl(props) {
       const ls = storage.get('layers', [{"visible":true},{"visible":false},{"visible":false},{"visible":true},{"visible":true},{"visible":true}]);
       ls.forEach((l, i) => {
         if (l.info) {
-          const ll = layerFactory(l.info);
+          const ll = layerFactory(l.info, l.id);
           layersRef.current.push(ll);
         }
         if (l.visible) {
@@ -837,10 +839,28 @@ function LayerControl(props) {
             }
           }
         });
+        actions.push({
+          name: "Pull latest data",
+          onClick: () => {
+            setLoading(i);
+            fetch(process.env.REACT_APP_API_URL+'/layer/'+layer.layerInfo.shareID).then(response => {
+              if (response.ok) {
+                response.json().then(arr => {
+                  if (arr.info) {
+                    // Update layer
+                    const ll = layerFactory(arr.info, layer.id);
+                    layersRef.current[i] = ll;
+                    show(i, true);
+                  }
+                });
+              }
+            });
+          }
+        })
       }
       if (layer.src !== 'gps') {
         actions.push({
-          name: "Download data",
+          name: "Download data (CSV)",
           onClick: () => {
             let src = props.icaos;
             if (layer.src === 'unbuilt') {
@@ -923,6 +943,7 @@ function LayerControl(props) {
           // Edit layer
           else {
             id = layerEditId.current;
+            ll.id = layersRef.current[id].id;
             if (layersRef.current[id].layer) {
               layersRef.current[id].layer.remove();
             }

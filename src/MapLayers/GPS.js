@@ -71,8 +71,7 @@ function GPSLayer(props) {
       icao: label,
       icaodata: props.fseicaodata,
       actions: props.actions,
-      sim: 'gps',
-      id: 'gps'+props.id
+      sim: 'gps'
     })
       .addTo(group);
   }

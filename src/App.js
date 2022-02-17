@@ -123,6 +123,9 @@ const defaultSettings = {
     overheadLength: 0,
     approachLength: 10,
     memory: 'normal'
+  },
+  update: {
+    direction: 'both'
   }
 };
 

@@ -19,6 +19,7 @@ import ExploreIcon from '@mui/icons-material/Explore';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import BusinessIcon from '@mui/icons-material/Business';
 import DirectionsIcon from '@mui/icons-material/Directions';
+import UpdateIcon from '@mui/icons-material/Update';
 import Grid from '@mui/material/Grid';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
@@ -205,7 +206,12 @@ function SettingsPopup(props) {
     ['normal', 'Normal'],
     ['high', 'High'],
     ['unlimited', 'No limit']
-  ]
+  ];
+  const directionOptions = [
+    ['from', 'Jobs FROM the selected area/layer'],
+    ['to', 'Jobs TO the selected area/layer'],
+    ['both', 'Jobs inside the selected area/layer']
+  ];
 
   const handleClose = () => {
     // Cancel change
@@ -364,6 +370,18 @@ function SettingsPopup(props) {
                 <Setting s={s} setS={setS} label="Distance overhead" setting='routeFinder.overheadLength' end="%" xs={6} helperText="Added to the leg straight distance, to account for not straight routes." />
                 <Setting s={s} setS={setS} label="Approach distance" setting='routeFinder.approachLength' end="NM" xs={6} helperText="Added to the leg straight distance, to account for approach circuits."/>
                 <SettingSelect s={s} setS={setS} label="Net earnings" setting='routeFinder.fees' xs={6} options={earningsOptions} multiple={true} />
+              </Grid>
+            </div>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion expanded={expanded === 'panel8'} onChange={handleChange('panel8')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <UpdateIcon />&nbsp;<Typography>Data update settings</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <div>
+              <Grid container spacing={3}>
+                <SettingSelect s={s} setS={setS} label="Job direction for the selected area/layer" setting='update.direction' xs={6} options={directionOptions} />
               </Grid>
             </div>
           </AccordionDetails>

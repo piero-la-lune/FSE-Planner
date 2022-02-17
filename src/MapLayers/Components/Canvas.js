@@ -26,7 +26,7 @@ const Canvas = L.Canvas.extend({
     const fillColor = layer.options.fillColor;
     const radius = layer.options.radius;
     const type = layer.options.type;
-    const id = layer.options.id;
+    const id = 'ID'+radius+'-'+color+'-'+fillColor;
     const p = layer._point;
 
     // Build the image if does not exists yet
@@ -172,7 +172,7 @@ const Canvas = L.Canvas.extend({
     const ay = udx * 1/2 + udy * Math.sqrt(3)/2;
     const bx = udx * Math.sqrt(3)/2 + udy * 1/2;
     const by =  - udx * 1/2 + udy * Math.sqrt(3)/2;
-    
+
     this._ctx.beginPath();
 
     this._ctx.moveTo(p1.x, p1.y);
