@@ -80,8 +80,7 @@ function Route(props) {
       icaodata: props.options.icaodata,
       planes: props.options.planes[icao],
       siminfo: s.display.sim,
-      actions: props.actions,
-      id: 'route'
+      actions: props.actions
     })
       .addTo(group);
   }

@@ -258,7 +258,7 @@ function Popup(props) {
   );
 }
 
-function Marker({position, size, color, sim, id, allJobs, ...props}) {
+function Marker({position, size, color, sim, allJobs, ...props}) {
   let type = 'default';
   if (!sim || (props.icaodata[props.icao] && props.icaodata[props.icao][sim][0] === props.icao)) {
     const a = props.icaodata[props.icao];
@@ -271,7 +271,6 @@ function Marker({position, size, color, sim, id, allJobs, ...props}) {
       color: '#fff',
       fillColor: color,
       type: type,
-      id: id,
       allJobs: allJobs,
     }
   )

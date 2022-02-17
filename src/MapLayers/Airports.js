@@ -17,7 +17,7 @@ function AirportsLayer(props) {
       const [prevIcao, icao] = c;
       if (hideAirport(prevIcao, props.airportFilter, props.siminfo)) { continue; }
       if (hideAirport(icao, props.airportFilter, props.siminfo)) { continue; }
-      
+
       const fr = { latitude: props.icaodata[prevIcao].lat, longitude: props.icaodata[prevIcao].lon };
       const to = { latitude: props.icaodata[icao].lat, longitude: props.icaodata[icao].lon };
       let key = prevIcao+"-"+icao;
@@ -40,7 +40,7 @@ function AirportsLayer(props) {
 
       // Ensure only one line for both way legs
       if (rleg && fr > to) { continue; }
-      
+
       Job({
         positions: [[props.icaodata[fr].lat, props.icaodata[fr].lon], [props.icaodata[to].lat, props.icaodata[to].lon]],
         color: props.color,
@@ -62,14 +62,14 @@ function AirportsLayer(props) {
     Marker({
       position: [props.icaodata[icao].lat, props.icaodata[icao].lon],
       size: props.size,
-      color: props.color,
+      color: props.planes && props.planes[icao] ? props.colorPlanes : props.color,
       icao: icao,
       icaodata: props.fseicaodata,
       actions: props.actions,
       siminfo: props.siminfo,
       sim: props.sim,
       forsale: forsale[icao],
-      id: 'sim'+props.id
+      planes: props.planes && props.planes[icao]
     })
       .addTo(group);
   }

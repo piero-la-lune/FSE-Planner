@@ -247,7 +247,6 @@ function Jobs(props) {
       planes: props.options.planes[marker],
       siminfo: s.display.sim,
       actions: props.actions,
-      id: 'jobs'+color,
       allJobs: markerJobs[marker]
     })
       .on("mouseover", (e) => {

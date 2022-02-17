@@ -96,8 +96,7 @@ const FSEMap = React.memo(function FSEMap(props) {
         icaodata: props.options.icaodata,
         planes: props.options.planes[props.search],
         siminfo: s.display.sim,
-        actions: props.actions,
-        id: 'search'
+        actions: props.actions
       })
         .addTo(mapRef.current);
       // Only open popup if search ICAO has changed

@@ -415,14 +415,15 @@ function LayerControl(props) {
             icaos: props.customIcaos,
             icaodata: props.options.icaodata,
             fseicaodata: props.options.icaodata,
+            planes: props.options.planes,
             color: s.display.markers.colors.custom,
             size: s.display.markers.sizes.custom,
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
+            colorPlanes: s.display.markers.colors.rentable,
             siminfo: s.display.sim,
             actions: props.actions,
-            connections: s.display.legs.display.custom ? connections : undefined,
-            id: "custom"
+            connections: s.display.legs.display.custom ? connections : undefined
           });
           showLayer(i);
         }
@@ -446,8 +447,7 @@ function LayerControl(props) {
               size: s.display.markers.sizes.sim,
               siminfo: s.display.sim,
               sim: s.display.sim,
-              actions: props.actions,
-              id: "sim"
+              actions: props.actions
             });
             showLayer(i);
           }
@@ -461,8 +461,7 @@ function LayerControl(props) {
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             actions: props.actions,
-            connections: layerRef.connections,
-            id: layerRef.id
+            connections: layerRef.connections
           });
           showLayer(i);
         }
@@ -507,16 +506,17 @@ function LayerControl(props) {
             icaos: src,
             icaodata: props.options.icaodata,
             fseicaodata: props.options.icaodata,
+            planes: props.options.planes,
             color: layerRef.color ? layerRef.color : s.display.markers.colors.fse,
             size: layerRef.size ? layerRef.size : s.display.markers.sizes.fse,
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
+            colorPlanes: s.display.markers.colors.rentable,
             airportFilter: layerRef.filter ? layerRef.filter : s.airport,
             forsale: forsaleRef.current === null ? null : Object.fromEntries(forsaleRef.current),
             siminfo: s.display.sim,
             actions: props.actions,
-            connections: layerRef.connections ? layerRef.connections : undefined,
-            id: layerRef.id ? layerRef.id : "fse"
+            connections: layerRef.connections ? layerRef.connections : undefined
           });
           showLayer(i);
         }
