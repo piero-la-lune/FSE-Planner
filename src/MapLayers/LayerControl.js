@@ -15,6 +15,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import DialogContentText from '@mui/material/DialogContentText';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
@@ -202,7 +203,7 @@ function Layer(props) {
             evt.stopPropagation();
             props.handleRemove();
           }}
-          alt="Remove layer"
+          alt="Delete layer"
         >
           <CancelIcon fontSize="small" />
         </Box>
@@ -290,6 +291,7 @@ function LayerControl(props) {
   const [shareLabel, setShareLabel] = React.useState('');
   const [shareEditID, setShareEditID] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
+  const [confirm, setConfirm] = React.useState({});
   const { setBasemap } = props;
   const layersRef = React.useRef([
     {
@@ -733,14 +735,26 @@ function LayerControl(props) {
 
   // When remove layer icon is clicked
   const removeLayer = React.useCallback((i) => {
-    if (layersRef.current[i].layer) {
-      layersRef.current[i].layer.remove();
-    }
-    layersRef.current.splice(i, 1);
-    orderRef.current = orderRef.current.filter(elm => elm !== i);
-    orderRef.current = orderRef.current.map(elm => elm > i ? elm-1 : elm);
-    updateLocalStorage();
-    forceUpdate();
+    setConfirm({
+      title: "Delete layer?",
+      msg: 'Are you sure you want to delete this layer?',
+      yes: () => {
+        if (layersRef.current[i].layer) {
+          layersRef.current[i].layer.remove();
+        }
+        layersRef.current.splice(i, 1);
+        orderRef.current = orderRef.current.filter(elm => elm !== i);
+        orderRef.current = orderRef.current.map(elm => elm > i ? elm-1 : elm);
+        updateLocalStorage();
+        forceUpdate();
+        setConfirm({});
+        setHover(false);
+      },
+      no: () => {
+        setConfirm({});
+        setHover(false);
+      }
+    });
   }, [updateLocalStorage]);
 
   // When edit layer icon is clicked
@@ -795,7 +809,7 @@ function LayerControl(props) {
         }
       });
       actions.push({
-        name: "Remove",
+        name: "Delete",
         onClick: () => { removeLayer(i) }
       });
       if (!layer.shared) {
@@ -1129,6 +1143,19 @@ function LayerControl(props) {
           <Button onClick={handleCloseShare} color="primary">
             Close
           </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={confirm.yes ? true : false}
+        onClose={confirm.no}
+      >
+        <DialogTitle>{confirm.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{confirm.msg}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={confirm.no} color="secondary">No</Button>
+          <Button onClick={confirm.yes} color="primary" variant="contained" autoFocus>Yes</Button>
         </DialogActions>
       </Dialog>
     </Paper>
