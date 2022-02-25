@@ -460,7 +460,7 @@ function AirportFilter(props) {
 33.459,-112.082,Phoenix
 36.164,-115.169,Las Vegas
 [...]"
-                  helperText="One GPS point per line with the CSV format (coma separator): latitude, longitude, label."
+                  helperText="One GPS point per line with the CSV format (coma or tab separator): latitude, longitude, label."
                   value={gpsPointsVal}
                   onChange={(evt) => {
                     setGpsPointsVal(evt.target.value);
@@ -478,7 +478,7 @@ function AirportFilter(props) {
                   placeholder="0 1
 1 2
 [...]"
-                  helperText="One connection per line. Each line must contain the starting ID and arrival ID separated by a space or coma"
+                  helperText="One connection per line. Each line must contain the starting ID and arrival ID separated by a white space or coma"
                   value={gpsConnectionsVal}
                   onChange={(evt) => {
                     setGpsConnectionsVal(evt.target.value);
@@ -495,7 +495,7 @@ function AirportFilter(props) {
                     const points = [];
                     // Keep only valid GPS points
                     for (const elm of elms) {
-                      const arr = elm.split(/,/);
+                      const arr = elm.split(/[,\t]/);
                       if (arr.length < 2) { continue; }
                       const latitude = parseFloat(arr[0]);
                       const longitude = parseFloat(arr[1]);
@@ -508,7 +508,7 @@ function AirportFilter(props) {
                     const arr = gpsConnectionsVal.toUpperCase().split(/\n+/);
                     const connections = [];
                     for (const elm of arr) {
-                      const c = elm.split(/[ ,]+/);
+                      const c = elm.split(/[ ,\t]+/);
                       if (c.length !== 2) { continue; }
                       const fr = parseInt(c[0]);
                       const to = parseInt(c[1]);
@@ -569,7 +569,7 @@ EGLL
                   placeholder="EGLL LFLY
 EGLL LFPO
 [...]"
-                  helperText="One connection per line. Each line must contain the starting and arrival ICAO, separated by a space or coma"
+                  helperText="One connection per line. Each line must contain the starting and arrival ICAO, separated by a white space or coma"
                   value={customConnectionsVal}
                   onChange={(evt) => {
                     setCustomConnectionsVal(evt.target.value);
@@ -582,14 +582,14 @@ EGLL LFPO
               <Grid item>
                 <Button
                   onClick={() => {
-                    const elms = customIcaosVal.toUpperCase().split(/[ ,\n]+/);
+                    const elms = customIcaosVal.toUpperCase().split(/[ ,\n\t]+/);
                     // Keep only valid FSE ICAOs
-                    const icaos = elms.filter(elm => props.icaos.includes(elm));
+                    const icaos = [...new Set(elms.filter(elm => props.icaos.includes(elm)))];
                     setCustomIcaos(icaos);
                     const arr = customConnectionsVal.toUpperCase().split(/\n+/);
                     const connections = [];
                     for (const elm of arr) {
-                      const c = elm.split(/[ ,]+/);
+                      const c = elm.split(/[ ,\t]+/);
                       if (c.length === 2 && icaos.includes(c[0]) && icaos.includes(c[1])) {
                         connections.push([c[0], c[1]]);
                       }

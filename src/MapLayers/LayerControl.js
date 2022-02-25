@@ -937,7 +937,6 @@ function LayerControl(props) {
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      onContextMenu={evt => { evt.preventDefault() }}
     >
       <AirportFilter
         open={openFilter}
@@ -993,7 +992,7 @@ function LayerControl(props) {
         icaos={props.icaos}
       />
       {hover || openFilter ?
-        <div>
+        <Box onContextMenu={evt => { evt.preventDefault() }}>
           <Typography variant="h6" gutterBottom>Basemap</Typography>
           <BasemapBtn src={imgs[0]} selected={basemap === 0} onClick={() => setBasemapId(0)} label="Default" />
           <BasemapBtn src={imgs[1]} selected={basemap === 1} onClick={() => setBasemapId(1)} label="Alternative" />
@@ -1039,7 +1038,7 @@ function LayerControl(props) {
               New layer
             </Button>
           </Box>
-        </div>
+        </Box>
       :
         <IconButton size="large"><LayersIcon /></IconButton>
       }
