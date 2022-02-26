@@ -38,6 +38,7 @@ import ErrorBoundary from './ErrorBoundary.js';
 import Tour from './Tour.js';
 import Storage from './Storage.js';
 import log from './util/logger.js';
+import {wrap} from './util/utility.js';
 
 import icaodataSrc from "./data/icaodata.json";
 const icaodataSrcArr = Object.values(icaodataSrc);
@@ -135,12 +136,6 @@ const icaos = Object.keys(icaodataSrc);
 const filter = createFilterOptions({limit: 5});
 const PopperMy = function (props) {
   return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
-}
-
-function wrap(num, center) {
-  if (num < center-180) { return 360; }
-  if (num >= center+180) { return -360; }
-  return 0;
 }
 
 const styles = {

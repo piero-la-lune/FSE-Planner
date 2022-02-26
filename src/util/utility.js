@@ -1,5 +1,5 @@
-import icaodata from "./data/icaodata.json";
-import aircrafts from "./data/aircraft.json";
+import icaodata from "../data/icaodata.json";
+import aircrafts from "../data/aircraft.json";
 
 export function hideAirport(icao, s, sim) {
   return (
@@ -59,9 +59,15 @@ export function airportSurface(surface) {
 export function simName(id) {
   switch (id) {
     case 'msfs': return "MSFS"
-    case 'xplane': return "X-Plane"
+    case 'xplane': return "X-Plane 11.55"
     default: return "FSX"
   }
+}
+
+export function wrap(num, center) {
+  if (num < center-180) { return 360; }
+  if (num >= center+180) { return -360; }
+  return 0;
 }
 
 export class Plane {

@@ -44,7 +44,7 @@ import { pdf } from '@react-pdf/renderer';
 
 import RoutingWorker from './routing.worker.js';
 import PDFRoute from './PDFRoute.js';
-import { hideAirport, Plane } from "./utility.js";
+import { hideAirport, Plane } from "./util/utility.js";
 import log from "./util/logger.js";
 
 import aircrafts from "./data/aircraft.json";

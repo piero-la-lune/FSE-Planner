@@ -10,10 +10,13 @@ import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 
 import Marker from "./Components/Marker.js";
+import { wrap as iWrap } from "../util/utility.js";
 
 function GPSLayer(props) {
 
+  const s = props.settings;
   const group = L.featureGroup();
+  const wrap = num => num+iWrap(num, s.display.map.center);
 
   // Create lines if needed
   if (props.connections) {
@@ -43,7 +46,7 @@ function GPSLayer(props) {
       // Ensure only one line for both way legs
       if (rleg && fr > to) { continue; }
 
-      new JobSegment([[props.points[fr][0], props.points[fr][1]], [props.points[to][0], props.points[to][1]]], {
+      new JobSegment([[props.points[fr][0], wrap(props.points[fr][1])], [props.points[to][0], wrap(props.points[to][1])]], {
         weight: props.weight,
         color: props.color,
         highlight: props.highlight,
@@ -65,7 +68,7 @@ function GPSLayer(props) {
   // Create markers
   for (const [latitude, longitude, label] of props.points) {
     Marker({
-      position: [latitude, longitude],
+      position: [latitude, wrap(longitude)],
       size: props.size,
       color: props.color,
       icao: label,

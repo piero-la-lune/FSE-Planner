@@ -15,6 +15,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import DialogContentText from '@mui/material/DialogContentText';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
@@ -32,7 +33,7 @@ import RouteLayer from "./Route.js";
 import AirportsLayer from "./Airports.js";
 import GPSLayer from "./GPS.js";
 import AirportFilter from "./AirportFilter.js";
-import { simName, hideAirport } from "../utility.js";
+import { simName, hideAirport } from "../util/utility.js";
 import Storage from "../Storage.js";
 import uid from "../util/uid.js";
 
@@ -202,7 +203,7 @@ function Layer(props) {
             evt.stopPropagation();
             props.handleRemove();
           }}
-          alt="Remove layer"
+          alt="Delete layer"
         >
           <CancelIcon fontSize="small" />
         </Box>
@@ -290,6 +291,7 @@ function LayerControl(props) {
   const [shareLabel, setShareLabel] = React.useState('');
   const [shareEditID, setShareEditID] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
+  const [confirm, setConfirm] = React.useState({});
   const { setBasemap } = props;
   const layersRef = React.useRef([
     {
@@ -421,9 +423,9 @@ function LayerControl(props) {
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             colorPlanes: s.display.markers.colors.rentable,
-            siminfo: s.display.sim,
             actions: props.actions,
-            connections: s.display.legs.display.custom ? connections : undefined
+            connections: s.display.legs.display.custom ? connections : undefined,
+            settings: s
           });
           showLayer(i);
         }
@@ -445,9 +447,9 @@ function LayerControl(props) {
               fseicaodata: props.options.icaodata,
               color: s.display.markers.colors.sim,
               size: s.display.markers.sizes.sim,
-              siminfo: s.display.sim,
               sim: s.display.sim,
-              actions: props.actions
+              actions: props.actions,
+              settings: s
             });
             showLayer(i);
           }
@@ -461,7 +463,8 @@ function LayerControl(props) {
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             actions: props.actions,
-            connections: layerRef.connections
+            connections: layerRef.connections,
+            settings: s
           });
           showLayer(i);
         }
@@ -514,9 +517,9 @@ function LayerControl(props) {
             colorPlanes: s.display.markers.colors.rentable,
             airportFilter: layerRef.filter ? layerRef.filter : s.airport,
             forsale: forsaleRef.current === null ? null : Object.fromEntries(forsaleRef.current),
-            siminfo: s.display.sim,
             actions: props.actions,
-            connections: layerRef.connections ? layerRef.connections : undefined
+            connections: layerRef.connections ? layerRef.connections : undefined,
+            settings: s
           });
           showLayer(i);
         }
@@ -733,14 +736,26 @@ function LayerControl(props) {
 
   // When remove layer icon is clicked
   const removeLayer = React.useCallback((i) => {
-    if (layersRef.current[i].layer) {
-      layersRef.current[i].layer.remove();
-    }
-    layersRef.current.splice(i, 1);
-    orderRef.current = orderRef.current.filter(elm => elm !== i);
-    orderRef.current = orderRef.current.map(elm => elm > i ? elm-1 : elm);
-    updateLocalStorage();
-    forceUpdate();
+    setConfirm({
+      title: "Delete layer?",
+      msg: 'Are you sure you want to delete this layer?',
+      yes: () => {
+        if (layersRef.current[i].layer) {
+          layersRef.current[i].layer.remove();
+        }
+        layersRef.current.splice(i, 1);
+        orderRef.current = orderRef.current.filter(elm => elm !== i);
+        orderRef.current = orderRef.current.map(elm => elm > i ? elm-1 : elm);
+        updateLocalStorage();
+        forceUpdate();
+        setConfirm({});
+        setHover(false);
+      },
+      no: () => {
+        setConfirm({});
+        setHover(false);
+      }
+    });
   }, [updateLocalStorage]);
 
   // When edit layer icon is clicked
@@ -795,7 +810,7 @@ function LayerControl(props) {
         }
       });
       actions.push({
-        name: "Remove",
+        name: "Delete",
         onClick: () => { removeLayer(i) }
       });
       if (!layer.shared) {
@@ -923,7 +938,6 @@ function LayerControl(props) {
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      onContextMenu={evt => { evt.preventDefault() }}
     >
       <AirportFilter
         open={openFilter}
@@ -979,7 +993,7 @@ function LayerControl(props) {
         icaos={props.icaos}
       />
       {hover || openFilter ?
-        <div>
+        <Box onContextMenu={evt => { evt.preventDefault() }}>
           <Typography variant="h6" gutterBottom>Basemap</Typography>
           <BasemapBtn src={imgs[0]} selected={basemap === 0} onClick={() => setBasemapId(0)} label="Default" />
           <BasemapBtn src={imgs[1]} selected={basemap === 1} onClick={() => setBasemapId(1)} label="Alternative" />
@@ -1025,7 +1039,7 @@ function LayerControl(props) {
               New layer
             </Button>
           </Box>
-        </div>
+        </Box>
       :
         <IconButton size="large"><LayersIcon /></IconButton>
       }
@@ -1129,6 +1143,19 @@ function LayerControl(props) {
           <Button onClick={handleCloseShare} color="primary">
             Close
           </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={confirm.yes ? true : false}
+        onClose={confirm.no}
+      >
+        <DialogTitle>{confirm.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{confirm.msg}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={confirm.no} color="secondary">No</Button>
+          <Button onClick={confirm.yes} color="primary" variant="contained" autoFocus>Yes</Button>
         </DialogActions>
       </Dialog>
     </Paper>

@@ -34,12 +34,37 @@ import he from 'he';
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
 import log from '../util/logger.js';
-import { hideAirport } from "../utility.js";
+import { hideAirport } from "../util/utility.js";
 
 import aircrafts from "../data/aircraft.json";
 
 const storage = new Storage();
 
+function NetworkError(code) {
+  this.code = code;
+}
+function ParsingError(text) {
+  const found = text.match(/<Error>(.*)<\/Error>/i);
+  if (found !== null) {
+    this.msg = found[1];
+  }
+}
+function updateAlert(error) {
+  if (error instanceof NetworkError) {
+    if (error.code === 503) {
+      alert('Could not get data: FSEconomy is in maintenance, try again later.');
+    }
+    else {
+      alert('Could not get data: FSEconomy is down, try again later');
+    }
+  }
+  else if (error instanceof ParsingError && error.msg) {
+    alert('Could not get data: '+error.msg);
+  }
+  else {
+    alert('Could not get data. Try again or file a bug report.');
+  }
+}
 
 // Generate country list
 function getAreas(icaodata, icaos) {
@@ -355,7 +380,7 @@ function UpdatePopup(props) {
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
       if (!response.ok) {
-        throw new Error("Network error");
+        throw new NetworkError(response.status);
       }
       return response.text();
     })
@@ -363,14 +388,13 @@ function UpdatePopup(props) {
       // Parse CSV
       const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
       if (parse.errors.length > 0) {
-        throw new Error("Parsing error");
+        throw new ParsingError(csv);
       }
       updateJobsRequest(icaosList, [...jobs, ...parse.data], callback);
     })
     .catch(function(error) {
       log.error("Error while updating Jobs", error);
-      console.log(error);
-      alert('Could not get data. Check your read access key and ensure you have not reached your quota limit.');
+      updateAlert(error);
       setLoading(false);
     });
   }
@@ -423,7 +447,7 @@ function UpdatePopup(props) {
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
       if (!response.ok) {
-        throw new Error("Network error");
+        throw new NetworkError(response.status);
       }
       return response.text();
     })
@@ -431,15 +455,14 @@ function UpdatePopup(props) {
       // Parse CSV
       const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
       if (parse.errors.length > 0) {
-        throw new Error("Parsing error");
+        throw new ParsingError(csv);
       }
       // Convert array to object
       updateRentablePlanesRequest(models, [...planes, ...parse.data], callback);
     })
     .catch(function(error) {
       log.error("Error while updating Rentable Planes", error);
-      console.log(error);
-      alert('Could not get data. Check your read access key and ensure you have not reached your quota limit.');
+      updateAlert(error);
       setLoading(false);
     });
   }
@@ -453,7 +476,7 @@ function UpdatePopup(props) {
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
       if (!response.ok) {
-        throw new Error("Network error");
+        throw new NetworkError(response.status);
       }
       return response.text();
     })
@@ -461,15 +484,14 @@ function UpdatePopup(props) {
       // Parse CSV
       const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
       if (parse.errors.length > 0) {
-        throw new Error("Parsing error");
+        throw new ParsingError(csv);
       }
       // Convert array to object
       updateOwnedPlanesRequest(usernames, [...planes, ...parse.data], callback);
     })
     .catch(function(error) {
       log.error("Error while updating User Planes", error);
-      console.log(error);
-      alert('Could not get data.\n\nPossible cause #1: specified user or group does not exist.\n\nPossible cause #2: wrong read access key or quota limit reached.');
+      updateAlert(error);
       setLoading(false);
     });
   }
@@ -540,7 +562,7 @@ function UpdatePopup(props) {
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {
       if (!response.ok) {
-        throw new Error("Network error");
+        throw new NetworkError(response.status);
       }
       return response.text();
     })
@@ -548,14 +570,13 @@ function UpdatePopup(props) {
       // Parse CSV
       const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
       if (parse.errors.length > 0) {
-        throw new Error("Parsing error");
+        throw new ParsingError(csv);
       }
       updateFlightRequest(groups, [...results, ...parse.data], callback);
     })
     .catch(function(error) {
       log.error("Error while updating assignments", error);
-      console.log(error);
-      alert('Could not get data. Check your read access key and the group keys.');
+      updateAlert(error);
       setLoading(false);
     });
   }

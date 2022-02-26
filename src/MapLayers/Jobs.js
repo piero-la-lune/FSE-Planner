@@ -3,7 +3,7 @@ import L from "leaflet";
 
 import Marker from "./Components/Marker.js";
 import Job from "./Components/Job.js";
-import { hideAirport } from "../utility.js";
+import { hideAirport } from "../util/utility.js";
 
 
 function cleanLegs(jobs, opts) {
