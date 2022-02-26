@@ -371,6 +371,50 @@ function SettingsPopup(props) {
                 <Setting s={s} setS={setS} label="Approach distance" setting='routeFinder.approachLength' end="NM" xs={6} helperText="Added to the leg straight distance, to account for approach circuits."/>
                 <SettingSelect s={s} setS={setS} label="Net earnings" setting='routeFinder.fees' xs={6} options={earningsOptions} multiple={true} />
               </Grid>
+              <Typography variant="body1" sx={{ my: 3 }}>PDF export image (500px * 180px):</Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={3}>
+                  <label htmlFor="pdfImage">
+                    <input
+                      accept="image/*"
+                      id="pdfImage"
+                      multiple
+                      type="file"
+                      style={{ display: 'none' }}
+                      onChange={evt => {
+                        const file = evt.target.files[0];
+                        const fileReader = new FileReader();
+                        fileReader.readAsDataURL(file);
+                        fileReader.onload = () => {
+                          const obj = Object.assign({}, s);
+                          _set(obj, 'routeFinder.pdfImage', fileReader.result);
+                          setS(obj);
+                        }
+                        fileReader.onerror = () => alert('Unable to load image');
+                      }}
+                    />
+                    <Button variant="contained" component="span">
+                      Upload image
+                    </Button>
+                  </label>
+                  { s.routeFinder.pdfImage &&
+                    <Button
+                      color="secondary"
+                      onClick={evt => {
+                        const obj = Object.assign({}, s);
+                        _set(obj, 'routeFinder.pdfImage', null);
+                        setS(obj);
+                      }}
+                      sx={{ mt: 1 }}
+                    >
+                      Clear
+                    </Button>
+                  }
+                </Grid>
+                <Grid item xs={9}>
+                  {s.routeFinder.pdfImage && <img src={s.routeFinder.pdfImage} alt="PDF export" style={{ maxWidth: '100%' }} />}
+                </Grid>
+              </Grid>
             </div>
           </AccordionDetails>
         </Accordion>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Page, Text, View, Document, Link, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, Link, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { getDistance, convertDistance, getRhumbLineBearing } from "geolib";
 import { airportSurface, simName } from './util/utility.js';
 
@@ -164,6 +164,16 @@ function PDFRoute({route, icaodata, routeParams, settings}) {
     >
       <Page style={styles.page}>
         <Title left="GENERAL INFORMATION" right={route.icaos[0]+' > '+route.icaos[route.icaos.length - 1]} nobreak />
+        { settings.routeFinder.pdfImage &&
+          <Image
+            src={settings.routeFinder.pdfImage}
+            style={{
+              width: "500px",
+              height: "180px",
+              marginLeft: 11
+            }}
+          />
+        }
         <Text style={styles.subtitle}>ROUTE</Text>
         <Text style={styles.item}>{route.icaos.length - 1} leg{route.icaos.length > 2 && 's'}</Text>
         <Text style={styles.item}>Path: {route.icaos.join(' ')}</Text>
