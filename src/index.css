@@ -13,6 +13,13 @@ code {
 
 .leaflet-container {
   flex: 1 1 auto;
+  -webkit-user-select: 'none';
+  -webkit-touch-callout: 'none';
+}
+
+.leaflet-tooltip-pane {
+  -webkit-user-select: 'auto';
+  -webkit-touch-callout: 'default';
 }
 
 .leaflet-popup-content {

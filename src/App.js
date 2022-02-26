@@ -432,11 +432,13 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <Box style={{
-        display: "flex",
-        flexFlow: "column",
-        height: "100vh",
-      }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexFlow: "column",
+          height: ["100vh", "-webkit-fill-available"]
+        }}
+      >
         <AppBar position="static">
           <Toolbar>
             <Box

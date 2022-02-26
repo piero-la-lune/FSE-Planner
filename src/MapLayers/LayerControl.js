@@ -26,7 +26,8 @@ import ShareIcon from '@mui/icons-material/Share';
 import Box from '@mui/material/Box';
 
 import { getBounds } from "geolib";
-import {default as _clone} from 'lodash/cloneDeep';
+import { default as _clone } from 'lodash/cloneDeep';
+import { useLongPress } from 'react-use';
 
 import ZonesLayer from "./Zones.js";
 import JobsLayer from "./Jobs.js";
@@ -94,6 +95,8 @@ function BasemapBtn(props) {
 
 
 function Layer(props) {
+  const longPressEvent = useLongPress(props.onContextMenu, {isPreventDefault: false});
+
   return (
     <Box
       sx={{
@@ -116,6 +119,7 @@ function Layer(props) {
       }}
       onClick={() => props.onChange(!props.visible)}
       onContextMenu={props.onContextMenu}
+      {...longPressEvent}
     >
       <Box
         component="span"
@@ -903,9 +907,11 @@ function LayerControl(props) {
         });
       }
     }
+    const x = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const y = evt.touches ? evt.touches[0].clientY : evt.clientY;
     setContextMenu({
-      mouseX: evt.clientX,
-      mouseY: evt.clientY,
+      mouseX: x,
+      mouseY: y,
       title: layersRef.current[i].label,
       actions: actions
     });
@@ -995,7 +1001,13 @@ function LayerControl(props) {
         icaos={props.icaos}
       />
       {hover || openFilter ?
-        <Box onContextMenu={evt => { evt.preventDefault() }}>
+        <Box
+          onContextMenu={evt => { evt.preventDefault() }}
+          sx={{
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none'
+          }}
+        >
           <IconButton
             onClick={() => setHover(false)}
             size="large"
