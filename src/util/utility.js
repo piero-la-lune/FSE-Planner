@@ -59,7 +59,7 @@ export function airportSurface(surface) {
 export function simName(id) {
   switch (id) {
     case 'msfs': return "MSFS"
-    case 'xplane': return "X-Plane"
+    case 'xplane': return "X-Plane 11.55"
     default: return "FSX"
   }
 }

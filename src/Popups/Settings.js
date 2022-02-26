@@ -193,7 +193,7 @@ function SettingsPopup(props) {
   ];
   const simOptions = [
     ['msfs', 'MSFS'],
-    ['xplane', 'X-Plane'],
+    ['xplane', 'X-Plane 11.55'],
     ['fsx', 'FSX']
   ];
   const mapOptions = [
