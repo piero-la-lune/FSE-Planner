@@ -1,6 +1,7 @@
 import React from 'react';
 import Paper from '@mui/material/Paper';
 import LayersIcon from '@mui/icons-material/Layers';
+import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -938,6 +939,7 @@ function LayerControl(props) {
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onClick={() => { if (!hover) { setHover(true); }}}
     >
       <AirportFilter
         open={openFilter}
@@ -994,6 +996,18 @@ function LayerControl(props) {
       />
       {hover || openFilter ?
         <Box onContextMenu={evt => { evt.preventDefault() }}>
+          <IconButton
+            onClick={() => setHover(false)}
+            size="large"
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: 'grey[500]',
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
           <Typography variant="h6" gutterBottom>Basemap</Typography>
           <BasemapBtn src={imgs[0]} selected={basemap === 0} onClick={() => setBasemapId(0)} label="Default" />
           <BasemapBtn src={imgs[1]} selected={basemap === 1} onClick={() => setBasemapId(1)} label="Alternative" />
