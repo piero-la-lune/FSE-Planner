@@ -34,7 +34,7 @@ import he from 'he';
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
 import log from '../util/logger.js';
-import { hideAirport } from "../utility.js";
+import { hideAirport } from "../util/utility.js";
 
 import aircrafts from "../data/aircraft.json";
 

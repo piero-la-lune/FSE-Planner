@@ -15,7 +15,7 @@ import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
-import { airportSurface, simName } from "../../utility.js"
+import { airportSurface, simName } from "../../util/utility.js"
 
 
 const styles = {

@@ -33,7 +33,7 @@ import RouteLayer from "./Route.js";
 import AirportsLayer from "./Airports.js";
 import GPSLayer from "./GPS.js";
 import AirportFilter from "./AirportFilter.js";
-import { simName, hideAirport } from "../utility.js";
+import { simName, hideAirport } from "../util/utility.js";
 import Storage from "../Storage.js";
 import uid from "../util/uid.js";
 
@@ -423,9 +423,9 @@ function LayerControl(props) {
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             colorPlanes: s.display.markers.colors.rentable,
-            siminfo: s.display.sim,
             actions: props.actions,
-            connections: s.display.legs.display.custom ? connections : undefined
+            connections: s.display.legs.display.custom ? connections : undefined,
+            settings: s
           });
           showLayer(i);
         }
@@ -447,9 +447,9 @@ function LayerControl(props) {
               fseicaodata: props.options.icaodata,
               color: s.display.markers.colors.sim,
               size: s.display.markers.sizes.sim,
-              siminfo: s.display.sim,
               sim: s.display.sim,
-              actions: props.actions
+              actions: props.actions,
+              settings: s
             });
             showLayer(i);
           }
@@ -463,7 +463,8 @@ function LayerControl(props) {
             weight: s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             actions: props.actions,
-            connections: layerRef.connections
+            connections: layerRef.connections,
+            settings: s
           });
           showLayer(i);
         }
@@ -516,9 +517,9 @@ function LayerControl(props) {
             colorPlanes: s.display.markers.colors.rentable,
             airportFilter: layerRef.filter ? layerRef.filter : s.airport,
             forsale: forsaleRef.current === null ? null : Object.fromEntries(forsaleRef.current),
-            siminfo: s.display.sim,
             actions: props.actions,
-            connections: layerRef.connections ? layerRef.connections : undefined
+            connections: layerRef.connections ? layerRef.connections : undefined,
+            settings: s
           });
           showLayer(i);
         }
