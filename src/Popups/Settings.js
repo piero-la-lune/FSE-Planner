@@ -209,6 +209,10 @@ function SettingsPopup(props) {
     ['to', 'Jobs TO the selected area/layer'],
     ['both', 'Jobs inside the selected area/layer']
   ];
+  const jobsPlanesOptions = [
+    ['strict', 'Strict: only load jobs from the exact airports where a plane is available'],
+    ['around', 'Area: load jobs from an area around airports where a plane is available']
+  ];
 
   const handleClose = () => {
     // Cancel change
@@ -410,6 +414,14 @@ function SettingsPopup(props) {
             <div>
               <Grid container spacing={3}>
                 <SettingSelect s={s} setS={setS} label="Job direction for the selected area/layer" setting='update.direction' xs={6} options={directionOptions} />
+              </Grid>
+              <Grid container spacing={3} sx={{ mt: 2 }}>
+                <SettingSelect s={s} setS={setS} label="Load area around available planes" setting='update.jobsPlanes' xs={12} options={jobsPlanesOptions} />
+              </Grid>
+              <Typography variant="body2" sx={{ mt: 2, mb: 1 }}>If AREA is selected above:</Typography>
+              <Grid container spacing={3}>
+                <Setting s={s} setS={setS} label="Maximum requests" setting='update.jobsPlanesRequests' xs={6} placeholder="1" helperText="A higher number of requests means larger areas. Beware of FSE request limitations." />
+                <Setting s={s} setS={setS} label="Maximum search locations" setting='update.jobsPlanesMax' xs={6} placeholder="10" helperText="Top areas are locations with the lowest airplane rental costs. Increasing this number will decrease the loaded area size." />
               </Grid>
             </div>
           </AccordionDetails>
