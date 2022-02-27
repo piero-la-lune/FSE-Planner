@@ -5,8 +5,11 @@ import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
-import { getBounds } from "geolib";
+import { getBounds, getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import L from "leaflet";
 import "@maplibre/maplibre-gl-leaflet";
 
@@ -21,8 +24,58 @@ const FSEMap = React.memo(function FSEMap(props) {
   const [contextMenu, setContextMenu] = React.useState(null);
   const [basemap, setBasemap] = React.useState(s.display.map.basemap);
   const [init, setInit] = React.useState(false);
+  const [measureDistance, setMeasureDistance] = React.useState(false);
   const basemapRef = React.useRef(null);
   const mapRef = React.useRef(null);
+  const distanceRef = React.useRef(null);
+
+  // When user has clicked a second time on the map to measure a distance
+  const endMeasure = latlng => {
+    distanceRef.current = {
+      startLatlng: distanceRef.current.startLatlng,
+      stopLatlng: latlng,
+      line2: L.polyline([distanceRef.current.startLatlng, latlng], { color: '#fff', weight: 4 }).addTo(mapRef.current),
+      line1: L.polyline([distanceRef.current.startLatlng, latlng], { color: '#000' }).addTo(mapRef.current),
+      startMarker: L.circleMarker(distanceRef.current.startLatlng, {
+        color: '#fff',
+        weight: 1,
+        fillColor: '#000',
+        fillOpacity: 1,
+        draggable: true
+      }).on('dragend', evt => {
+        let fr = evt.target.getLatLng();
+        let to = distanceRef.current.stopLatlng;
+        distanceRef.current.line1.setLatLngs([fr, to])
+        distanceRef.current.line2.setLatLngs([fr, to])
+        distanceRef.current.startLatlng = fr;
+        setMeasureDistance({
+          direction: Math.round(getRhumbLineBearing(fr, to)),
+          distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
+        });
+      }).addTo(mapRef.current),
+      stopMarker: L.circleMarker(latlng, {
+        color: '#fff',
+        weight: 1,
+        fillColor: '#000',
+        fillOpacity: 1,
+        draggable: true
+      }).on('dragend', evt => {
+        let fr = distanceRef.current.startLatlng;
+        let to = evt.target.getLatLng();
+        distanceRef.current.line1.setLatLngs([fr, to])
+        distanceRef.current.line2.setLatLngs([fr, to])
+        distanceRef.current.stopLatlng = to;
+        setMeasureDistance({
+          direction: Math.round(getRhumbLineBearing(fr, to)),
+          distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
+        });
+      }).addTo(mapRef.current)
+    };
+    setMeasureDistance({
+      direction: Math.round(getRhumbLineBearing(distanceRef.current.startLatlng, latlng)),
+      distance: Math.round(convertDistance(getDistance(distanceRef.current.startLatlng, latlng), 'sm'))
+    });
+  }
 
   // Initialize map
   React.useEffect(() => {
@@ -47,8 +100,19 @@ const FSEMap = React.memo(function FSEMap(props) {
         mouseX: evt.originalEvent.clientX,
         mouseY: evt.originalEvent.clientY,
         title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
-        actions: []
+        actions: [{
+          name: 'Mesure distance from this point',
+          onClick: () => {
+            setMeasureDistance(true);
+            distanceRef.current = { startLatlng: evt.latlng };
+          }
+        }]
       });
+    });
+    mapRef.current.on('click', (evt) => {
+      if (distanceRef.current && !distanceRef.current.stopLatlng) {
+        endMeasure(evt.latlng);
+      }
     })
     setInit(true);
   }, []);
@@ -157,6 +221,17 @@ const FSEMap = React.memo(function FSEMap(props) {
   }, [s.display.map.center]);
 
   props.actions.current.contextMenu = setContextMenu;
+  props.actions.current.measureDistance = (latlng) => {
+    setMeasureDistance(true);
+    distanceRef.current = { startLatlng: latlng };
+  }
+  props.actions.current.markerClick = (evt) => {
+    if (distanceRef.current && !distanceRef.current.stopLatlng) {
+      evt.originalEvent.preventDefault();
+      evt.originalEvent.stopPropagation();
+      endMeasure(evt.latlng);
+    }
+  }
 
   const closeContextMenu = () => {
     setContextMenu(null);
@@ -197,7 +272,7 @@ const FSEMap = React.memo(function FSEMap(props) {
               { contextMenu.actions.map((action, i) =>
                 {
                   if (action.divider) {
-                    return <Divider />
+                    return <Divider key={i} />
                   } else {
                     return <MenuItem dense key={i} onClick={() => { action.onClick(); closeContextMenu(); }}>{action.name}</MenuItem>
                   }
@@ -216,6 +291,35 @@ const FSEMap = React.memo(function FSEMap(props) {
           route={props.route}
           customIcaos={props.customIcaos}
           icaos={props.icaos}
+        />
+      }
+      {measureDistance !== false &&
+        <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          open={true}
+          message={ measureDistance === true ?
+            "Click the map to measure the distance"
+          :
+            <span>Distance: <b>{measureDistance.distance}NM</b> - Bearing: <b>{measureDistance.direction}°</b></span>
+          }
+          action={
+            <IconButton
+              size="small"
+              color="inherit"
+              onClick={() => {
+                if (distanceRef.current.line1) {
+                  distanceRef.current.line1.remove();
+                  distanceRef.current.line2.remove();
+                  distanceRef.current.startMarker.remove();
+                  distanceRef.current.stopMarker.remove();
+                }
+                distanceRef.current = null;
+                setMeasureDistance(false);
+              }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          }
         />
       }
     </Box>

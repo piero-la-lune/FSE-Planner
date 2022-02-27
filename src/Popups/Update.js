@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
 import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import AirplanemodeActiveIcon from '@mui/icons-material/AirplanemodeActive';
 import Alert from '@mui/material/Alert';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -76,11 +77,11 @@ function getAreas(icaodata, icaos) {
     }
     a.add(country);
   }
-  return ["Custom area", ...[...a].sort()];
+  return ["Custom area", "Around planes", ...[...a].sort()];
 }
 
 // Get the list of all airports within the selected countries and custom area
-function getIcaoList(countries, bounds, layers, icaodata, icaos) {
+function getIcaoList(countries, bounds, layers, icaodata, icaos, settings) {
   let points = null;
   // If custom area, compute polygon points
   if (countries.includes('Custom area')) {
@@ -115,6 +116,57 @@ function getIcaoList(countries, bounds, layers, icaodata, icaos) {
         }
       }
     }
+  }
+  // If around planes, get ICAOs
+  if (countries.includes('Around planes')) {
+    let set = new Set();
+    // Get plane locations
+    const planes = storage.get('planes', {});
+    for (const model of Object.keys(planes)) {
+      for (const icao of Object.keys(planes[model])) {
+        set.add(icao);
+      }
+    }
+    set = [...set];
+    // If we need to search around these airports
+    if (settings.update.jobsPlanes !== "strict") {
+      // If there is too many location, restrict to lower rent planes
+      if (set.length > settings.update.jobsPlanesMax) {
+        let list = {};
+        for (const model of Object.keys(planes)) {
+          for (const icao of Object.keys(planes[model])) {
+            for (const plane of planes[model][icao]) {
+              if (!plane.wet && !plane.dry) {
+                list[icao] = 0;
+              }
+              if (!plane.dry) { continue; }
+              if (list[icao]) {
+                list[icao] = Math.min(set[icao], plane.dry);
+              }
+              else {
+                list[icao] = plane.dry;
+              }
+            }
+          }
+        }
+        list = Object.entries(list).sort((a, b) => a[1] - b[1]);
+        set = list.slice(0, settings.update.jobsPlanesMax).map(elm => elm[0]);
+      }
+      // Sort all icaos per distance
+      const list = [];
+      for (const icao of icaos) {
+        let min = 100000000;
+        for (const planeLocation of set) {
+          const fr = { latitude: icaodata[planeLocation].lat, longitude: icaodata[planeLocation].lon };
+          const to = { latitude: icaodata[icao].lat, longitude: icaodata[icao].lon };
+          min = Math.min(min, getDistance(fr, to));
+        }
+        list.push([icao, min]);
+      }
+      list.sort((a, b) => a[1] - b[1]);
+      set = list.slice(0, 1600*settings.update.jobsPlanesRequests).map(elm => elm[0]);
+    }
+    i = [...new Set([...i, ...set])];
   }
   let reminder = i.join('-');
   // Split list into chunks smaller than about 8000 chars
@@ -297,7 +349,7 @@ function UpdatePopup(props) {
     return null;
   });
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
-  const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, [], props.icaodata, props.icaos)[1].length);
+  const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, [], props.icaodata, props.icaos, props.settings)[1].length);
   const [planeModel, setPlaneModel] = React.useState(storage.get('planeModel', []));
   const [planeUser, setPlaneUser] = React.useState(storage.get('planeUser', []));
   const [planesTime, setPlanesTime] = React.useState(storage.get('planesTime'));
@@ -338,8 +390,8 @@ function UpdatePopup(props) {
 
   // Update the number of request for loading jobs each time one input changes
   React.useEffect(() => {
-    setJobsRequests(getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos)[1].length);
-  }, [jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos]);
+    setJobsRequests(getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings)[1].length);
+  }, [jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings]);
 
   // Close popup
   const handleClose = () => {
@@ -403,7 +455,7 @@ function UpdatePopup(props) {
     evt.stopPropagation();
     setLoading('panel2');
     // Compute ICAO list
-    const [icaos, icaosList] = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos);
+    const [icaos, icaosList] = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings);
     updateJobsRequest(icaosList, [], (list) => {
       const jobs = cleanJobs(list, props.icaodata, props.settings.update.direction === 'both' ? icaos : null);
       // Update jobs
@@ -646,6 +698,13 @@ function UpdatePopup(props) {
     setExpanded(isExpanded ? panel : false);
   };
 
+  const labelAroundPlanes = () => {
+    if (props.settings.update.jobsPlanes === 'strict') {
+      return 'Airports with an available plane';
+    }
+    return 'Top '+props.settings.update.jobsPlanesMax+' areas with an available plane';
+  }
+
   return (
     <Dialog onClose={handleClose} open={props.open} fullWidth={true} maxWidth="sm">
       <DialogTitle>
@@ -763,11 +822,27 @@ function UpdatePopup(props) {
                       >
                         <AspectRatioIcon />&nbsp;Select custom area on map
                       </Box>
+                    : option === 'Around planes' ?
+                      <Box
+                        component="span"
+                        sx={{
+                          display: 'flex',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        <AirplanemodeActiveIcon />&nbsp;{labelAroundPlanes()}
+                      </Box>
                     :
                       option
                     }
                   </li>
                 )}
+                getOptionLabel={option => {
+                  if (option === 'Around planes') {
+                    return labelAroundPlanes();
+                  }
+                  return option;
+                }}
               />
               <CustomAreaPopup
                 open={openCustom}

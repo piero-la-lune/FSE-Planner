@@ -125,7 +125,10 @@ const defaultSettings = {
     pdfImage: null
   },
   update: {
-    direction: 'from'
+    direction: 'from',
+    jobsPlanes: 'around',
+    jobsPlanesRequests: 1,
+    jobsPlanesMax: 10
   }
 };
 
