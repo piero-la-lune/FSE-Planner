@@ -58,7 +58,7 @@ function cleanLegs(jobs, opts) {
 
     const filteredJobs = leg[opts.cargo][opts.type].filter(job => {
       // Filter out bad payed jobs
-      if (opts.settings.pay.min_job && job.pay < opts.settings.pay.min_job) { return false; }
+      if (opts.minJobPay && job.pay < opts.minJobPay) { return false; }
       // Filter out jobs too big for plane
       if (opts.max && job.nb > opts.max) { return false; }
       return true;
@@ -69,7 +69,7 @@ function cleanLegs(jobs, opts) {
     const [amount, pay] = filteredJobs.reduce(([amount, pay], job) => [amount+job.nb, pay+job.pay], [0, 0]);
 
     // Filter out bad payed legs
-    if (opts.settings.pay.min_leg && pay < opts.settings.pay.min_leg) { continue; }
+    if (opts.minLegPay && pay < opts.minLegPay) { continue; }
     // Filter out legs with not enougth pax/kg
     if (opts.min && amount < opts.min) { continue; }
 
@@ -83,7 +83,7 @@ function cleanLegs(jobs, opts) {
     max = Math.max(max, amount);
   }
   // Only keep top x% paying jobs
-  if (opts.settings.pay.top) {
+  if (opts.percentPay) {
     const values = [];
     // Compute each leg pay / amount / distance
     Object.values(legs).forEach(leg => {
@@ -92,7 +92,7 @@ function cleanLegs(jobs, opts) {
     });
     values.sort((a, b) => a - b);
     // Get values index
-    const index = Math.floor(values.length*(1-parseInt(opts.settings.pay.top)/100)) - 1;
+    const index = Math.floor(values.length*(1-parseInt(opts.percentPay)/100)) - 1;
     // Get min pay
     const min_pay = values[Math.min(Math.max(index, 0), values.length-1)];
     // Filter out jobs

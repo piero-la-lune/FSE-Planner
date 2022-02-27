@@ -946,6 +946,7 @@ function LayerControl(props) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onClick={() => { if (!hover) { setHover(true); }}}
+      data-tour="Step8"
     >
       <AirportFilter
         open={openFilter}

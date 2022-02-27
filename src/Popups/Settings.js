@@ -13,10 +13,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import FlightLandIcon from '@mui/icons-material/FlightLand';
-import ExploreIcon from '@mui/icons-material/Explore';
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import BusinessIcon from '@mui/icons-material/Business';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import UpdateIcon from '@mui/icons-material/Update';
@@ -221,8 +218,14 @@ function SettingsPopup(props) {
     props.handleClose();
   };
 
+  React.useEffect(() => {
+    if (typeof props.open !== 'boolean') {
+      setExpanded(props.open);
+    }
+  }, [props.open]);
+
   return (
-    <Dialog onClose={handleClose} open={props.open} fullWidth={true} maxWidth="md">
+    <Dialog onClose={handleClose} open={props.open !== false} fullWidth={true} maxWidth="md">
       <DialogTitle>
         Settings
         <IconButton
@@ -274,63 +277,44 @@ function SettingsPopup(props) {
         </Accordion>
         <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <FlightTakeoffIcon />&nbsp;<Typography>From ICAO settings</Typography>
+            <FilterAltIcon />&nbsp;<Typography>Filters settings</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={3}>
-              <Grid item container xs={9}>
-                <Typography variant="body2">You may use up to 3 different constraints. Leave the input empty to disable a constraint.</Typography>
-                <Setting s={s} setS={setS} label="Max d" setting='from.maxDist' xs={12} placeholder="20NM" />
-                <Setting s={s} setS={setS} label="Min D/d" setting='from.distCoef' xs={12} placeholder="1.5" />
-                <Setting s={s} setS={setS} label="Max α" setting='from.angle' xs={12} placeholder="30°" />
+              <Grid item container xs={9} sx={{ alignContent: 'flex-start '}}>
+                <Typography variant="body1" sx={{ mb: 1 }}>From ICAO settings:</Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>You may use up to 3 different constraints. Leave the input empty to disable a constraint.</Typography>
+                <Grid container spacing={3}>
+                  <Setting s={s} setS={setS} label="Max d" setting='from.maxDist' xs={4} placeholder="20NM" />
+                  <Setting s={s} setS={setS} label="Min D/d" setting='from.distCoef' xs={4} placeholder="1.5" />
+                  <Setting s={s} setS={setS} label="Max α" setting='from.angle' xs={4} placeholder="30°" />
+                </Grid>
               </Grid>
               <Grid item xs={3}>
                 <img src="settings/helpFrom.png" alt="Schema" />
               </Grid>
             </Grid>
-          </AccordionDetails>
-        </Accordion>
-        <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <FlightLandIcon />&nbsp;<Typography>To ICAO settings</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
             <Grid container spacing={3}>
-              <Grid item container xs={9}>
-                <Typography variant="body2">You may use up to 3 different constraints. Leave the input empty to disable a constraint.</Typography>
-                <Setting s={s} setS={setS} label="Max d" setting='to.maxDist' xs={12} placeholder="20NM" />
-                <Setting s={s} setS={setS} label="Min D/d" setting='to.distCoef' xs={12} placeholder="1.5" />
-                <Setting s={s} setS={setS} label="Max α" setting='to.angle' xs={12} placeholder="30°" />
+              <Grid item container xs={9} sx={{ alignContent: 'flex-start '}}>
+                <Typography variant="body1" sx={{ mb: 1 }}>To ICAO settings:</Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>You may use up to 3 different constraints. Leave the input empty to disable a constraint.</Typography>
+                <Grid container spacing={3}>
+                  <Setting s={s} setS={setS} label="Max d" setting='to.maxDist' xs={4} placeholder="20NM" />
+                  <Setting s={s} setS={setS} label="Min D/d" setting='to.distCoef' xs={4} placeholder="1.5" />
+                  <Setting s={s} setS={setS} label="Max α" setting='to.angle' xs={4} placeholder="30°" />
+                </Grid>
               </Grid>
               <Grid item xs={3}>
                 <img src="settings/helpTo.png" alt="Schema" />
               </Grid>
             </Grid>
-          </AccordionDetails>
-        </Accordion>
-        <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <ExploreIcon />&nbsp;<Typography>Direction settings</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
+            <Typography variant="body1" sx={{ mb: 1.5 }}>Direction settings:</Typography>
             <Grid container spacing={3}>
               <Setting s={s} setS={setS} label="Maximum tolerance angle" setting='direction.angle' />
             </Grid>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <MonetizationOnIcon />&nbsp;<Typography>Pay settings</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Grid container spacing={3}>
-              <Setting s={s} setS={setS} label="Minimum job pay (in $)" setting='pay.min_job' xs={4} />
-              <Setting s={s} setS={setS} label="Minimum leg pay (in $)" setting='pay.min_leg' xs={4} />
-              <Setting s={s} setS={setS} label="Top paying jobs (in percent)" setting='pay.top' xs={4} />
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
-        <Accordion expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
+        <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <BusinessIcon />&nbsp;<Typography>Airport filtering</Typography>
           </AccordionSummary>
@@ -348,7 +332,7 @@ function SettingsPopup(props) {
             </Grid>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel7'} onChange={handleChange('panel7')}>
+        <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <DirectionsIcon />&nbsp;<Typography>Route Finder default parameters</Typography>
           </AccordionSummary>
@@ -418,7 +402,7 @@ function SettingsPopup(props) {
             </div>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel8'} onChange={handleChange('panel8')}>
+        <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <UpdateIcon />&nbsp;<Typography>Data update settings</Typography>
           </AccordionSummary>

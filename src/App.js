@@ -17,17 +17,20 @@ import FlightIcon from '@mui/icons-material/Flight';
 import PeopleIcon from '@mui/icons-material/People';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import FlightLandIcon from '@mui/icons-material/FlightLand';
 import ExploreIcon from '@mui/icons-material/Explore';
 import UpdateIcon from '@mui/icons-material/Update';
 import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import CloseIcon from '@mui/icons-material/Close';
 import TuneIcon from '@mui/icons-material/Tune';
 import DirectionsIcon from '@mui/icons-material/Directions';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import BusinessIcon from '@mui/icons-material/Business';
 
 import { default as _clone } from 'lodash/cloneDeep';
 import { default as _mergeWith } from 'lodash/mergeWith';
 import { default as _isArray } from 'lodash/isArray';
+import { useOrientation, useWindowSize } from 'react-use';
 
 import FSEMap from './Map.js';
 import Routing from './Routing.js';
@@ -100,11 +103,6 @@ const defaultSettings = {
   direction: {
     angle: '30'
   },
-  pay: {
-    min_job: '',
-    min_leg: '',
-    top: '',
-  },
   airport: {
     size: [0, 23500],
     surface: [1, 2, 3, 4, 5, 6, 7, 8],
@@ -160,58 +158,60 @@ const styles = {
       }
     }
   },
-  box: {
-    marginLeft: 2,
-    marginTop: 0.5,
-    marginBottom: 0.5,
-  },
   boxBorder: {
     borderRadius: 1,
     border: '1px solid',
     borderColor: "rgba(255, 255, 255, 0.5)",
-    paddingLeft: 1,
-    paddingRight: 1,
-    paddingTop: '7px',
-    paddingBottom: '7px',
-    marginLeft: 2,
-    marginTop: 0.5,
-    marginBottom: 0.5,
+    px: 1,
+    py: 0.9,
     display: 'flex',
     alignItems: 'center'
   },
-  icon: {
-    color: "rgba(255, 255, 255, 0.5)",
-    "&:hover": {
+  menuBtn: {
+    '& .MuiButton-startIcon': {
+      color: "rgba(255, 255, 255, 0.5)"
+    },
+    '&:hover .MuiButton-startIcon': {
       color: "#fff"
     },
-    marginTop: 1,
-    marginBottom: 1,
-    marginLeft: 2,
+    color: "#fff",
+    marginLeft: {
+      sm: 1,
+      md: 2,
+    },
+    py: {
+      xs: 0,
+      sm: 0
+    }
   },
-  input: {
+  inputM: {
     backgroundColor: "rgba(255, 255, 255, 0.2)",
     color: "#fff",
     borderRadius: 1,
-    paddingLeft: 1,
-    paddingRight: 1,
-    width: "60px"
+    px: 0.5,
+    width: "55px"
   },
-  inputNb: {
+  inputS: {
     backgroundColor: "rgba(255, 255, 255, 0.2)",
     color: "#fff",
     borderRadius: 1,
-    paddingLeft: 1,
-    paddingRight: 1,
-    width: "50px"
+    px: 0.5,
+    width: "45px"
   },
   inputSearch: {
     backgroundColor: "rgba(0, 0, 0, 0.2)",
     color: "#fff",
     borderRadius: 1,
     paddingLeft: 1,
-    paddingTop: 1,
-    paddingBottom: 1,
-    width: "120px"
+    paddingTop: 0.5,
+    paddingBottom: 0.5,
+    width: {
+      xs: "80px",
+      sm: "80px",
+      md: "120px",
+      lg: "200px",
+      xl: "400px"
+    }
   }
 }
 
@@ -263,6 +263,7 @@ const storage = new Storage();
 
 function App() {
 
+  const [filters, setFilters] = React.useState(false);
   const [type, setType] = React.useState('Trip-Only');
   const [cargo, setCargo] = React.useState('passengers');
   const [fromIcaoInput, setFromIcaoInput] = React.useState('');
@@ -275,10 +276,13 @@ function App() {
   const [maxKg, setMaxKg] = React.useState('');
   const [minDist, setMinDist] = React.useState('');
   const [maxDist, setMaxDist] = React.useState('');
+  const [minJobPay, setMinJobPay] = React.useState('');
+  const [minLegPay, setMinLegPay] = React.useState('');
+  const [percentPay, setPercentPay] = React.useState('');
   const [direction, setDirection] = React.useState('');
   const [updatePopup, setUpdatePopup] = React.useState(false);
-  const [settingsPopop, setSettingsPopup] = React.useState(false);
-  const [creditsPopop, setCreditsPopup] = React.useState(false);
+  const [settingsPopup, setSettingsPopup] = React.useState(false);
+  const [creditsPopup, setCreditsPopup] = React.useState(false);
   const [jobs, setJobs] = React.useState(() => {
     return transformJobs(storage.get('jobs', {}));
   });
@@ -307,6 +311,8 @@ function App() {
   const [routeFinder, setRouteFinder] = React.useState(false);
   const [route, setRoute] = React.useState(null);
   const mapRef = React.useRef();
+  const orientation = useOrientation();
+  const windowSize = useWindowSize();
 
   const options = React.useMemo(() => ({
     min: cargo === 'passengers' ? minPax : minKg,
@@ -318,12 +324,15 @@ function App() {
     cargo: cargo,
     fromIcao: fromIcao,
     toIcao: toIcao,
+    minJobPay: minJobPay,
+    minLegPay: minLegPay,
+    percentPay: percentPay,
     jobs: jobs,
     planes: planes,
     flight: flight,
     settings: settings,
     icaodata: icaodata
-  }), [type, cargo, fromIcao, toIcao, minPax, minKg, maxPax, maxKg, minDist, maxDist, direction, jobs, planes, flight, settings, icaodata]);
+  }), [type, cargo, fromIcao, toIcao, minPax, minKg, maxPax, maxKg, minDist, maxDist, minJobPay, minLegPay, percentPay, direction, jobs, planes, flight, settings, icaodata]);
 
   React.useEffect(() => {
     const obj = _clone(icaodataSrc);
@@ -383,7 +392,7 @@ function App() {
   React.useEffect(() => {
     if (!mapRef.current) { return; }
     mapRef.current.invalidateSize({pan:false});
-  }, [routeFinder]);
+  }, [routeFinder, filters, orientation, windowSize.width, windowSize.height]);
 
   const setFrom = React.useCallback((icao) => {
     icao = icao.toUpperCase();
@@ -441,52 +450,84 @@ function App() {
         }}
       >
         <AppBar position="static">
-          <Toolbar>
-            <Box
-              sx={{
-                flexGrow: 1,
-                display: 'flex',
-                alignItems: 'baseline',
-                flexWrap: 'wrap'
-              }}
-            >
-              <Typography variant="h6" sx={{ lineHeight: 1 }}>
-                FSE Planner
-              </Typography>
-              <Tooltip title="Changelog & credits">
-                <Button
-                  sx={{
-                    marginLeft: 1,
-                    paddingLeft: '2px',
-                    paddingRight: '2px',
-                    paddingTop: 0.5,
-                    paddingBottom: 0.5,
-                    fontWeight: 'normal',
-                    color: '#fff',
-                    letterSpacing: 'normal',
-                    textTransform: 'none',
-                    minWidth: 'auto'
-                  }}
-                  onClick={() => setCreditsPopup(true)}
-                  data-tour="Step9"
-                  size="small"
-                >
-                  v{process.env.REACT_APP_VERSION}
-                </Button>
-              </Tooltip>
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                margin: 0.5,
-                justifyContent: 'flex-end'
-              }}
-            >
+          { !filters ?
+            <Toolbar>
               <Box
                 sx={{
                   display: 'flex',
-                  alignItems: 'center'
+                  alignItems: 'flex-end',
+                  flexWrap: 'wrap'
+                }}
+              >
+                <Typography variant="h6" sx={{ lineHeight: 1, py: 0.4 }}>
+                  FSE Planner
+                </Typography>
+                <Tooltip title="Changelog & credits">
+                  <Button
+                    sx={{
+                      marginLeft: 1,
+                      paddingLeft: '2px',
+                      paddingRight: '2px',
+                      px: 0.5,
+                      py: 0,
+                      fontWeight: 'normal',
+                      color: '#fff',
+                      letterSpacing: 'normal',
+                      textTransform: 'none',
+                      minWidth: 'auto'
+                    }}
+                    onClick={() => setCreditsPopup(true)}
+                    data-tour="Step10"
+                    size="small"
+                  >
+                    v{process.env.REACT_APP_VERSION}
+                  </Button>
+                </Tooltip>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  ml: 1,
+                  flexGrow: 2
+                }}
+              >
+                <Button
+                  sx={styles.menuBtn}
+                  onClick={() => setUpdatePopup(true)}
+                  data-tour="Step2"
+                  startIcon={<UpdateIcon />}
+                >
+                  Load data
+                </Button>
+                <Button
+                  sx={styles.menuBtn}
+                  onClick={() => setFilters(!filters)}
+                  data-tour="Step7"
+                  startIcon={<FilterAltIcon />}
+                >
+                  Filters
+                </Button>
+                <Button
+                  sx={styles.menuBtn}
+                  onClick={() => setRouteFinder(!routeFinder)}
+                  data-tour="Step9"
+                  startIcon={<DirectionsIcon />}
+                >
+                  Route finder
+                </Button>
+                <Button
+                  sx={styles.menuBtn}
+                  onClick={() => setSettingsPopup(true)}
+                  startIcon={<TuneIcon />}
+                >
+                  Settings
+                </Button>
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  ml: 2
                 }}
               >
                 <Autocomplete
@@ -602,150 +643,209 @@ function App() {
                   selectOnFocus={false}
                 />
               </Box>
-              <MyTooltip title='Jobs radiating FROM this airport'>
-                <Box sx={styles.boxBorder} data-tour="Step7">
-                  <FlightTakeoffIcon sx={fromIcao === null ? styles.tgBtn : null}/>
-                  &nbsp;&nbsp;
-                  <InputBase
-                    placeholder="ICAO"
-                    sx={styles.input}
-                    inputProps={{maxLength:4}}
-                    value={fromIcaoInput}
-                    onChange={evt => setFrom(evt.target.value)}
-                  />
-                </Box>
-              </MyTooltip>
-              <MyTooltip title='Jobs radiating TO this airport'>
+            </Toolbar>
+          :
+            <Box
+              sx={{
+                display: 'flex',
+                minHeight: 64,
+                px: 1,
+                py: 1,
+                boxSizing: 'border-box'
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  flexGrow: 1,
+                  justifyContent: 'center',
+                  gap: {
+                    xs: 1,
+                    xl: 2
+                  }
+                }}
+              >
                 <Box sx={styles.boxBorder}>
-                  <FlightLandIcon sx={toIcao === null ? styles.tgBtn : null} />
+                  <FlightTakeoffIcon sx={fromIcao === null && toIcao === null ? styles.tgBtn : null}/>
                   &nbsp;&nbsp;
-                  <InputBase
-                    placeholder="ICAO"
-                    sx={styles.input}
-                    inputProps={{maxLength:4}}
-                    value={toIcaoInput}
-                    onChange={evt => setTo(evt.target.value)}
-                  />
+                  <MyTooltip title='Jobs radiating FROM this airport'>
+                    <InputBase
+                      placeholder="From"
+                      sx={styles.inputM}
+                      inputProps={{maxLength:4}}
+                      value={fromIcaoInput}
+                      onChange={evt => setFrom(evt.target.value)}
+                    />
+                  </MyTooltip>
+                  &nbsp;
+                  <MyTooltip title='Jobs radiating TO this airport'>
+                    <InputBase
+                      placeholder="To"
+                      sx={styles.inputM}
+                      inputProps={{maxLength:4}}
+                      value={toIcaoInput}
+                      onChange={evt => setTo(evt.target.value)}
+                    />
+                  </MyTooltip>
                 </Box>
-              </MyTooltip>
-              <MyTooltip title='Jobs going in this direction (+/- 30°)'>
+                <MyTooltip title='Jobs going in this direction (+/- 30°)'>
+                  <Box sx={styles.boxBorder}>
+                    <ExploreIcon sx={direction === '' ? styles.tgBtn : null}/>
+                    &nbsp;&nbsp;
+                    <InputBase
+                      placeholder="145°"
+                      sx={styles.inputS}
+                      inputProps={{maxLength:3}}
+                      value={direction}
+                      onChange={evt => { setDirection(evt.target.value); }}
+                    />
+                  </Box>
+                </MyTooltip>
+                <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} exclusive>
+                  <TooltipToggleButton value="Trip-Only" title="Trip Only">
+                    <EmojiPeopleIcon />
+                  </TooltipToggleButton>
+                  <TooltipToggleButton value="VIP" title="VIP">
+                    <StarIcon />
+                  </TooltipToggleButton>
+                  <TooltipToggleButton value="All-In" title="All In">
+                    <FlightIcon />
+                  </TooltipToggleButton>
+                </ToggleButtonGroup>
+                <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} exclusive>
+                  <TooltipToggleButton value="passengers" title="Passengers">
+                    <PeopleIcon />
+                  </TooltipToggleButton>
+                  <TooltipToggleButton value="kg" title="Cargo">
+                    <BusinessCenterIcon />
+                  </TooltipToggleButton>
+                </ToggleButtonGroup>
                 <Box sx={styles.boxBorder}>
-                  <ExploreIcon sx={direction === '' ? styles.tgBtn : null}/>
-                  &nbsp;&nbsp;
-                  <InputBase
-                    placeholder="145°"
-                    sx={styles.input}
-                    inputProps={{maxLength:3}}
-                    value={direction}
-                    onChange={evt => { setDirection(evt.target.value); }}
-                  />
+                  {cargo === 'passengers' ?
+                    <React.Fragment>
+                      <PeopleIcon sx={minPax === '' && maxPax === '' ? styles.tgBtn : null} />
+                      &nbsp;
+                      <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
+                        <InputBase
+                          placeholder="min"
+                          sx={styles.inputS}
+                          value={minPax}
+                          onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinPax(nb); }}
+                        />
+                      </MyTooltip>
+                      -
+                      <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
+                        <InputBase
+                          placeholder="max"
+                          sx={styles.inputS}
+                          value={maxPax}
+                          onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxPax(nb); }}
+                        />
+                      </MyTooltip>
+                    </React.Fragment>
+                  :
+                    <React.Fragment>
+                      <BusinessCenterIcon sx={minKg === '' && maxKg === '' ? styles.tgBtn : null} />
+                      &nbsp;
+                      <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
+                        <InputBase
+                          placeholder="min"
+                          sx={styles.inputS}
+                          value={minKg}
+                          onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinKg(nb); }}
+                        />
+                      </MyTooltip>
+                      -
+                      <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
+                        <InputBase
+                          placeholder="max"
+                          sx={styles.inputS}
+                          value={maxKg}
+                          onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxKg(nb); }}
+                        />
+                      </MyTooltip>
+                    </React.Fragment>
+                  }
                 </Box>
-              </MyTooltip>
-              <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} sx={styles.box} exclusive>
-                <TooltipToggleButton value="Trip-Only" title="Trip Only">
-                  <EmojiPeopleIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="VIP" title="VIP">
-                  <StarIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="All-In" title="All In">
-                  <FlightIcon />
-                </TooltipToggleButton>
-              </ToggleButtonGroup>
-              <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} sx={styles.box} exclusive>
-                <TooltipToggleButton value="passengers" title="Passengers">
-                  <PeopleIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="kg" title="Cargo">
-                  <BusinessCenterIcon />
-                </TooltipToggleButton>
-              </ToggleButtonGroup>
-              <Box sx={styles.boxBorder}>
-                {cargo === 'passengers' ?
-                  <React.Fragment>
-                    <PeopleIcon sx={minPax === '' && maxPax === '' ? styles.tgBtn : null} />
-                    &nbsp;
-                    <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
-                      <InputBase
-                        placeholder="min"
-                        sx={styles.inputNb}
-                        value={minPax}
-                        onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinPax(nb); }}
-                      />
-                    </MyTooltip>
-                    -
-                    <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
-                      <InputBase
-                        placeholder="max"
-                        sx={styles.inputNb}
-                        value={maxPax}
-                        onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxPax(nb); }}
-                      />
-                    </MyTooltip>
-                  </React.Fragment>
-                :
-                  <React.Fragment>
-                    <BusinessCenterIcon sx={minKg === '' && maxKg === '' ? styles.tgBtn : null} />
-                    &nbsp;
-                    <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
-                      <InputBase
-                        placeholder="min"
-                        sx={styles.inputNb}
-                        value={minKg}
-                        onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinKg(nb); }}
-                      />
-                    </MyTooltip>
-                    -
-                    <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
-                      <InputBase
-                        placeholder="max"
-                        sx={styles.inputNb}
-                        value={maxKg}
-                        onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxKg(nb); }}
-                      />
-                    </MyTooltip>
-                  </React.Fragment>
-                }
-
-              </Box>
-              <Box sx={styles.boxBorder}>
-                <SettingsEthernetIcon sx={minDist === '' && maxDist === '' ? styles.tgBtn : null} />
-                &nbsp;
-                <MyTooltip title='Minimum job distance in NM'>
-                  <InputBase
-                    placeholder="min"
-                    sx={styles.inputNb}
-                    value={minDist}
-                    onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinDist(nb); }}
-                  />
-                </MyTooltip>
-                -
-                <MyTooltip title='Maximum job distance in NM'>
-                  <InputBase
-                    placeholder="max"
-                    sx={styles.inputNb}
-                    value={maxDist}
-                    onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxDist(nb); }}
-                  />
+                <Box sx={styles.boxBorder}>
+                  <SettingsEthernetIcon sx={minDist === '' && maxDist === '' ? styles.tgBtn : null} />
+                  &nbsp;
+                  <MyTooltip title='Minimum job distance in NM'>
+                    <InputBase
+                      placeholder="min"
+                      sx={styles.inputS}
+                      value={minDist}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinDist(nb); }}
+                    />
+                  </MyTooltip>
+                  -
+                  <MyTooltip title='Maximum job distance in NM'>
+                    <InputBase
+                      placeholder="max"
+                      sx={styles.inputS}
+                      value={maxDist}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxDist(nb); }}
+                    />
+                  </MyTooltip>
+                </Box>
+                <Box sx={styles.boxBorder}>
+                  <MonetizationOnIcon sx={minJobPay === '' && minLegPay === '' && percentPay === '' ? styles.tgBtn : null} />
+                  &nbsp;
+                  <MyTooltip title='Minimum job pay (in $)'>
+                    <InputBase
+                      placeholder="Job $"
+                      sx={styles.inputM}
+                      value={minJobPay}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinJobPay(nb); }}
+                    />
+                  </MyTooltip>
+                  &nbsp;
+                  <MyTooltip title='Minimum leg pay (in $)'>
+                    <InputBase
+                      placeholder="Leg $"
+                      sx={styles.inputM}
+                      value={minLegPay}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinLegPay(nb); }}
+                    />
+                  </MyTooltip>
+                  &nbsp;
+                  <MyTooltip title='Top paying jobs (in percent)'>
+                    <InputBase
+                      placeholder="Top %"
+                      sx={styles.inputM}
+                      value={percentPay}
+                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setPercentPay(nb); }}
+                    />
+                  </MyTooltip>
+                </Box>
+                <MyTooltip title='Airport filtering'>
+                  <IconButton
+                    onClick={() => setSettingsPopup('panel3')}
+                    sx={styles.tgBtn}
+                  >
+                    <BusinessIcon />
+                  </IconButton>
                 </MyTooltip>
               </Box>
-              <IconButton sx={styles.icon} size="small" onClick={() => setSettingsPopup(true)} data-tour="Step8">
-                <Tooltip title="More options">
-                  <TuneIcon />
-                </Tooltip>
-              </IconButton>
-              <IconButton sx={styles.icon} size="small" onClick={() => setRouteFinder(!routeFinder)} data-tour="Step8b">
-                <Tooltip title="Route finder">
-                  <DirectionsIcon />
-                </Tooltip>
-              </IconButton>
-              <IconButton sx={styles.icon} size="small" onClick={() => setUpdatePopup(true)} data-tour="Step2">
-                <Tooltip title="Load data from FSE">
-                  <UpdateIcon />
-                </Tooltip>
-              </IconButton>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mr: 1
+                }}
+              >
+                <MyTooltip title='Close filters'>
+                  <IconButton
+                    onClick={() => setFilters(false)}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </MyTooltip>
+              </Box>
             </Box>
-          </Toolbar>
+          }
         </AppBar>
         <Box
           sx={{
@@ -786,14 +886,14 @@ function App() {
           setCustomIcaos={setCustomIcaos}
         />
         <SettingsPopup
-          open={settingsPopop}
+          open={settingsPopup}
           handleClose={() => setSettingsPopup(false)}
           settings={settings}
           setSettings={setSettings}
           defaultSettings={defaultSettings}
         />
         <CreditsPopup
-          open={creditsPopop}
+          open={creditsPopup}
           handleClose={() => setCreditsPopup(false)}
           openTutorial={() => setIsTourOpen(true)}
         />

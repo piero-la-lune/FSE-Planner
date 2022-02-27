@@ -150,8 +150,7 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
           step={7}
           title="Step 2: Filtering jobs"
           text={[
-            "Jobs are now loaded and displayed on the map, but it is often a mess since there are so many jobs available. Use the filters in the top bar to reduce the number of jobs displayed on the map.",
-            "For instance, this filter allows you to show only jobs radiating from this airport."
+            "Jobs are now loaded and displayed on the map, but it is often a mess since there are so many jobs available. Use the filters in the top bar to reduce the number of jobs displayed on the map."
           ]}
           goTo={goTo}
           onPrev={() => setUpdatePopup(true)}
@@ -162,25 +161,16 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
       content: ({goTo}) =>
         <TourStep
           step={8}
-          text="More filtering and display options are available here."
-          goTo={goTo}
-        />
-    },
-    {
-      selector: '.leaflet-control-layers',
-      content: ({goTo}) =>
-        <TourStep
-          step={9}
           title="Map layers"
           text="You can display more usefull layers on the map, such as MSFS airports or FSE airports landing areas."
           goTo={goTo}
         />
     },
     {
-      selector: '[data-tour="Step8b"]',
+      selector: '[data-tour="Step9"]',
       content: ({goTo}) =>
         <TourStep
-          step={10}
+          step={9}
           title="Route finding"
           text={[
             "Click here to open the Route Finder.",
@@ -190,10 +180,10 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
         />
     },
     {
-      selector: '[data-tour="Step9"]',
+      selector: '[data-tour="Step10"]',
       content: ({goTo}) =>
         <TourStep
-          step={11}
+          step={10}
           title="Your turn!"
           text="You can launch again this tutorial or review the changelog and credits here."
           goTo={goTo}
