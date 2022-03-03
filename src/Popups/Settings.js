@@ -246,7 +246,7 @@ function SettingsPopup(props) {
         </IconButton>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 3 }}>
-        <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+        <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')} TransitionProps={{ unmountOnExit: true }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Display settings</Typography>
           </AccordionSummary>
@@ -279,7 +279,7 @@ function SettingsPopup(props) {
             </Grid>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+        <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')} TransitionProps={{ unmountOnExit: true }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <FilterAltIcon />&nbsp;<Typography>Filters settings</Typography>
           </AccordionSummary>
@@ -318,7 +318,7 @@ function SettingsPopup(props) {
             </Grid>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
+        <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')} TransitionProps={{ unmountOnExit: true }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <BusinessIcon />&nbsp;<Typography>Airport filtering</Typography>
           </AccordionSummary>
@@ -336,7 +336,7 @@ function SettingsPopup(props) {
             </Grid>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+        <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')} TransitionProps={{ unmountOnExit: true }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <DirectionsIcon />&nbsp;<Typography>Route Finder default parameters</Typography>
           </AccordionSummary>
@@ -406,7 +406,7 @@ function SettingsPopup(props) {
             </div>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+        <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')} TransitionProps={{ unmountOnExit: true }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <UpdateIcon />&nbsp;<Typography>Data update settings</Typography>
           </AccordionSummary>
