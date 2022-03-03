@@ -26,6 +26,8 @@ import DirectionsIcon from '@mui/icons-material/Directions';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import BusinessIcon from '@mui/icons-material/Business';
+import TableViewIcon from '@mui/icons-material/TableView';
+import MapIcon from '@mui/icons-material/Map';
 
 import { default as _clone } from 'lodash/cloneDeep';
 import { default as _mergeWith } from 'lodash/mergeWith';
@@ -34,6 +36,7 @@ import { useOrientation, useWindowSize } from 'react-use';
 
 import FSEMap from './Map.js';
 import Routing from './Routing.js';
+import Table from './Table.js';
 import UpdatePopup from './Popups/Update.js';
 import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';
@@ -283,6 +286,7 @@ function App() {
   const [minLegPay, setMinLegPay] = React.useState('');
   const [percentPay, setPercentPay] = React.useState('');
   const [direction, setDirection] = React.useState('');
+  const [table, setTable] = React.useState(false);
   const [updatePopup, setUpdatePopup] = React.useState(false);
   const [settingsPopup, setSettingsPopup] = React.useState(false);
   const [creditsPopup, setCreditsPopup] = React.useState(false);
@@ -379,9 +383,20 @@ function App() {
   // Cannot just use setSearch, because need to pan even if the ICAO was already in search var
   const goToRef = React.useRef(null);
   const goTo = React.useCallback((icao) => {
-    setSearch(prevIcao => prevIcao === icao ? null : icao);
-    goToRef.current = icao;
-    window.history.replaceState({icao:icao}, '', '?icao='+icao);
+    if (icao) {
+      setSearch(prevIcao => prevIcao === icao ? null : icao);
+      goToRef.current = icao;
+      setSearchHistory(prevList => {
+        const list = [...(new Set([icao, ...prevList]))].slice(0, 5);
+        storage.set('searchHistory', list);
+        return list;
+      });
+      window.history.replaceState({icao:icao}, '', '?icao='+icao);
+    }
+    else {
+      setSearch(null);
+      window.history.replaceState(null, '', '?');
+    }
   }, []);
   React.useEffect(() => {
     if (goToRef.current) {
@@ -395,7 +410,7 @@ function App() {
   React.useEffect(() => {
     if (!mapRef.current) { return; }
     mapRef.current.invalidateSize({pan:false});
-  }, [routeFinder, filters, orientation, windowSize.width, windowSize.height]);
+  }, [routeFinder, filters, orientation, table, windowSize.width, windowSize.height]);
 
   const setFrom = React.useCallback((icao) => {
     icao = icao.toUpperCase();
@@ -436,7 +451,10 @@ function App() {
       addCustom: (icao) => setCustomIcaos(prev => [...prev, icao]),
       removeCustom: (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao)),
       isInCustom: isInCustom,
-      contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined
+      contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined,
+      measureDistance: () => null,
+      markerClick: () => null,
+      closeTable: () => setTable(false)
     };
   }
   if (!actions.current) { setActions(); }
@@ -453,207 +471,229 @@ function App() {
         }}
       >
         <AppBar position="static">
-          { !filters ?
-            <Toolbar>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  flexWrap: 'wrap'
-                }}
+          <Toolbar>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                flexWrap: 'wrap'
+              }}
+            >
+              <Typography variant="h6" sx={{ lineHeight: 1, py: 0.4 }}>
+                FSE Planner
+              </Typography>
+              <Tooltip title="Changelog & credits">
+                <Button
+                  sx={{
+                    marginLeft: 1,
+                    paddingLeft: '2px',
+                    paddingRight: '2px',
+                    px: 0.5,
+                    py: 0,
+                    fontWeight: 'normal',
+                    color: '#fff',
+                    letterSpacing: 'normal',
+                    textTransform: 'none',
+                    minWidth: 'auto'
+                  }}
+                  onClick={() => setCreditsPopup(true)}
+                  data-tour="Step10"
+                  size="small"
+                >
+                  v{process.env.REACT_APP_VERSION}
+                </Button>
+              </Tooltip>
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                ml: 1,
+                flexGrow: 2
+              }}
+            >
+              <Button
+                sx={styles.menuBtn}
+                onClick={() => setUpdatePopup(true)}
+                data-tour="Step2"
+                startIcon={<UpdateIcon />}
               >
-                <Typography variant="h6" sx={{ lineHeight: 1, py: 0.4 }}>
-                  FSE Planner
-                </Typography>
-                <Tooltip title="Changelog & credits">
-                  <Button
-                    sx={{
-                      marginLeft: 1,
-                      paddingLeft: '2px',
-                      paddingRight: '2px',
-                      px: 0.5,
-                      py: 0,
-                      fontWeight: 'normal',
-                      color: '#fff',
-                      letterSpacing: 'normal',
-                      textTransform: 'none',
-                      minWidth: 'auto'
-                    }}
-                    onClick={() => setCreditsPopup(true)}
-                    data-tour="Step10"
-                    size="small"
-                  >
-                    v{process.env.REACT_APP_VERSION}
-                  </Button>
-                </Tooltip>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  ml: 1,
-                  flexGrow: 2
+                Load data
+              </Button>
+              <Button
+                sx={styles.menuBtn}
+                onClick={() => {
+                  if (!table) {
+                    setRouteFinder(false);
+                  }
+                  setTable(!table);
                 }}
+                startIcon={table ? <MapIcon /> : <TableViewIcon />}
               >
-                <Button
-                  sx={styles.menuBtn}
-                  onClick={() => setUpdatePopup(true)}
-                  data-tour="Step2"
-                  startIcon={<UpdateIcon />}
-                >
-                  Load data
-                </Button>
-                <Button
-                  sx={styles.menuBtn}
-                  onClick={() => setFilters(!filters)}
-                  data-tour="Step7"
-                  startIcon={<FilterAltIcon />}
-                >
-                  Filters
-                </Button>
-                <Button
-                  sx={styles.menuBtn}
-                  onClick={() => setRouteFinder(!routeFinder)}
-                  data-tour="Step9"
-                  startIcon={<DirectionsIcon />}
-                >
-                  Route finder
-                </Button>
-                <Button
-                  sx={styles.menuBtn}
-                  onClick={() => setSettingsPopup(true)}
-                  startIcon={<TuneIcon />}
-                >
-                  Settings
-                </Button>
-              </Box>
-              <Box
+                {table ? "Map" : "Table" }
+              </Button>
+              <Button
                 sx={{
-                  display: 'flex',
-                  ml: 2
+                  ...styles.menuBtn,
+                  ...(filters && {
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    }
+                  })
                 }}
+                onClick={() => setFilters(!filters)}
+                data-tour="Step7"
+                startIcon={<FilterAltIcon />}
               >
-                <Autocomplete
-                  options={icaodataSrcArr}
-                  getOptionLabel={(a) => a.icao ? a.icao : ''}
-                  renderOption={(props, a) =>
-                    <li {...props}>
+                Filters
+              </Button>
+              <Button
+                sx={{
+                  ...styles.menuBtn,
+                  ...(routeFinder && {
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    }
+                  })
+                }}
+                onClick={() => {
+                  if (table) {
+                    setTable(false);
+                    setRouteFinder(true);
+                  }
+                  else {
+                      setRouteFinder(!routeFinder)
+                  }
+                }}
+                data-tour="Step9"
+                startIcon={<DirectionsIcon />}
+              >
+                Route finder
+              </Button>
+              <Button
+                sx={styles.menuBtn}
+                onClick={() => setSettingsPopup(true)}
+                startIcon={<TuneIcon />}
+              >
+                Settings
+              </Button>
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                ml: 2
+              }}
+            >
+              <Autocomplete
+                options={icaodataSrcArr}
+                getOptionLabel={(a) => a.icao ? a.icao : ''}
+                renderOption={(props, a) =>
+                  <li {...props}>
+                    <Box
+                      component="span"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <Box
+                        component="b"
+                        sx={{
+                          minWidth: '40px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {a.icao}
+                      </Box>
                       <Box
                         component="span"
                         sx={{
                           display: 'flex',
-                          alignItems: 'center',
-                          overflow: 'hidden'
+                          flexDirection: 'column',
+                          marginLeft: 2,
+                          overflow: 'hidden',
                         }}
                       >
                         <Box
-                          component="b"
-                          sx={{
-                            minWidth: '40px',
-                            textAlign: 'center'
-                          }}
-                        >
-                          {a.icao}
-                        </Box>
-                        <Box
                           component="span"
                           sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            marginLeft: 2,
+                            textOverflow: 'ellipsis',
                             overflow: 'hidden',
+                            whiteSpace: 'nowrap'
                           }}
                         >
-                          <Box
-                            component="span"
-                            sx={{
-                              textOverflow: 'ellipsis',
-                              overflow: 'hidden',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {a.name}
-                          </Box>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              textOverflow: 'ellipsis',
-                              overflow: 'hidden',
-                              whiteSpace: 'nowrap',
-                              color: '#aaa'
-                            }}
-                          >
-                            {a.city}, {a.state ? a.state+', ' : ''}{a.country}
-                          </Typography>
+                          {a.name}
                         </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                            color: '#aaa'
+                          }}
+                        >
+                          {a.city}, {a.state ? a.state+', ' : ''}{a.country}
+                        </Typography>
                       </Box>
-                    </li>
+                    </Box>
+                  </li>
+                }
+                filterOptions={(options, params) => {
+                  // If input is empty and search history is not, display search history
+                  if (!searchInput && searchHistory.length > 0) {
+                    return searchHistory.map(icao => icaodata[icao]);
                   }
-                  filterOptions={(options, params) => {
-                    // If input is empty and search history is not, display search history
-                    if (!searchInput && searchHistory.length > 0) {
-                      return searchHistory.map(icao => icaodata[icao]);
-                    }
-                    // Search for ICAO
-                    let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
-                    // If not enough results, search for city name
-                    if (filtered.length < 5) {
-                      const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
-                      filtered = filtered.concat(add.slice(0, 5-filtered.length));
-                    }
-                    return filtered;
-                  }}
-                  renderInput={(params) =>
-                    <InputBase
-                      placeholder="Search..."
-                      sx={styles.inputSearch}
-                      ref={params.InputProps.ref}
-                      inputProps={params.inputProps}
-                      endAdornment={params.inputProps.value ?
-                          <IconButton
-                            size="small"
-                            onClick={() => {
-                              setSearch(null);
-                              setSearchInput('');
-                              window.history.replaceState(null, '', '?');
-                            }}
-                          >
-                            <CloseIcon />
-                          </IconButton>
-                        :
-                          null
-                      }
-                    />
+                  // Search for ICAO
+                  let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
+                  // If not enough results, search for city name
+                  if (filtered.length < 5) {
+                    const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
+                    filtered = filtered.concat(add.slice(0, 5-filtered.length));
                   }
-                  PopperComponent={PopperMy}
-                  onChange={(evt, value) => {
-                    if (value) {
-                      setSearch(value.icao);
-                      const list = [...(new Set([value.icao, ...searchHistory]))].slice(0, 5);
-                      setSearchHistory(list);
-                      storage.set('searchHistory', list);
-                      window.history.replaceState({icao:value.icao}, '', '?icao='+value.icao);
+                  return filtered;
+                }}
+                renderInput={(params) =>
+                  <InputBase
+                    placeholder="Search..."
+                    sx={styles.inputSearch}
+                    ref={params.InputProps.ref}
+                    inputProps={params.inputProps}
+                    endAdornment={params.inputProps.value ?
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSearch(null);
+                            setSearchInput('');
+                            window.history.replaceState(null, '', '?');
+                          }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      :
+                        null
                     }
-                    else {
-                      setSearch(null);
-                      window.history.replaceState(null, '', '?');
-                    }
-                  }}
-                  value={search ? icaodataSrc[search] : null}
-                  inputValue={searchInput}
-                  onInputChange={(evt, value) => setSearchInput(value)}
-                  autoHighlight={true}
-                  selectOnFocus={false}
-                />
-              </Box>
-            </Toolbar>
-          :
+                  />
+                }
+                PopperComponent={PopperMy}
+                onChange={(evt, value) => value && goTo(value.icao)}
+                value={search ? icaodataSrc[search] : null}
+                inputValue={searchInput}
+                onInputChange={(evt, value) => setSearchInput(value)}
+                autoHighlight={true}
+                selectOnFocus={false}
+              />
+            </Box>
+          </Toolbar>
+          {filters &&
             <Box
               sx={{
                 display: 'flex',
-                minHeight: 64,
                 px: 1,
-                py: 1,
+                pb: 1,
                 boxSizing: 'border-box'
               }}
             >
@@ -735,7 +775,7 @@ function App() {
                           placeholder="min"
                           sx={styles.inputS}
                           value={minPax}
-                          onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinPax(nb); }}
+                          onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinPax(nb); }}
                         />
                       </MyTooltip>
                       -
@@ -744,7 +784,7 @@ function App() {
                           placeholder="max"
                           sx={styles.inputS}
                           value={maxPax}
-                          onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxPax(nb); }}
+                          onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxPax(nb); }}
                         />
                       </MyTooltip>
                     </React.Fragment>
@@ -757,7 +797,7 @@ function App() {
                           placeholder="min"
                           sx={styles.inputS}
                           value={minKg}
-                          onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinKg(nb); }}
+                          onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinKg(nb); }}
                         />
                       </MyTooltip>
                       -
@@ -766,7 +806,7 @@ function App() {
                           placeholder="max"
                           sx={styles.inputS}
                           value={maxKg}
-                          onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxKg(nb); }}
+                          onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxKg(nb); }}
                         />
                       </MyTooltip>
                     </React.Fragment>
@@ -780,7 +820,7 @@ function App() {
                       placeholder="min"
                       sx={styles.inputS}
                       value={minDist}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinDist(nb); }}
+                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinDist(nb); }}
                     />
                   </MyTooltip>
                   -
@@ -789,7 +829,7 @@ function App() {
                       placeholder="max"
                       sx={styles.inputS}
                       value={maxDist}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMaxDist(nb); }}
+                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxDist(nb); }}
                     />
                   </MyTooltip>
                 </Box>
@@ -801,7 +841,7 @@ function App() {
                       placeholder="Job $"
                       sx={styles.inputM}
                       value={minJobPay}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinJobPay(nb); }}
+                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinJobPay(nb); }}
                     />
                   </MyTooltip>
                   &nbsp;
@@ -810,7 +850,7 @@ function App() {
                       placeholder="Leg $"
                       sx={styles.inputM}
                       value={minLegPay}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setMinLegPay(nb); }}
+                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinLegPay(nb); }}
                     />
                   </MyTooltip>
                   &nbsp;
@@ -819,7 +859,7 @@ function App() {
                       placeholder="Top %"
                       sx={styles.inputM}
                       value={percentPay}
-                      onChange={evt => { let nb = parseInt(evt.target.value) || ''; setPercentPay(nb); }}
+                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setPercentPay(nb); }}
                     />
                   </MyTooltip>
                 </Box>
@@ -829,21 +869,6 @@ function App() {
                     sx={styles.tgBtn}
                   >
                     <BusinessIcon />
-                  </IconButton>
-                </MyTooltip>
-              </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  mr: 1
-                }}
-              >
-                <MyTooltip title='Close filters'>
-                  <IconButton
-                    onClick={() => setFilters(false)}
-                  >
-                    <CloseIcon />
                   </IconButton>
                 </MyTooltip>
               </Box>
@@ -874,6 +899,13 @@ function App() {
             route={route}
             mapRef={mapRef}
             actions={actions}
+            hidden={table}
+          />
+          <Table
+            options={options}
+            hidden={!table}
+            actions={actions}
+            search={search}
           />
         </Box>
         <UpdatePopup

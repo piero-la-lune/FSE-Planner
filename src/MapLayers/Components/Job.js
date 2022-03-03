@@ -9,6 +9,8 @@ import Theme from '../../Theme.js';
 import ReactDOM from "react-dom";
 import L from "leaflet";
 
+import { maximizeTripOnly } from '../../util/utility.js';
+
 
 // Generate amount p
 function Cargo({cargo, pay, dir}) {
@@ -28,13 +30,41 @@ function Cargo({cargo, pay, dir}) {
   );
 }
 
+// Generate multiple cargo
+function MultipleCargo({jobs, separate, ...props}) {
+  if (separate === '' || separate === null || separate === undefined) {
+    return (<Cargo {...props} />);
+  }
+  else if (separate === true) {
+    return (
+      <React.Fragment>
+        {jobs.map((job, i) => <Cargo key={i} cargo={{[Object.keys(props.cargo)[0]]: job.nb}} pay={job.pay} dir={props.dir} />)}
+      </React.Fragment>
+    );
+  }
+  else {
+    let res = [];
+    let remain = jobs;
+    while (remain.length) {
+      const [pay, nb, , r] = maximizeTripOnly(remain.length, remain, separate);
+      res.push(<Cargo key={res.length} cargo={{[Object.keys(props.cargo)[0]]: nb}} pay={pay} dir={props.dir} />);
+      remain = r;
+    }
+    return (
+      <React.Fragment>
+        {res}
+      </React.Fragment>
+    );
+  }
+}
+
 // Generate tooltip
-function Tooltip({leg, type, rleg, fromIcao, toIcao}) {
+function Tooltip({leg, type, rleg, fromIcao, toIcao, separate}) {
   return (
     <div>
       <Typography variant="body1"><b>{leg.distance} NM</b><Box component="span" sx={{ fontSize: '0.8em', paddingLeft: 1 }}>{fromIcao} - {toIcao}</Box></Typography>
-      { leg.amount > 0 && <Cargo cargo={{[type]: leg.amount}} pay={leg.pay} dir={leg.direction} /> }
-      { rleg && rleg.amount > 0 && <Cargo cargo={{[type]: rleg.amount}} pay={rleg.pay} dir={rleg.direction} /> }
+      { leg.amount > 0 && <MultipleCargo cargo={{[type]: leg.amount}} pay={leg.pay} dir={leg.direction} separate={separate} jobs={leg.filteredJobs} /> }
+      { rleg && rleg.amount > 0 && <MultipleCargo cargo={{[type]: rleg.amount}} pay={rleg.pay} dir={rleg.direction} separate={separate} jobs={leg.filteredJobs} /> }
       { (leg.flight || (rleg && rleg.flight)) &&
         <div>
           <Typography variant="body1" sx={{ marginTop: 2 }}><b>My assignments</b></Typography>

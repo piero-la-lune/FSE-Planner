@@ -250,10 +250,15 @@ function cleanJobs(list, icaodata, icaos = null) {
     if (!jobs[key][unit][type]) {
       jobs[key][unit][type] = [];
     }
-    jobs[key][unit][type].push({
-      nb: parseInt(job.Amount),
-      pay: parseInt(job.Pay)
-    });
+    const obj = {
+      nb: parseInt(job.Amount, 10),
+      pay: parseInt(job.Pay, 10),
+      id: parseInt(job.Id, 10)
+    };
+    if (job.Type === 'All-In') {
+      obj.aid = parseInt(job.AircraftId, 10);
+    }
+    jobs[key][unit][type].push(obj);
   }
   return jobs;
 }
