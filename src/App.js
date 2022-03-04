@@ -212,10 +212,8 @@ const styles = {
     paddingTop: 0.5,
     paddingBottom: 0.5,
     width: {
-      xs: "80px",
-      sm: "80px",
-      md: "120px",
-      lg: "200px",
+      xs: "100px",
+      lg: "300px",
       xl: "400px"
     }
   }
