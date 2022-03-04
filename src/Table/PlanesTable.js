@@ -122,7 +122,7 @@ const Row = React.memo(function Row(props) {
           <MenuItem component={Link} href={"https://server.fseconomy.net/airport.jsp?icao="+row.location} target="fse" onClick={handleClose}>
             Open {row.location} in FSE
           </MenuItem>
-          {row.dry !== 0 &&
+          {(row.dry !== 0 || row.wet === 0) &&
             <MenuItem onClick={() => { dryFormRef.current.submit(); handleClose(); }}>
               Rent dry
             </MenuItem>

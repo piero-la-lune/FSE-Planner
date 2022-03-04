@@ -6,6 +6,8 @@ import Link from '@mui/material/Link';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
+import TableViewIcon from '@mui/icons-material/TableView';
+import IconButton from '@mui/material/IconButton';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Theme from '../../Theme.js';
 
@@ -179,24 +181,36 @@ function Popup(props) {
               ILS
             </Box>
           }
-          <Link
-            href={"https://server.fseconomy.net/airport.jsp?icao="+icao}
-            target="fse"
-            title="Go to FSE"
+          <IconButton
+            onClick={() => { props.actions.current.openTable(); props.actions.current.goTo(icao); }}
             sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              marginLeft: 1,
-              marginRight: 2,
+              p: 0.5,
+              my: 0.5,
+              ml: 1,
+              color: 'rgba(255, 255, 255, 0.5)',
+              '&:hover': {
+                color: '#fff'
+              }
+            }}
+            title="Table view"
+          >
+            <TableViewIcon />
+          </IconButton>
+          <IconButton
+            sx={{
+              p: 0.5,
+              my: 0.5,
               color: 'rgba(255, 255, 255, 0.5) !important',
-              fontSize: '0.8em',
               '&:hover': {
                 color: '#fff !important'
               }
             }}
+            href={"https://server.fseconomy.net/airport.jsp?icao="+icao}
+            target="fse"
+            title="Go to FSE"
           >
-            <OpenInNewIcon fontSize="inherit" />
-          </Link>
+            <OpenInNewIcon sx={{ fontSize: '0.9em' }} />
+          </IconButton>
         </Typography>
         <Typography
           variant="body2"

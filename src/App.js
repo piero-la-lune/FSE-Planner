@@ -454,7 +454,7 @@ function App() {
       contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined,
       measureDistance: () => null,
       markerClick: () => null,
-      closeTable: () => setTable(false)
+      openTable: () => { setRouteFinder(false); setTable(true); }
     };
   }
   if (!actions.current) { setActions(); }
