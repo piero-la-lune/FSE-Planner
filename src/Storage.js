@@ -1,5 +1,7 @@
 import uid from "./util/uid.js";
 
+var semver = require('semver');
+
 class Storage {
 
   constructor() {
@@ -35,7 +37,7 @@ class Storage {
         }
         this.set('layers', layers);
       }
-      if (oldVersion < '1.10.0') {
+      if (semver.lt(oldVersion, '1.10.0')) {
         this.remove('jobs');
         this.remove('flight');
         this.remove('planes');
