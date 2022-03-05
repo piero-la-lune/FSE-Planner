@@ -35,6 +35,11 @@ class Storage {
         }
         this.set('layers', layers);
       }
+      if (oldVersion < '1.10.0') {
+        this.remove('jobs');
+        this.remove('flight');
+        this.remove('planes');
+      }
       localStorage.setItem('version', version);
     }
   }
