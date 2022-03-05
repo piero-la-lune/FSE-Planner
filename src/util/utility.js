@@ -1,6 +1,8 @@
 import icaodata from "../data/icaodata.json";
 import aircrafts from "../data/aircraft.json";
 
+import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
+
 export function hideAirport(icao, s, sim) {
   return (
       s
@@ -133,4 +135,124 @@ export class Plane {
     // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
     return this.MTOW - this.emptyWeight - 77*(1+this.crew) - fuelKg;
   }
+}
+
+
+
+// Filters non complying legs
+export function cleanLegs(jobs, opts) {
+  const keys = Object.keys(jobs);
+  let legs = {};
+  let max = 0;
+  // Get legs
+  for (var i = keys.length - 1; i >= 0; i--) {
+    const leg = jobs[keys[i]];
+    const [frIcao, toIcao] = keys[i].split('-');
+    const fr = { latitude: opts.icaodata[frIcao].lat, longitude: opts.icaodata[frIcao].lon };
+    const to = { latitude: opts.icaodata[toIcao].lat, longitude: opts.icaodata[toIcao].lon };
+
+    // Filter out airports not meeting criterias
+    if (hideAirport(frIcao, opts.settings.airport, opts.settings.display.sim) || hideAirport(toIcao, opts.settings.airport, opts.settings.display.sim)) { continue; }
+
+    // Filter out jobs based on distance
+    if (opts.minDist && leg.distance < opts.minDist) { continue; }
+    if (opts.maxDist && leg.distance > opts.maxDist) { continue; }
+
+    // Filter out wrong types of jobs
+    if (!leg.hasOwnProperty(opts.cargo) || !leg[opts.cargo].hasOwnProperty(opts.type)) { continue; }
+
+    // Filter out jobs with wrong direction
+    if (opts.fromIcao) {
+      const fromIcaoFilter = { latitude: opts.icaodata[opts.fromIcao].lat, longitude: opts.icaodata[opts.fromIcao].lon };
+      if (opts.settings.from.distCoef !== '') {
+        if (getDistance(fromIcaoFilter, to)/getDistance(fromIcaoFilter, fr) < parseFloat(opts.settings.from.distCoef)) { continue; }
+      }
+      if (opts.settings.from.maxDist !== '') {
+        if (convertDistance(getDistance(fromIcaoFilter, fr), 'sm') > parseFloat(opts.settings.from.maxDist)) { continue; }
+      }
+      if (opts.settings.from.angle !== '') {
+        if (opts.fromIcao !== frIcao && 180 - Math.abs(Math.abs(getRhumbLineBearing(fr, to) - getRhumbLineBearing(fromIcaoFilter, fr)) - 180) > parseInt(opts.settings.from.angle)) { continue; }
+      }
+    }
+    if (opts.toIcao) {
+      const toIcaoFilter = { latitude: opts.icaodata[opts.toIcao].lat, longitude: opts.icaodata[opts.toIcao].lon };
+      if (opts.settings.to.distCoef !== '') {
+        if (getDistance(toIcaoFilter, fr)/getDistance(toIcaoFilter, to) < parseFloat(opts.settings.to.distCoef)) { continue; }
+      }
+      if (opts.settings.to.maxDist !== '') {
+        if (convertDistance(getDistance(toIcaoFilter, to), 'sm') > parseFloat(opts.settings.to.maxDist)) { continue; }
+      }
+      if (opts.settings.to.angle !== '') {
+        if (opts.toIcao !== toIcao && 180 - Math.abs(Math.abs(getRhumbLineBearing(fr, to) - getRhumbLineBearing(to, toIcaoFilter)) - 180) > parseInt(opts.settings.to.angle)) { continue; }
+      }
+    }
+    if (opts.direction) {
+      if (180 - Math.abs(Math.abs(leg.direction - opts.direction) - 180) > parseInt(opts.settings.direction.angle)) { continue; }
+    }
+
+    const filteredJobs = leg[opts.cargo][opts.type].filter(job => {
+      // Filter out bad payed jobs
+      if (opts.minJobPay && job.pay < opts.minJobPay) { return false; }
+      // Filter out jobs too big for plane
+      if (opts.max && job.nb > opts.max) { return false; }
+      // Filter out jobs with not enought cargo
+      if (opts.type !== 'Trip-Only' && opts.min && job.nb < opts.min) { return false; }
+      return true;
+    });
+    if (filteredJobs.length < 1) { continue; }
+
+    // Compute total amount and pay
+    const [amount, pay] = filteredJobs.reduce(([amount, pay], job) => [amount+job.nb, pay+job.pay], [0, 0]);
+
+    // Filter out bad payed legs
+    if (opts.minLegPay && pay < opts.minLegPay) { continue; }
+    // Filter out legs with not enougth pax/kg
+    if (opts.min && amount < opts.min) { continue; }
+
+    legs[keys[i]] = {
+      amount: amount,
+      pay: pay,
+      direction: leg.direction,
+      distance: leg.distance,
+      filteredJobs: filteredJobs
+    };
+
+    max = Math.max(max, amount);
+  }
+  // Only keep top x% paying jobs
+  if (opts.percentPay) {
+    const values = [];
+    // Compute each leg pay / amount / distance
+    Object.values(legs).forEach(leg => {
+      leg.pay_r = leg.pay/leg.amount/leg.distance
+      values.push(leg.pay_r);
+    });
+    values.sort((a, b) => a - b);
+    // Get values index
+    const index = Math.floor(values.length*(1-parseInt(opts.percentPay)/100)) - 1;
+    // Get min pay
+    const min_pay = values[Math.min(Math.max(index, 0), values.length-1)];
+    // Filter out jobs
+    Object.keys(legs).filter(icao => legs[icao].pay_r < min_pay).forEach(icao => delete legs[icao]);
+  }
+  return [legs, max];
+}
+
+
+// cargo: {pax, kg, pay}
+export function maximizeTripOnly(i, cargos, max) {
+  if (i === 0) {
+    // Total pay, list of cargos, remain
+    return [0, 0, [], []];
+  }
+  const elm = cargos[i-1];
+  const [pay1, nb1, cargos1, remain1] = maximizeTripOnly(i-1, cargos, max);
+  if (max-elm.nb >= 0)  {
+    let [pay2, nb2, cargos2, remain2] = maximizeTripOnly(i-1, cargos, max-elm.nb);
+    pay2 += elm.pay;
+    if (pay2 > pay1) {
+      return [pay2, nb2+elm.nb, [...cargos2, elm], remain2];
+    }
+  }
+  return [pay1, nb1, cargos1, [...remain1, elm]];
 }

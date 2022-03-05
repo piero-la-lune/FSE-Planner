@@ -144,6 +144,9 @@ const FSEMap = React.memo(function FSEMap(props) {
   const searchRef = React.useRef(null);
   const prevSearchRef = React.useRef(null);
   React.useEffect(() => {
+    // Do not update is map is closed
+    if (props.hidden) { return false; }
+
     // If marker already exists remove it
     if (searchRef.current) {
       searchRef.current.remove();
@@ -177,7 +180,8 @@ const FSEMap = React.memo(function FSEMap(props) {
     s.display.sim,
     s.display.markers.colors.selected,
     s.display.markers.sizes.selected,
-    props.actions
+    props.actions,
+    props.hidden
   ]);
 
   // Set search marker on top at each render
@@ -240,7 +244,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   return (
     <Box
       sx={{
-        display: 'flex',
+        display: props.hidden ? 'none' : 'flex',
         flex: '1 1 auto',
         position: 'relative'
       }}

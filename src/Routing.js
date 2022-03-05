@@ -32,6 +32,8 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import FlightIcon from '@mui/icons-material/Flight';
 import LinearProgress from '@mui/material/LinearProgress';
 import Checkbox from '@mui/material/Checkbox';
 import ListItemText from '@mui/material/ListItemText';
@@ -430,6 +432,7 @@ const Routing = React.memo((props) => {
 
       // Get plane reg, and compute rental cost and bonus
       let planeReg = null;
+      let planeId = null;
       let rentalType = 'dry';
       let rentalCost = 0;
       let bonus = 0;
@@ -468,6 +471,7 @@ const Routing = React.memo((props) => {
           }
           if (!lowestCost || cost < lowestCost) {
             planeReg = p.reg;
+            planeId = p.id;
             lowestCost = cost;
             rentalCost = p[t] * time;
             rentalType = t;
@@ -503,6 +507,7 @@ const Routing = React.memo((props) => {
       allResults[i].id = i;
       allResults[i].fuel = Math.ceil(fuelUsage);
       allResults[i].reg = planeReg;
+      allResults[i].planeId = planeId;
       allResults[i].rentalType = rentalType;
       allResults[i].b = Math.round(bonus);
       allResults[i].grossPay = grossPay;
@@ -615,13 +620,13 @@ const Routing = React.memo((props) => {
           if (v.kg['Trip-Only'] && !vipOnly) {
             for (const c of v.kg['Trip-Only']) {
               if (c.nb > planeMaxKg) { continue; }
-              obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+              obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false, id: c.id});
             }
           }
           if (v.kg['VIP']) {
             for (const c of v.kg['VIP']) {
               if (c.nb > planeMaxKg) { continue; }
-              obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false});
+              obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false, id: c.id});
             }
           }
         }
@@ -629,13 +634,13 @@ const Routing = React.memo((props) => {
           if (v.passengers['Trip-Only'] && !vipOnly) {
             for (const c of v.passengers['Trip-Only']) {
               if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-              obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true});
+              obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true, id: c.id});
             }
           }
           if (v.passengers['VIP']) {
             for (const c of v.passengers['VIP']) {
               if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-              obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false});
+              obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false, id: c.id});
             }
           }
         }
@@ -877,6 +882,69 @@ const Routing = React.memo((props) => {
                     <PictureAsPdfIcon />
                   </IconButton>
                 </Tooltip>
+                <form
+                  action="https://server.fseconomy.net/userctl"
+                  method="post"
+                  target="fse"
+                  style={{
+                    display: 'inline-flex',
+                    margin: '16px 6px 0 6px',
+                    verticalAlign: 'middle'
+                  }}
+                >
+                  <input type="hidden" name="event" value="Assignment" />
+                  <input type="hidden" name="type" value="add" />
+                  <input type="hidden" name="id" value="[object+RadioNodeList]" />
+                  <input type="hidden" name="groupid" value="" />
+                  <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
+                  {
+                    (() => {
+                      const ids = new Set();
+                      for (const leg of focus.cargos) {
+                        for (const jobs of Object.values(leg)) {
+                          for (const job of jobs) {
+                            ids.add(job.id);
+                          }
+                        }
+                      }
+                      return [...ids].map(id => <input type="hidden" name="select" value={id} key={id} />);
+                    })()
+                  }
+                  <Tooltip title="Add all assignments to My Flight">
+                    <IconButton
+                      size="large"
+                      type="submit"
+                    >
+                      <AddShoppingCartIcon />
+                    </IconButton>
+                  </Tooltip>
+                </form>
+                { focus.planeId &&
+                  <form
+                    action="https://server.fseconomy.net/userctl"
+                    method="post"
+                    target="fse"
+                    style={{
+                      display: 'inline-flex',
+                      margin: '16px 6px 0 6px',
+                      verticalAlign: 'middle'
+                    }}
+                  >
+                    <input type="hidden" name="event" value="Aircraft" />
+                    <input type="hidden" name="type" value="add" />
+                    <input type="hidden" name="rentalType" value={focus.rentalType} />
+                    <input type="hidden" name="id" value={focus.planeId} />
+                    <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
+                    <Tooltip title="Rent plane">
+                      <IconButton
+                        size="large"
+                        type="submit"
+                      >
+                        <FlightIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </form>
+                }
               </Box>
               <Grid container spacing={1} sx={{ mt: 1 }}>
                 <Grid item xs={4}>
@@ -950,6 +1018,22 @@ const Routing = React.memo((props) => {
                             )}
                             { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
                             <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
+                            <form
+                              action="https://server.fseconomy.net/userctl"
+                              method="post"
+                              target="fse"
+                              style={{ marginTop: 8 }}
+                            >
+                              <input type="hidden" name="event" value="Assignment" />
+                              <input type="hidden" name="type" value="add" />
+                              <input type="hidden" name="id" value="[object+RadioNodeList]" />
+                              <input type="hidden" name="groupid" value="" />
+                              <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
+                              {
+                                Object.values(focus.cargos[i].TripOnly).map(job => <input type="hidden" name="select" value={job.id} key={job.id} />)
+                              }
+                              <Button type="submit" startIcon={<AddShoppingCartIcon />} size="small">Add to My Flight</Button>
+                            </form>
                           </Paper>
                         }
                         {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
@@ -961,6 +1045,22 @@ const Routing = React.memo((props) => {
                                 <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
                             )}
                             <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
+                            <form
+                              action="https://server.fseconomy.net/userctl"
+                              method="post"
+                              target="fse"
+                              style={{ marginTop: 8 }}
+                            >
+                              <input type="hidden" name="event" value="Assignment" />
+                              <input type="hidden" name="type" value="add" />
+                              <input type="hidden" name="id" value="[object+RadioNodeList]" />
+                              <input type="hidden" name="groupid" value="" />
+                              <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
+                              {
+                                Object.values(focus.cargos[i].VIP).map(job => <input type="hidden" name="select" value={job.id} key={job.id} />)
+                              }
+                              <Button type="submit" startIcon={<AddShoppingCartIcon />} size="small">Add to My Flight</Button>
+                            </form>
                           </Paper>
                         }
                       </TimelineContent>
