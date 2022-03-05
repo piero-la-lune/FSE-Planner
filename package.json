@@ -29,6 +29,7 @@
     "react-scripts": "4.0.3",
     "react-use": "^17.3.2",
     "reactour": "^1.18.7",
+    "semver": "^7.3.5",
     "worker-loader": "^3.0.8"
   },
   "scripts": {
