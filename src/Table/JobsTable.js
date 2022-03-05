@@ -26,6 +26,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Link from '@mui/material/Link';
 
 import { cleanLegs, maximizeTripOnly } from "../util/utility.js";
+import AddToFlight from './AddToFlight.js';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -382,11 +383,8 @@ function Table(props) {
               >
                 {amount}{props.options.cargo === 'passengers' ? ' passenger' + (amount > 1 ? 's' : '') : 'kg'} (${pay}) selected
               </Typography>
-              <form
-                action="https://server.fseconomy.net/userctl"
-                method="post"
-                style={{ flexShrink: 1 }}
-                target="fse"
+              <AddToFlight
+                style={{ flexShrink: 1, display: 'flex' }}
                 onSubmit={(evt) => {
                   setTimeout(() => {
                     const ids = {...flight};
@@ -404,22 +402,12 @@ function Table(props) {
                     setSelected({});
                   }, 1000);
                 }}
+                ids={Object.values(selected).reduce((acc, list) => [...acc, ...list.map(elm => elm.id)], [])}
               >
-                <input type="hidden" name="event" value="Assignment" />
-                <input type="hidden" name="type" value="add" />
-                <input type="hidden" name="id" value="[object+RadioNodeList]" />
-                <input type="hidden" name="groupid" value="" />
-                <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
-                {
-                  Object.values(selected).map(list => list.map(elm => <input type="hidden" name="select" value={elm.id} key={elm.id} />))
-                }
                 <Button color="secondary" onClick={() => setSelected({})} sx={{ mr: 1 }}>
                   Clear
                 </Button>
-                <Button variant="contained" type="submit">
-                  Add to My Flight
-                </Button>
-              </form>
+              </AddToFlight>
             </React.Fragment>
           :
             <React.Fragment>
