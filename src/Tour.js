@@ -92,7 +92,7 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
           title="Welcome aboard FSE Planner!"
           text="This quick tour will show you the main features of this application."
           goTo={goTo}
-          skip={() => goTo(10)}
+          skip={() => goTo(9)}
         />
     },
     {
@@ -203,6 +203,7 @@ function Tour({ setUpdatePopup, updatePopup, isTourOpen, setIsTourOpen }) {
       onRequestClose={() => setIsTourOpen(false)}
       showNavigation={false}
       disableInteraction={true}
+      disableFocusLock={true}
       showButtons={false}
       closeWithMask={false}
       showCloseButton={false}
