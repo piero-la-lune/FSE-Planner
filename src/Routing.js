@@ -46,6 +46,7 @@ import { pdf } from '@react-pdf/renderer';
 
 import RoutingWorker from './routing.worker.js';
 import PDFRoute from './PDFRoute.js';
+import AddToFlight from './Table/AddToFlight.js';
 import { hideAirport, Plane } from "./util/utility.js";
 import log from "./util/logger.js";
 
@@ -271,6 +272,7 @@ const Routing = React.memo((props) => {
   const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
   const [editSpecs, setEditSpecs] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+  const [defaultAddToGroup, setDefaultAddToGroup] = React.useState(null);
   const icaodataArr = React.useMemo(() => Object.values(props.options.icaodata), [props.options.icaodata]);
 
   const sortFunctions = {
@@ -882,35 +884,27 @@ const Routing = React.memo((props) => {
                     <PictureAsPdfIcon />
                   </IconButton>
                 </Tooltip>
-                <form
-                  action="https://server.fseconomy.net/userctl"
-                  method="post"
-                  target="fse"
+                <AddToFlight
                   style={{
                     display: 'inline-flex',
                     margin: '16px 6px 0 6px',
                     verticalAlign: 'middle'
                   }}
-                >
-                  <input type="hidden" name="event" value="Assignment" />
-                  <input type="hidden" name="type" value="add" />
-                  <input type="hidden" name="id" value="[object+RadioNodeList]" />
-                  <input type="hidden" name="groupid" value="" />
-                  <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
-                  {
-                    (() => {
-                      const ids = new Set();
-                      for (const leg of focus.cargos) {
-                        for (const jobs of Object.values(leg)) {
-                          for (const job of jobs) {
-                            ids.add(job.id);
-                          }
+                  ids={(() => {
+                    const ids = new Set();
+                    for (const leg of focus.cargos) {
+                      for (const jobs of Object.values(leg)) {
+                        for (const job of jobs) {
+                          ids.add(job.id);
                         }
                       }
-                      return [...ids].map(id => <input type="hidden" name="select" value={id} key={id} />);
-                    })()
-                  }
-                  <Tooltip title="Add all assignments to My Flight">
+                    }
+                    return [...ids];
+                  })()}
+                  variant="hidden"
+                  defaultGroup={defaultAddToGroup}
+                >
+                  <Tooltip title={'Add all assignments to ' + (defaultAddToGroup ? defaultAddToGroup[0] : 'My Flight')}>
                     <IconButton
                       size="large"
                       type="submit"
@@ -918,7 +912,7 @@ const Routing = React.memo((props) => {
                       <AddShoppingCartIcon />
                     </IconButton>
                   </Tooltip>
-                </form>
+                </AddToFlight>
                 { focus.planeId &&
                   <form
                     action="https://server.fseconomy.net/userctl"
@@ -1018,22 +1012,15 @@ const Routing = React.memo((props) => {
                             )}
                             { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
                             <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
-                            <form
-                              action="https://server.fseconomy.net/userctl"
-                              method="post"
-                              target="fse"
+                            <AddToFlight
                               style={{ marginTop: 8 }}
-                            >
-                              <input type="hidden" name="event" value="Assignment" />
-                              <input type="hidden" name="type" value="add" />
-                              <input type="hidden" name="id" value="[object+RadioNodeList]" />
-                              <input type="hidden" name="groupid" value="" />
-                              <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
-                              {
-                                Object.values(focus.cargos[i].TripOnly).map(job => <input type="hidden" name="select" value={job.id} key={job.id} />)
-                              }
-                              <Button type="submit" startIcon={<AddShoppingCartIcon />} size="small">Add to My Flight</Button>
-                            </form>
+                              ids={Object.values(focus.cargos[i].TripOnly).map(job => job.id)}
+                              variant="text"
+                              size="small"
+                              btnSx={{ lineHeight: 1, textAlign: 'left' }}
+                              defaultGroup={defaultAddToGroup}
+                              onGroupChange={g => setDefaultAddToGroup(g)}
+                            />
                           </Paper>
                         }
                         {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
@@ -1045,22 +1032,15 @@ const Routing = React.memo((props) => {
                                 <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
                             )}
                             <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
-                            <form
-                              action="https://server.fseconomy.net/userctl"
-                              method="post"
-                              target="fse"
+                            <AddToFlight
                               style={{ marginTop: 8 }}
-                            >
-                              <input type="hidden" name="event" value="Assignment" />
-                              <input type="hidden" name="type" value="add" />
-                              <input type="hidden" name="id" value="[object+RadioNodeList]" />
-                              <input type="hidden" name="groupid" value="" />
-                              <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
-                              {
-                                Object.values(focus.cargos[i].VIP).map(job => <input type="hidden" name="select" value={job.id} key={job.id} />)
-                              }
-                              <Button type="submit" startIcon={<AddShoppingCartIcon />} size="small">Add to My Flight</Button>
-                            </form>
+                              ids={Object.values(focus.cargos[i].VIP).map(job => job.id)}
+                              variant="text"
+                              size="small"
+                              btnSx={{ lineHeight: 1, textAlign: 'left' }}
+                              defaultGroup={defaultAddToGroup}
+                              onGroupChange={g => setDefaultAddToGroup(g)}
+                            />
                           </Paper>
                         }
                       </TimelineContent>
