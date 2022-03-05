@@ -1,4 +1,4 @@
-name: [Beta] Deploy to AWS
+name: (Beta) Deploy to AWS
 
 on: [workflow_dispatch]
 
