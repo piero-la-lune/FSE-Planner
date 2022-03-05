@@ -500,6 +500,7 @@ function CreditsPopup(props) {
               <ListItem>icykoneko (contributor)</ListItem>
               <ListItem>Lily418 (contributor)</ListItem>
               <ListItem>John Bayly (contributor)</ListItem>
+              <ListItem>jsjunior (contributor)</ListItem>
             </List>
           </Paper>
 
