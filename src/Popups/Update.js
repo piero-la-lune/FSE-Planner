@@ -63,7 +63,7 @@ function updateAlert(error) {
     alert('Could not get data: '+error.msg);
   }
   else {
-    alert('Could not get data. Try again or file a bug report.');
+    alert('Could not get data: FSEconomy is down or in maintenance. Try again later.');
   }
 }
 
