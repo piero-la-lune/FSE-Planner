@@ -225,40 +225,42 @@ function cleanJobs(list, icaodata, icaos = null) {
   for (const job of list) {
     // Do not keep non paying jobs
     if (!parseInt(job.Pay)) { continue; }
+    const frIcao = job.Location;
     // Because Airport jobs and My assignments datafeeds do not use the same property names...
     const toIcao = job.ToIcao ? job.ToIcao : job.Destination;
     const unit = job.UnitType ? job.UnitType : job.Units;
-
-    const key = job.Location+"-"+toIcao;
 
     // Do not keep jobs in the wrong direction
     if (icaos !== null && !icaos.includes(toIcao)) { continue; }
 
     // Ensure leg exist in jobs object
-    if (!jobs.hasOwnProperty(key)) {
-      const fr = { latitude: icaodata[job.Location].lat, longitude: icaodata[job.Location].lon };
+    if (!jobs.hasOwnProperty(frIcao)) {
+      jobs[frIcao] = {};
+    }
+    if (!jobs[frIcao].hasOwnProperty(toIcao)) {
+      const fr = { latitude: icaodata[frIcao].lat, longitude: icaodata[frIcao].lon };
       const to = { latitude: icaodata[toIcao].lat, longitude: icaodata[toIcao].lon };
-      jobs[key] = {
-        direction: Math.round(getRhumbLineBearing(fr, to)),
-        distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
-      };
+      jobs[frIcao][toIcao] = [
+        Math.round(getRhumbLineBearing(fr, to)),
+        Math.round(convertDistance(getDistance(fr, to), 'sm')),
+        {}
+      ];
     }
-    if (!jobs[key].hasOwnProperty(unit)) {
-      jobs[key][unit] = {};
+    const leg = jobs[frIcao][toIcao][2];
+    const u = unit === 'kg' ? 'k' : 'p';
+    const t = job.PtAssignment === 'true' ? 'p' : (job.Type === 'Trip-Only' ? 't' : (job.Type === 'VIP' ? 'v' : 'a'));
+    if (!leg.hasOwnProperty(u+t)) {
+      leg[u+t] = [];
     }
-    const type = job.PtAssignment === 'true' ? 'PT' : job.Type;
-    if (!jobs[key][unit][type]) {
-      jobs[key][unit][type] = [];
-    }
-    const obj = {
-      nb: parseInt(job.Amount, 10),
-      pay: parseInt(job.Pay, 10),
-      id: parseInt(job.Id, 10)
-    };
+    const arr = [
+      parseInt(job.Amount, 10),
+      parseInt(job.Pay, 10),
+      parseInt(job.Id, 10)
+    ]
     if (job.Type === 'All-In') {
-      obj.aid = parseInt(job.AircraftId, 10);
+      arr.push(parseInt(job.AircraftId, 10));
     }
-    jobs[key][unit][type].push(obj);
+    leg[u+t].push(arr);
   }
   return jobs;
 }
@@ -464,7 +466,7 @@ function UpdatePopup(props) {
     updateJobsRequest(icaosList, [], (list) => {
       const jobs = cleanJobs(list, props.icaodata, props.settings.update.direction === 'both' ? icaos : null);
       // Update jobs
-      storage.set('jobs', jobs);
+      storage.set('jobs', jobs, true);
       props.setJobs(jobs);
       // Update date
       let date = new Date().toString();

@@ -4,12 +4,15 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import Theme from './Theme.js';
+import ErrorBoundary from './ErrorBoundary.js';
 
 ReactDOM.render(
   <React.StrictMode>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={Theme}>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </ThemeProvider>
     </StyledEngineProvider>
   </React.StrictMode>,

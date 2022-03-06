@@ -288,7 +288,8 @@ function Table(props) {
             pay: job.pay,
             distance: leg.distance,
             direction: leg.direction,
-            filteredJobs: [job]
+            filteredJobs: [job],
+            planeModel: '-'
           };
           if (props.options.type === 'All-In') {
             const planes = props.options.planes[fr] || [];
@@ -296,6 +297,7 @@ function Table(props) {
               if (plane.id === job.aid) {
                 obj.plane = plane;
                 obj.planeModel = plane.model;
+                break;
               }
             }
           }
