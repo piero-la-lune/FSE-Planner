@@ -465,7 +465,7 @@ function App() {
         sx={{
           display: "flex",
           flexFlow: "column",
-          height: ["100vh", "-webkit-fill-available"]
+          height: "100vh"
         }}
       >
         <AppBar position="static">

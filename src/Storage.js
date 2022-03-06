@@ -8,8 +8,11 @@ class Storage {
     const version = process.env.REACT_APP_VERSION;
     const oldVersion = localStorage.getItem('version');
     // Update older version of storage
-    if (version !== oldVersion) {
-      if (!oldVersion || oldVersion < '1.0.0') {
+    if (!oldVersion) {
+      localStorage.setItem('version', version);
+    }
+    else if (version !== oldVersion) {
+      if (semver.lt(oldVersion, '1.0.0')) {
         const planeModel = this.get('planeModel', '');
         if (planeModel) {
           this.set('planeModel', [planeModel]);
@@ -17,18 +20,18 @@ class Storage {
         this.remove('planes');
         this.remove('jobs');
       }
-      if (oldVersion < '1.1.0') {
+      if (semver.lt(oldVersion, '1.1.0')) {
         this.remove('settings');
       }
-      if (oldVersion < '1.5.0') {
+      if (semver.lt(oldVersion, '1.5.0')) {
         this.remove('flight');
       }
-      if (oldVersion < '1.7.0') {
+      if (semver.lt(oldVersion, '1.7.0')) {
         const settings = this.get('settings', {});
         delete settings.airport;
         this.set('settings', settings);
       }
-      if (oldVersion < '1.8.1') {
+      if (semver.lt(oldVersion, '1.8.1')) {
         const layers = this.get('layers');
         for (const layer of layers) {
           if (layer.info) {
@@ -37,7 +40,7 @@ class Storage {
         }
         this.set('layers', layers);
       }
-      if (semver.lt(oldVersion, '1.10.0')) {
+      if (semver.lt(oldVersion, '1.10.1')) {
         this.remove('jobs');
         this.remove('flight');
         this.remove('planes');
