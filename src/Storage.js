@@ -1,6 +1,7 @@
 import uid from "./util/uid.js";
 
-var semver = require('semver');
+import LZString from "lz-string";
+import semver from "semver";
 
 class Storage {
 
@@ -49,18 +50,25 @@ class Storage {
     }
   }
 
-  get(item, defaultValue = null) {
+  get(item, defaultValue = null, compressed = false) {
     let value = localStorage.getItem(item);
     if (value === null) { return defaultValue; }
+    if (compressed) {
+      value = LZString.decompressFromUTF16(value);
+    }
     if (typeof defaultValue === 'object' && defaultValue !== null) {
       return JSON.parse(value);
     }
     return value;
   }
 
-  set(item, value) {
+  set(item, value, compress = false) {
     try {
-      localStorage.setItem(item, typeof value === 'object' ? JSON.stringify(value) : value);
+      let data = typeof value === 'object' ? JSON.stringify(value) : value;
+      if (compress) {
+        data = LZString.compressToUTF16(data);
+      }
+      localStorage.setItem(item, data);
       return true;
     }
     catch(error) {

@@ -246,17 +246,39 @@ function transformPlanes(p) {
   return planes;
 }
 function transformJobs(j) {
-  const jobs = _clone(j);
-  for (const key of Object.keys(jobs)) {
-    if (jobs[key].passengers && jobs[key].passengers.PT) {
-      if (!jobs[key].passengers['Trip-Only']) {
-        jobs[key].passengers['Trip-Only'] = [];
+  const jobs = {};
+  for (const frIcao of Object.keys(j)) {
+    for (const toIcao of Object.keys(j[frIcao])) {
+      const key = frIcao+'-'+toIcao;
+      const leg = j[frIcao][toIcao];
+      jobs[key] = {
+        direction: leg[0],
+        distance: leg[1]
       }
-      for (const p of jobs[key].passengers.PT) {
-        p.PT = true;
-        jobs[key].passengers['Trip-Only'].push(p);
+      for (const [txt, arr] of Object.entries(leg[2])) {
+        const unit = txt[0] === 'p' ? 'passengers' : 'kg';
+        if (!jobs[key].hasOwnProperty(unit)) {
+          jobs[key][unit] = {};
+        }
+        const type = (txt[1] === 'p' || txt[1] === 't') ? 'Trip-Only' : (txt[1] === 'v' ? 'VIP' : 'All-In');
+        if (!jobs[key][unit].hasOwnProperty(type)) {
+          jobs[key][unit][type] = [];
+        }
+        for (const [nb, pay, id, aid] of arr) {
+          const obj = {
+            nb: nb,
+            pay: pay,
+            id: id
+          };
+          if (aid) {
+            obj.aid = aid;
+          }
+          if (txt[1] === 'p') {
+            obj.PT = true;
+          }
+          jobs[key][unit][type].push(obj);
+        }
       }
-      delete jobs[key].passengers.PT;
     }
   }
   return jobs;
@@ -289,7 +311,7 @@ function App() {
   const [settingsPopup, setSettingsPopup] = React.useState(false);
   const [creditsPopup, setCreditsPopup] = React.useState(false);
   const [jobs, setJobs] = React.useState(() => {
-    return transformJobs(storage.get('jobs', {}));
+    return transformJobs(storage.get('jobs', {}, true));
   });
   const [planes, setPlanes] = React.useState(() => {
     return transformPlanes(storage.get('planes', {}));
