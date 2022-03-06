@@ -18,14 +18,9 @@ class Storage {
         if (planeModel) {
           this.set('planeModel', [planeModel]);
         }
-        this.remove('planes');
-        this.remove('jobs');
       }
       if (semver.lt(oldVersion, '1.1.0')) {
         this.remove('settings');
-      }
-      if (semver.lt(oldVersion, '1.5.0')) {
-        this.remove('flight');
       }
       if (semver.lt(oldVersion, '1.7.0')) {
         const settings = this.get('settings', {});
@@ -42,9 +37,11 @@ class Storage {
         this.set('layers', layers);
       }
       if (semver.lt(oldVersion, '1.10.1')) {
+        this.remove('planes');
+      }
+      if (semver.lt(oldVersion, '1.11.0-alpha.0')) {
         this.remove('jobs');
         this.remove('flight');
-        this.remove('planes');
       }
       localStorage.setItem('version', version);
     }

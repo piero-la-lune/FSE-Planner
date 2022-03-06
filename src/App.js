@@ -40,7 +40,6 @@ import Table from './Table.js';
 import UpdatePopup from './Popups/Update.js';
 import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';
-import ErrorBoundary from './ErrorBoundary.js';
 import Tour from './Tour.js';
 import Storage from './Storage.js';
 import log from './util/logger.js';
@@ -482,484 +481,482 @@ function App() {
 
 
   return (
-    <ErrorBoundary>
-      <Box
-        sx={{
-          display: "flex",
-          flexFlow: "column",
-          height: "100vh"
-        }}
-      >
-        <AppBar position="static">
-          <Toolbar>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'flex-end',
-                flexWrap: 'wrap'
-              }}
-            >
-              <Typography variant="h6" sx={{ lineHeight: 1, py: 0.4 }}>
-                FSE Planner
-              </Typography>
-              <Tooltip title="Changelog & credits">
-                <Button
-                  sx={{
-                    marginLeft: 1,
-                    paddingLeft: '2px',
-                    paddingRight: '2px',
-                    px: 0.5,
-                    py: 0,
-                    fontWeight: 'normal',
-                    color: '#fff',
-                    letterSpacing: 'normal',
-                    textTransform: 'none',
-                    minWidth: 'auto'
-                  }}
-                  onClick={() => setCreditsPopup(true)}
-                  data-tour="Step10"
-                  size="small"
-                >
-                  v{process.env.REACT_APP_VERSION}
-                </Button>
-              </Tooltip>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                ml: 1,
-                flexGrow: 2
-              }}
-            >
-              <Button
-                sx={styles.menuBtn}
-                onClick={() => setUpdatePopup(true)}
-                data-tour="Step2"
-                startIcon={<UpdateIcon />}
-              >
-                Load data
-              </Button>
-              <Button
-                sx={styles.menuBtn}
-                onClick={() => {
-                  if (!table) {
-                    setRouteFinder(false);
-                  }
-                  setTable(!table);
-                }}
-                startIcon={table ? <MapIcon /> : <TableViewIcon />}
-              >
-                {table ? "Map" : "Table" }
-              </Button>
+    <Box
+      sx={{
+        display: "flex",
+        flexFlow: "column",
+        height: "100vh"
+      }}
+    >
+      <AppBar position="static">
+        <Toolbar>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              flexWrap: 'wrap'
+            }}
+          >
+            <Typography variant="h6" sx={{ lineHeight: 1, py: 0.4 }}>
+              FSE Planner
+            </Typography>
+            <Tooltip title="Changelog & credits">
               <Button
                 sx={{
-                  ...styles.menuBtn,
-                  ...(filters && {
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                    }
-                  })
+                  marginLeft: 1,
+                  paddingLeft: '2px',
+                  paddingRight: '2px',
+                  px: 0.5,
+                  py: 0,
+                  fontWeight: 'normal',
+                  color: '#fff',
+                  letterSpacing: 'normal',
+                  textTransform: 'none',
+                  minWidth: 'auto'
                 }}
-                onClick={() => setFilters(!filters)}
-                data-tour="Step7"
-                startIcon={<FilterAltIcon />}
+                onClick={() => setCreditsPopup(true)}
+                data-tour="Step10"
+                size="small"
               >
-                Filters
+                v{process.env.REACT_APP_VERSION}
               </Button>
-              <Button
-                sx={{
-                  ...styles.menuBtn,
-                  ...(routeFinder && {
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                    }
-                  })
-                }}
-                onClick={() => {
-                  if (table) {
-                    setTable(false);
-                    setRouteFinder(true);
-                  }
-                  else {
-                      setRouteFinder(!routeFinder)
-                  }
-                }}
-                data-tour="Step9"
-                startIcon={<DirectionsIcon />}
-              >
-                Route finder
-              </Button>
-              <Button
-                sx={styles.menuBtn}
-                onClick={() => setSettingsPopup(true)}
-                startIcon={<TuneIcon />}
-              >
-                Settings
-              </Button>
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                ml: 2
-              }}
+            </Tooltip>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              ml: 1,
+              flexGrow: 2
+            }}
+          >
+            <Button
+              sx={styles.menuBtn}
+              onClick={() => setUpdatePopup(true)}
+              data-tour="Step2"
+              startIcon={<UpdateIcon />}
             >
-              <Autocomplete
-                options={icaodataSrcArr}
-                getOptionLabel={(a) => a.icao ? a.icao : ''}
-                renderOption={(props, a) =>
-                  <li {...props}>
+              Load data
+            </Button>
+            <Button
+              sx={styles.menuBtn}
+              onClick={() => {
+                if (!table) {
+                  setRouteFinder(false);
+                }
+                setTable(!table);
+              }}
+              startIcon={table ? <MapIcon /> : <TableViewIcon />}
+            >
+              {table ? "Map" : "Table" }
+            </Button>
+            <Button
+              sx={{
+                ...styles.menuBtn,
+                ...(filters && {
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  }
+                })
+              }}
+              onClick={() => setFilters(!filters)}
+              data-tour="Step7"
+              startIcon={<FilterAltIcon />}
+            >
+              Filters
+            </Button>
+            <Button
+              sx={{
+                ...styles.menuBtn,
+                ...(routeFinder && {
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  }
+                })
+              }}
+              onClick={() => {
+                if (table) {
+                  setTable(false);
+                  setRouteFinder(true);
+                }
+                else {
+                    setRouteFinder(!routeFinder)
+                }
+              }}
+              data-tour="Step9"
+              startIcon={<DirectionsIcon />}
+            >
+              Route finder
+            </Button>
+            <Button
+              sx={styles.menuBtn}
+              onClick={() => setSettingsPopup(true)}
+              startIcon={<TuneIcon />}
+            >
+              Settings
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              ml: 2
+            }}
+          >
+            <Autocomplete
+              options={icaodataSrcArr}
+              getOptionLabel={(a) => a.icao ? a.icao : ''}
+              renderOption={(props, a) =>
+                <li {...props}>
+                  <Box
+                    component="span"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Box
+                      component="b"
+                      sx={{
+                        minWidth: '40px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {a.icao}
+                    </Box>
                     <Box
                       component="span"
                       sx={{
                         display: 'flex',
-                        alignItems: 'center',
-                        overflow: 'hidden'
+                        flexDirection: 'column',
+                        marginLeft: 2,
+                        overflow: 'hidden',
                       }}
                     >
                       <Box
-                        component="b"
-                        sx={{
-                          minWidth: '40px',
-                          textAlign: 'center'
-                        }}
-                      >
-                        {a.icao}
-                      </Box>
-                      <Box
                         component="span"
                         sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          marginLeft: 2,
+                          textOverflow: 'ellipsis',
                           overflow: 'hidden',
+                          whiteSpace: 'nowrap'
                         }}
                       >
-                        <Box
-                          component="span"
-                          sx={{
-                            textOverflow: 'ellipsis',
-                            overflow: 'hidden',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {a.name}
-                        </Box>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            textOverflow: 'ellipsis',
-                            overflow: 'hidden',
-                            whiteSpace: 'nowrap',
-                            color: '#aaa'
-                          }}
-                        >
-                          {a.city}, {a.state ? a.state+', ' : ''}{a.country}
-                        </Typography>
+                        {a.name}
                       </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap',
+                          color: '#aaa'
+                        }}
+                      >
+                        {a.city}, {a.state ? a.state+', ' : ''}{a.country}
+                      </Typography>
                     </Box>
-                  </li>
+                  </Box>
+                </li>
+              }
+              filterOptions={(options, params) => {
+                // If input is empty and search history is not, display search history
+                if (!searchInput && searchHistory.length > 0) {
+                  return searchHistory.map(icao => icaodata[icao]);
                 }
-                filterOptions={(options, params) => {
-                  // If input is empty and search history is not, display search history
-                  if (!searchInput && searchHistory.length > 0) {
-                    return searchHistory.map(icao => icaodata[icao]);
-                  }
-                  // Search for ICAO
-                  let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
-                  // If not enough results, search for city name
-                  if (filtered.length < 5) {
-                    const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
-                    filtered = filtered.concat(add.slice(0, 5-filtered.length));
-                  }
-                  return filtered;
-                }}
-                renderInput={(params) =>
-                  <InputBase
-                    placeholder="Search..."
-                    sx={styles.inputSearch}
-                    ref={params.InputProps.ref}
-                    inputProps={params.inputProps}
-                    endAdornment={params.inputProps.value ?
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setSearch(null);
-                            setSearchInput('');
-                            window.history.replaceState(null, '', '?');
-                          }}
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                      :
-                        null
-                    }
-                  />
+                // Search for ICAO
+                let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
+                // If not enough results, search for city name
+                if (filtered.length < 5) {
+                  const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
+                  filtered = filtered.concat(add.slice(0, 5-filtered.length));
                 }
-                PopperComponent={PopperMy}
-                onChange={(evt, value) => value && goTo(value.icao)}
-                value={search ? icaodataSrc[search] : null}
-                inputValue={searchInput}
-                onInputChange={(evt, value) => setSearchInput(value)}
-                autoHighlight={true}
-                selectOnFocus={false}
-              />
-            </Box>
-          </Toolbar>
-          {filters &&
+                return filtered;
+              }}
+              renderInput={(params) =>
+                <InputBase
+                  placeholder="Search..."
+                  sx={styles.inputSearch}
+                  ref={params.InputProps.ref}
+                  inputProps={params.inputProps}
+                  endAdornment={params.inputProps.value ?
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setSearch(null);
+                          setSearchInput('');
+                          window.history.replaceState(null, '', '?');
+                        }}
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    :
+                      null
+                  }
+                />
+              }
+              PopperComponent={PopperMy}
+              onChange={(evt, value) => value && goTo(value.icao)}
+              value={search ? icaodataSrc[search] : null}
+              inputValue={searchInput}
+              onInputChange={(evt, value) => setSearchInput(value)}
+              autoHighlight={true}
+              selectOnFocus={false}
+            />
+          </Box>
+        </Toolbar>
+        {filters &&
+          <Box
+            sx={{
+              display: 'flex',
+              px: 1,
+              pb: 1,
+              boxSizing: 'border-box'
+            }}
+          >
             <Box
               sx={{
                 display: 'flex',
-                px: 1,
-                pb: 1,
-                boxSizing: 'border-box'
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                flexGrow: 1,
+                justifyContent: 'center',
+                gap: {
+                  xs: 1,
+                  xl: 2
+                }
               }}
             >
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  flexGrow: 1,
-                  justifyContent: 'center',
-                  gap: {
-                    xs: 1,
-                    xl: 2
-                  }
-                }}
-              >
-                <Box sx={styles.boxBorder}>
-                  <FlightTakeoffIcon sx={fromIcao === null && toIcao === null ? styles.tgBtn : null}/>
-                  &nbsp;&nbsp;
-                  <MyTooltip title='Jobs radiating FROM this airport'>
-                    <InputBase
-                      placeholder="From"
-                      sx={styles.inputM}
-                      inputProps={{maxLength:4}}
-                      value={fromIcaoInput}
-                      onChange={evt => setFrom(evt.target.value)}
-                    />
-                  </MyTooltip>
-                  &nbsp;
-                  <MyTooltip title='Jobs radiating TO this airport'>
-                    <InputBase
-                      placeholder="To"
-                      sx={styles.inputM}
-                      inputProps={{maxLength:4}}
-                      value={toIcaoInput}
-                      onChange={evt => setTo(evt.target.value)}
-                    />
-                  </MyTooltip>
-                </Box>
-                <MyTooltip title='Jobs going in this direction (+/- 30°)'>
-                  <Box sx={styles.boxBorder}>
-                    <ExploreIcon sx={direction === '' ? styles.tgBtn : null}/>
-                    &nbsp;&nbsp;
-                    <InputBase
-                      placeholder="145°"
-                      sx={styles.inputS}
-                      inputProps={{maxLength:3}}
-                      value={direction}
-                      onChange={evt => { setDirection(evt.target.value); }}
-                    />
-                  </Box>
+              <Box sx={styles.boxBorder}>
+                <FlightTakeoffIcon sx={fromIcao === null && toIcao === null ? styles.tgBtn : null}/>
+                &nbsp;&nbsp;
+                <MyTooltip title='Jobs radiating FROM this airport'>
+                  <InputBase
+                    placeholder="From"
+                    sx={styles.inputM}
+                    inputProps={{maxLength:4}}
+                    value={fromIcaoInput}
+                    onChange={evt => setFrom(evt.target.value)}
+                  />
                 </MyTooltip>
-                <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} exclusive>
-                  <TooltipToggleButton value="Trip-Only" title="Trip Only">
-                    <EmojiPeopleIcon />
-                  </TooltipToggleButton>
-                  <TooltipToggleButton value="VIP" title="VIP">
-                    <StarIcon />
-                  </TooltipToggleButton>
-                  <TooltipToggleButton value="All-In" title="All In">
-                    <FlightIcon />
-                  </TooltipToggleButton>
-                </ToggleButtonGroup>
-                <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} exclusive>
-                  <TooltipToggleButton value="passengers" title="Passengers">
-                    <PeopleIcon />
-                  </TooltipToggleButton>
-                  <TooltipToggleButton value="kg" title="Cargo">
-                    <BusinessCenterIcon />
-                  </TooltipToggleButton>
-                </ToggleButtonGroup>
-                <Box sx={styles.boxBorder}>
-                  {cargo === 'passengers' ?
-                    <React.Fragment>
-                      <PeopleIcon sx={minPax === '' && maxPax === '' ? styles.tgBtn : null} />
-                      &nbsp;
-                      <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
-                        <InputBase
-                          placeholder="min"
-                          sx={styles.inputS}
-                          value={minPax}
-                          onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinPax(nb); }}
-                        />
-                      </MyTooltip>
-                      -
-                      <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
-                        <InputBase
-                          placeholder="max"
-                          sx={styles.inputS}
-                          value={maxPax}
-                          onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxPax(nb); }}
-                        />
-                      </MyTooltip>
-                    </React.Fragment>
-                  :
-                    <React.Fragment>
-                      <BusinessCenterIcon sx={minKg === '' && maxKg === '' ? styles.tgBtn : null} />
-                      &nbsp;
-                      <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
-                        <InputBase
-                          placeholder="min"
-                          sx={styles.inputS}
-                          value={minKg}
-                          onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinKg(nb); }}
-                        />
-                      </MyTooltip>
-                      -
-                      <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
-                        <InputBase
-                          placeholder="max"
-                          sx={styles.inputS}
-                          value={maxKg}
-                          onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxKg(nb); }}
-                        />
-                      </MyTooltip>
-                    </React.Fragment>
-                  }
-                </Box>
-                <Box sx={styles.boxBorder}>
-                  <SettingsEthernetIcon sx={minDist === '' && maxDist === '' ? styles.tgBtn : null} />
-                  &nbsp;
-                  <MyTooltip title='Minimum job distance in NM'>
-                    <InputBase
-                      placeholder="min"
-                      sx={styles.inputS}
-                      value={minDist}
-                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinDist(nb); }}
-                    />
-                  </MyTooltip>
-                  -
-                  <MyTooltip title='Maximum job distance in NM'>
-                    <InputBase
-                      placeholder="max"
-                      sx={styles.inputS}
-                      value={maxDist}
-                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxDist(nb); }}
-                    />
-                  </MyTooltip>
-                </Box>
-                <Box sx={styles.boxBorder}>
-                  <MonetizationOnIcon sx={minJobPay === '' && minLegPay === '' && percentPay === '' ? styles.tgBtn : null} />
-                  &nbsp;
-                  <MyTooltip title='Minimum job pay (in $)'>
-                    <InputBase
-                      placeholder="Job $"
-                      sx={styles.inputM}
-                      value={minJobPay}
-                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinJobPay(nb); }}
-                    />
-                  </MyTooltip>
-                  &nbsp;
-                  <MyTooltip title='Minimum leg pay (in $)'>
-                    <InputBase
-                      placeholder="Leg $"
-                      sx={styles.inputM}
-                      value={minLegPay}
-                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinLegPay(nb); }}
-                    />
-                  </MyTooltip>
-                  &nbsp;
-                  <MyTooltip title='Top paying jobs (in percent)'>
-                    <InputBase
-                      placeholder="Top %"
-                      sx={styles.inputM}
-                      value={percentPay}
-                      onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setPercentPay(nb); }}
-                    />
-                  </MyTooltip>
-                </Box>
-                <MyTooltip title='Airport filtering'>
-                  <IconButton
-                    onClick={() => setSettingsPopup('panel3')}
-                    sx={styles.tgBtn}
-                  >
-                    <BusinessIcon />
-                  </IconButton>
+                &nbsp;
+                <MyTooltip title='Jobs radiating TO this airport'>
+                  <InputBase
+                    placeholder="To"
+                    sx={styles.inputM}
+                    inputProps={{maxLength:4}}
+                    value={toIcaoInput}
+                    onChange={evt => setTo(evt.target.value)}
+                  />
                 </MyTooltip>
               </Box>
+              <MyTooltip title='Jobs going in this direction (+/- 30°)'>
+                <Box sx={styles.boxBorder}>
+                  <ExploreIcon sx={direction === '' ? styles.tgBtn : null}/>
+                  &nbsp;&nbsp;
+                  <InputBase
+                    placeholder="145°"
+                    sx={styles.inputS}
+                    inputProps={{maxLength:3}}
+                    value={direction}
+                    onChange={evt => { setDirection(evt.target.value); }}
+                  />
+                </Box>
+              </MyTooltip>
+              <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} exclusive>
+                <TooltipToggleButton value="Trip-Only" title="Trip Only">
+                  <EmojiPeopleIcon />
+                </TooltipToggleButton>
+                <TooltipToggleButton value="VIP" title="VIP">
+                  <StarIcon />
+                </TooltipToggleButton>
+                <TooltipToggleButton value="All-In" title="All In">
+                  <FlightIcon />
+                </TooltipToggleButton>
+              </ToggleButtonGroup>
+              <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} exclusive>
+                <TooltipToggleButton value="passengers" title="Passengers">
+                  <PeopleIcon />
+                </TooltipToggleButton>
+                <TooltipToggleButton value="kg" title="Cargo">
+                  <BusinessCenterIcon />
+                </TooltipToggleButton>
+              </ToggleButtonGroup>
+              <Box sx={styles.boxBorder}>
+                {cargo === 'passengers' ?
+                  <React.Fragment>
+                    <PeopleIcon sx={minPax === '' && maxPax === '' ? styles.tgBtn : null} />
+                    &nbsp;
+                    <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
+                      <InputBase
+                        placeholder="min"
+                        sx={styles.inputS}
+                        value={minPax}
+                        onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinPax(nb); }}
+                      />
+                    </MyTooltip>
+                    -
+                    <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
+                      <InputBase
+                        placeholder="max"
+                        sx={styles.inputS}
+                        value={maxPax}
+                        onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxPax(nb); }}
+                      />
+                    </MyTooltip>
+                  </React.Fragment>
+                :
+                  <React.Fragment>
+                    <BusinessCenterIcon sx={minKg === '' && maxKg === '' ? styles.tgBtn : null} />
+                    &nbsp;
+                    <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
+                      <InputBase
+                        placeholder="min"
+                        sx={styles.inputS}
+                        value={minKg}
+                        onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinKg(nb); }}
+                      />
+                    </MyTooltip>
+                    -
+                    <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
+                      <InputBase
+                        placeholder="max"
+                        sx={styles.inputS}
+                        value={maxKg}
+                        onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxKg(nb); }}
+                      />
+                    </MyTooltip>
+                  </React.Fragment>
+                }
+              </Box>
+              <Box sx={styles.boxBorder}>
+                <SettingsEthernetIcon sx={minDist === '' && maxDist === '' ? styles.tgBtn : null} />
+                &nbsp;
+                <MyTooltip title='Minimum job distance in NM'>
+                  <InputBase
+                    placeholder="min"
+                    sx={styles.inputS}
+                    value={minDist}
+                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinDist(nb); }}
+                  />
+                </MyTooltip>
+                -
+                <MyTooltip title='Maximum job distance in NM'>
+                  <InputBase
+                    placeholder="max"
+                    sx={styles.inputS}
+                    value={maxDist}
+                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxDist(nb); }}
+                  />
+                </MyTooltip>
+              </Box>
+              <Box sx={styles.boxBorder}>
+                <MonetizationOnIcon sx={minJobPay === '' && minLegPay === '' && percentPay === '' ? styles.tgBtn : null} />
+                &nbsp;
+                <MyTooltip title='Minimum job pay (in $)'>
+                  <InputBase
+                    placeholder="Job $"
+                    sx={styles.inputM}
+                    value={minJobPay}
+                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinJobPay(nb); }}
+                  />
+                </MyTooltip>
+                &nbsp;
+                <MyTooltip title='Minimum leg pay (in $)'>
+                  <InputBase
+                    placeholder="Leg $"
+                    sx={styles.inputM}
+                    value={minLegPay}
+                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinLegPay(nb); }}
+                  />
+                </MyTooltip>
+                &nbsp;
+                <MyTooltip title='Top paying jobs (in percent)'>
+                  <InputBase
+                    placeholder="Top %"
+                    sx={styles.inputM}
+                    value={percentPay}
+                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setPercentPay(nb); }}
+                  />
+                </MyTooltip>
+              </Box>
+              <MyTooltip title='Airport filtering'>
+                <IconButton
+                  onClick={() => setSettingsPopup('panel3')}
+                  sx={styles.tgBtn}
+                >
+                  <BusinessIcon />
+                </IconButton>
+              </MyTooltip>
             </Box>
-          }
-        </AppBar>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'nowrap',
-            flexGrow: '1',
-            overflow: 'hidden'
-          }}
-        >
-          <Routing
-            options={options}
-            setRoute={setRoute}
-            hidden={!routeFinder}
-            mapRef={mapRef}
-            close={() => setRouteFinder(false)}
-            actions={actions}
-          />
-          <FSEMap
-            options={options}
-            search={search}
-            icaos={icaos}
-            customIcaos={customIcaos}
-            route={route}
-            mapRef={mapRef}
-            actions={actions}
-            hidden={table}
-          />
-          <Table
-            options={options}
-            hidden={!table}
-            actions={actions}
-            search={search}
-          />
-        </Box>
-        <UpdatePopup
-          open={updatePopup}
-          setUpdatePopup={setUpdatePopup}
-          setJobs={(jobs) => setJobs(transformJobs(jobs))}
-          setPlanes={(planes) => setPlanes(transformPlanes(planes))}
-          setFlight={setFlight}
-          icaodata={icaodata}
+          </Box>
+        }
+      </AppBar>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'nowrap',
+          flexGrow: '1',
+          overflow: 'hidden'
+        }}
+      >
+        <Routing
+          options={options}
+          setRoute={setRoute}
+          hidden={!routeFinder}
+          mapRef={mapRef}
+          close={() => setRouteFinder(false)}
+          actions={actions}
+        />
+        <FSEMap
+          options={options}
+          search={search}
           icaos={icaos}
-          settings={settings}
           customIcaos={customIcaos}
-          setCustomIcaos={setCustomIcaos}
+          route={route}
+          mapRef={mapRef}
+          actions={actions}
+          hidden={table}
         />
-        <SettingsPopup
-          open={settingsPopup}
-          handleClose={() => setSettingsPopup(false)}
-          settings={settings}
-          setSettings={setSettings}
-          defaultSettings={defaultSettings}
-        />
-        <CreditsPopup
-          open={creditsPopup}
-          handleClose={() => setCreditsPopup(false)}
-          openTutorial={() => setIsTourOpen(true)}
-        />
-        <Tour
-          isTourOpen={isTourOpen}
-          setIsTourOpen={setIsTourOpen}
-          updatePopup={updatePopup}
-          setUpdatePopup={setUpdatePopup}
+        <Table
+          options={options}
+          hidden={!table}
+          actions={actions}
+          search={search}
         />
       </Box>
-    </ErrorBoundary>
+      <UpdatePopup
+        open={updatePopup}
+        setUpdatePopup={setUpdatePopup}
+        setJobs={(jobs) => setJobs(transformJobs(jobs))}
+        setPlanes={(planes) => setPlanes(transformPlanes(planes))}
+        setFlight={setFlight}
+        icaodata={icaodata}
+        icaos={icaos}
+        settings={settings}
+        customIcaos={customIcaos}
+        setCustomIcaos={setCustomIcaos}
+      />
+      <SettingsPopup
+        open={settingsPopup}
+        handleClose={() => setSettingsPopup(false)}
+        settings={settings}
+        setSettings={setSettings}
+        defaultSettings={defaultSettings}
+      />
+      <CreditsPopup
+        open={creditsPopup}
+        handleClose={() => setCreditsPopup(false)}
+        openTutorial={() => setIsTourOpen(true)}
+      />
+      <Tour
+        isTourOpen={isTourOpen}
+        setIsTourOpen={setIsTourOpen}
+        updatePopup={updatePopup}
+        setUpdatePopup={setUpdatePopup}
+      />
+    </Box>
   );
 }
 
