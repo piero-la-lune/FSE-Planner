@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.10.2] - 2022-03-07
+
+### Fixed
+- Fixed leg tooltip showing wrong jobs in returning jobs
+- Fixed "Local storage is full" error
+- Fixed plane sorting in Assignments Table view
+
+
+
 ## [1.10.0] - 2022-03-05
 
 ### New

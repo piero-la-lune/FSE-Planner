@@ -39,7 +39,7 @@ class Storage {
       if (semver.lt(oldVersion, '1.10.1')) {
         this.remove('planes');
       }
-      if (semver.lt(oldVersion, '1.11.0-alpha.0')) {
+      if (semver.lt(oldVersion, '1.10.2')) {
         this.remove('jobs');
         this.remove('flight');
       }
