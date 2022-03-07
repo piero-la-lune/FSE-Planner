@@ -931,7 +931,7 @@ function App() {
         setUpdatePopup={setUpdatePopup}
         setJobs={(jobs) => setJobs(transformJobs(jobs))}
         setPlanes={(planes) => setPlanes(transformPlanes(planes))}
-        setFlight={setFlight}
+        setFlight={(flight) => setFlight(transformJobs(flight))}
         icaodata={icaodata}
         icaos={icaos}
         settings={settings}
