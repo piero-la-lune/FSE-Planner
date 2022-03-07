@@ -64,7 +64,7 @@ function Tooltip({leg, type, rleg, fromIcao, toIcao, separate}) {
     <div>
       <Typography variant="body1"><b>{leg.distance} NM</b><Box component="span" sx={{ fontSize: '0.8em', paddingLeft: 1 }}>{fromIcao} - {toIcao}</Box></Typography>
       { leg.amount > 0 && <MultipleCargo cargo={{[type]: leg.amount}} pay={leg.pay} dir={leg.direction} separate={separate} jobs={leg.filteredJobs} /> }
-      { rleg && rleg.amount > 0 && <MultipleCargo cargo={{[type]: rleg.amount}} pay={rleg.pay} dir={rleg.direction} separate={separate} jobs={leg.filteredJobs} /> }
+      { rleg && rleg.amount > 0 && <MultipleCargo cargo={{[type]: rleg.amount}} pay={rleg.pay} dir={rleg.direction} separate={separate} jobs={rleg.filteredJobs} /> }
       { (leg.flight || (rleg && rleg.flight)) &&
         <div>
           <Typography variant="body1" sx={{ marginTop: 2 }}><b>My assignments</b></Typography>

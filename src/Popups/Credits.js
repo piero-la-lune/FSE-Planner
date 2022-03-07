@@ -99,6 +99,16 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.10.2 (2022-03-07)</Typography>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed leg tooltip showing wrong jobs in returning jobs</ListItem>
+              <ListItem>Fixed "Local storage is full" error</ListItem>
+              <ListItem>Fixed plane sorting in Assignments Table view</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.10.0 (2022-03-05)</Typography>
             <Alert sx={{m:1}} severity="info">The "Custom markers" feature will be removed in a future release, because all underlying features are now also available in the custom layers. Custom markers will not be lost, they will be automatically transferred to a new custom layer.</Alert>
             <Typography variant="h6">New</Typography>
