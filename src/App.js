@@ -131,7 +131,9 @@ const defaultSettings = {
     direction: 'from',
     jobsPlanes: 'around',
     jobsPlanesRequests: 1,
-    jobsPlanesMax: 10
+    jobsPlanesMax: 10,
+    express: true,
+    expiration: ''
   }
 };
 

@@ -413,6 +413,10 @@ function SettingsPopup(props) {
           <AccordionDetails>
             <div>
               <Grid container spacing={3}>
+                <Setting s={s} setS={setS} label="Minimum job expiration (in hours)" end="H" setting='update.expiration' xs={6} helperText="Select only jobs that expires in, at least, this many hours. Leave empty to select all jobs" />
+                <SettingSwitch s={s} setS={setS} label="Include Express jobs" setting='update.express' xs={6} />
+              </Grid>
+              <Grid container spacing={3} sx={{ mt: 2 }}>
                 <SettingSelect s={s} setS={setS} label="Job direction for the selected area/layer" setting='update.direction' xs={6} options={directionOptions} />
               </Grid>
               <Grid container spacing={3} sx={{ mt: 2 }}>

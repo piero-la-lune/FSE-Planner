@@ -220,8 +220,16 @@ function cleanPlanes(list, username, rentable = true) {
   return planes;
 }
 
-function cleanJobs(list, icaodata, icaos = null) {
+function cleanJobs(list, icaodata, settings, icaos = null) {
   const jobs = {};
+  // If min expiration is set, compute max time
+  const minExpiration = new Date();
+  if (settings.expiration !== '') {
+    minExpiration.setTime(
+      minExpiration.getTime() +
+      parseInt(settings.expiration, 10) * 60 * 60 * 1000
+    );
+  }
   for (const job of list) {
     // Do not keep non paying jobs
     if (!parseInt(job.Pay)) { continue; }
@@ -232,6 +240,15 @@ function cleanJobs(list, icaodata, icaos = null) {
 
     // Do not keep jobs in the wrong direction
     if (icaos !== null && !icaos.includes(toIcao)) { continue; }
+
+    // Do not keep Express job if disabled in settings
+    if (!settings.express && job.Express === 'True') { continue; }
+
+    // Do not keep jobs close to expiration date
+    if (settings.expiration !== '') {
+      const expire = new Date(`${job.ExpireDateTime.replace(' ', 'T')}Z`);
+      if (expire < minExpiration) { continue; }
+    }
 
     // Ensure leg exist in jobs object
     if (!jobs.hasOwnProperty(frIcao)) {
@@ -464,7 +481,7 @@ function UpdatePopup(props) {
     // Compute ICAO list
     const [icaos, icaosList] = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings);
     updateJobsRequest(icaosList, [], (list) => {
-      const jobs = cleanJobs(list, props.icaodata, props.settings.update.direction === 'both' ? icaos : null);
+      const jobs = cleanJobs(list, props.icaodata, props.settings.update, props.settings.update.direction === 'both' ? icaos : null);
       // Update jobs
       storage.set('jobs', jobs, true);
       props.setJobs(jobs);
@@ -645,7 +662,7 @@ function UpdatePopup(props) {
     evt.stopPropagation();
     setLoading('panel4');
     updateFlightRequest([...assignmentKeys], [], arr => {
-      const jobs = cleanJobs(arr, props.icaodata);
+      const jobs = cleanJobs(arr, props.icaodata, props.settings.update);
       // Update flight
       storage.set('flight', jobs);
       props.setFlight(jobs);
