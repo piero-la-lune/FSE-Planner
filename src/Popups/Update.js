@@ -414,7 +414,9 @@ function UpdatePopup(props) {
 
   // Update the number of request for loading jobs each time one input changes
   React.useEffect(() => {
-    setJobsRequests(getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings)[1].length);
+    let nb = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings)[1].length;
+    if (props.settings.update.direction === 'from&to') { nb *= 2; }
+    setJobsRequests(nb);
   }, [jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings]);
 
   // Close popup
@@ -445,12 +447,11 @@ function UpdatePopup(props) {
   }, [props.customIcaos]);
 
   // Loop function to get jobs from FSE
-  const updateJobsRequest = (icaosList, jobs, callback) => {
+  const updateJobsRequest = (icaosList, jobs, dir, callback) => {
     if (!icaosList.length) {
       callback(jobs);
       return;
     }
-    const dir = props.settings.update.direction === 'to' ? 'jobsto' : 'jobsfrom';
     const url = 'data?userkey='+key+'&format=csv&query=icao&search='+dir+'&icaos='+icaosList.pop();
     // Fetch job list
     fetch(process.env.REACT_APP_PROXY+url)
@@ -466,7 +467,7 @@ function UpdatePopup(props) {
       if (parse.errors.length > 0) {
         throw new ParsingError(csv);
       }
-      updateJobsRequest(icaosList, [...jobs, ...parse.data], callback);
+      updateJobsRequest(icaosList, [...jobs, ...parse.data], dir, callback);
     })
     .catch(function(error) {
       log.error("Error while updating Jobs", error);
@@ -474,28 +475,46 @@ function UpdatePopup(props) {
       setLoading(false);
     });
   }
+  // Save jobs
+  const saveJobs = (jobs) => {
+    // Update jobs
+    storage.set('jobs', jobs, true);
+    props.setJobs(jobs);
+    // Update date
+    let date = new Date().toString();
+    storage.set('jobsTime', date);
+    setJobsTime(date);
+    // Update area
+    storage.set('jobsAreas', jobsAreas);
+    storage.set('jobsCustom', jobsCustom);
+    storage.set('jobsLayers', jobsLayers.map(elm => elm.id));
+    // Close popup
+    setLoading(false);
+    handleClose();
+  }
   // Jobs Update button clicked
   const updateJobs = (evt) => {
     evt.stopPropagation();
     setLoading('panel2');
     // Compute ICAO list
     const [icaos, icaosList] = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings);
-    updateJobsRequest(icaosList, [], (list) => {
+    const dir = props.settings.update.direction === 'to' ? 'jobsto' : 'jobsfrom';
+    updateJobsRequest([...icaosList], [], dir, (list) => {
       const jobs = cleanJobs(list, props.icaodata, props.settings.update, props.settings.update.direction === 'both' ? icaos : null);
-      // Update jobs
-      storage.set('jobs', jobs, true);
-      props.setJobs(jobs);
-      // Update date
-      let date = new Date().toString();
-      storage.set('jobsTime', date);
-      setJobsTime(date);
-      // Update area
-      storage.set('jobsAreas', jobsAreas);
-      storage.set('jobsCustom', jobsCustom);
-      storage.set('jobsLayers', jobsLayers.map(elm => elm.id));
-      // Close popup
-      setLoading(false);
-      handleClose();
+      if (props.settings.update.direction === 'from&to') {
+        updateJobsRequest(icaosList, [], 'jobsto', (list) => {
+          const jobs2 = cleanJobs(list, props.icaodata, props.settings.update, null);
+          for (const key of Object.keys(jobs2)) {
+            if (!jobs.hasOwnProperty(key)) {
+              jobs[key] = jobs2[key];
+            }
+          }
+          saveJobs(jobs);
+        });
+      }
+      else {
+        saveJobs(jobs);
+      }
     });
   }
   // Jobs Clicked button clicked

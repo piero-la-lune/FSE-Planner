@@ -207,7 +207,8 @@ function SettingsPopup(props) {
   const directionOptions = [
     ['from', 'Jobs FROM the selected area/layer'],
     ['to', 'Jobs TO the selected area/layer'],
-    ['both', 'Jobs inside the selected area/layer']
+    ['from&to', 'Jobs FROM and TO the selected area/layer'],
+    ['both', 'Jobs INSIDE the selected area/layer']
   ];
   const jobsPlanesOptions = [
     ['strict', 'Strict: only load jobs from the exact airports where a plane is available'],
