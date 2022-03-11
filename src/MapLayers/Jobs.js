@@ -24,25 +24,17 @@ function addFlight(legs, jobs, opts) {
     }
     if (!legs[keys[i]].hasOwnProperty('flight')) {
       legs[keys[i]].flight = {
-        passengers: 0,
+        pax: 0,
         kg: 0,
         pay: 0,
       }
     }
-    if (leg.passengers) {
-      for (const type of Object.keys(leg.passengers)) {
-        for (const j of leg.passengers[type]) {
-          legs[keys[i]].flight.passengers += j.nb;
-          legs[keys[i]].flight.pay += j.pay;
-        }
-      }
-    }
-    if (leg.kg) {
-      for (const type of Object.keys(leg.kg)) {
-        for (const j of leg.kg[type]) {
-          legs[keys[i]].flight.kg += j.nb;
-          legs[keys[i]].flight.pay += j.pay;
-        }
+    for (const type of ['Trip-Only', 'VIP', 'All-In']) {
+      if (!leg.hasOwnProperty(type)) { continue; }
+      for (const j of leg[type]) {
+        legs[keys[i]].flight.pax += j.pax;
+        legs[keys[i]].flight.kg += j.pax ? 0 : j.kg;
+        legs[keys[i]].flight.pay += j.pay;
       }
     }
   }
@@ -117,7 +109,7 @@ function Jobs(props) {
       leg: leg,
       rleg: rleg,
       type: props.options.cargo,
-      separate: props.options.type !== 'Trip-Only' ? true : (props.options.max ? props.options.max : undefined),
+      options: props.options,
       actions: props.actions,
       fromIcao: fr,
       toIcao: to
