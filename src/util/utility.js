@@ -159,7 +159,7 @@ export function cleanLegs(jobs, opts) {
     if (opts.maxDist && leg.distance > opts.maxDist) { continue; }
 
     // Filter out wrong types of jobs
-    if (!leg.hasOwnProperty(opts.cargo) || !leg[opts.cargo].hasOwnProperty(opts.type)) { continue; }
+    if (!leg.hasOwnProperty(opts.type)) { continue; }
 
     // Filter out jobs with wrong direction
     if (opts.fromIcao) {
@@ -190,34 +190,48 @@ export function cleanLegs(jobs, opts) {
       if (180 - Math.abs(Math.abs(leg.direction - opts.direction) - 180) > parseInt(opts.settings.direction.angle)) { continue; }
     }
 
-    const filteredJobs = leg[opts.cargo][opts.type].filter(job => {
+    let amountPax = 0;
+    let amountKg = 0;
+    let pay = 0;
+    const allowPax = opts.cargo.includes('passengers');
+    const allowKg = opts.cargo.includes('kg');
+
+    const filteredJobs = leg[opts.type].filter(job => {
+      // Filter out wrong cargo
+      if (!allowPax && job.pax > 0) { return false; }
+      if (!allowKg && job.pax === 0) { return false; }
       // Filter out bad payed jobs
       if (opts.minJobPay && job.pay < opts.minJobPay) { return false; }
       // Filter out jobs too big for plane
-      if (opts.max && job.nb > opts.max) { return false; }
+      if (opts.maxPax && job.pax > opts.maxPax) { return false; }
+      if (opts.maxKg && job.kg > opts.maxKg) { return false; }
       // Filter out jobs with not enought cargo
-      if (opts.type !== 'Trip-Only' && opts.min && job.nb < opts.min) { return false; }
+      if (opts.type !== 'Trip-Only') {
+        if (opts.minMax && job.pax < opts.minPax) { return false; }
+        if (opts.minKg && job.kg < opts.minKg) { return false; }
+      }
+      amountPax += job.pax;
+      amountKg += job.kg;
+      pay += job.pay;
       return true;
     });
     if (filteredJobs.length < 1) { continue; }
 
-    // Compute total amount and pay
-    const [amount, pay] = filteredJobs.reduce(([amount, pay], job) => [amount+job.nb, pay+job.pay], [0, 0]);
-
     // Filter out bad payed legs
     if (opts.minLegPay && pay < opts.minLegPay) { continue; }
     // Filter out legs with not enougth pax/kg
-    if (opts.min && amount < opts.min) { continue; }
+    if (opts.minPax && amountPax < opts.minPax) { continue; }
+    if (opts.minKg && amountKg < opts.minKg) { continue; }
 
     legs[keys[i]] = {
-      amount: amount,
+      amount: amountKg,
       pay: pay,
       direction: leg.direction,
       distance: leg.distance,
       filteredJobs: filteredJobs
     };
 
-    max = Math.max(max, amount);
+    max = Math.max(max, amountKg);
   }
   // Only keep top x% paying jobs
   if (opts.percentPay) {
@@ -239,20 +253,19 @@ export function cleanLegs(jobs, opts) {
 }
 
 
-// cargo: {pax, kg, pay}
-export function maximizeTripOnly(i, cargos, max) {
+export function maximizeTripOnly(i, cargos, maxPax, maxKg) {
   if (i === 0) {
     // Total pay, list of cargos, remain
-    return [0, 0, [], []];
+    return [0, 0, 0, [], []];
   }
   const elm = cargos[i-1];
-  const [pay1, nb1, cargos1, remain1] = maximizeTripOnly(i-1, cargos, max);
-  if (max-elm.nb >= 0)  {
-    let [pay2, nb2, cargos2, remain2] = maximizeTripOnly(i-1, cargos, max-elm.nb);
+  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(i-1, cargos, maxPax, maxKg);
+  if (maxPax-elm.pax >= 0 && maxKg-elm.kg >= 0)  {
+    let [pay2, pax2, kg2, cargos2, remain2] = maximizeTripOnly(i-1, cargos, maxPax-elm.pax, maxKg-elm.kg);
     pay2 += elm.pay;
     if (pay2 > pay1) {
-      return [pay2, nb2+elm.nb, [...cargos2, elm], remain2];
+      return [pay2, pax2+elm.pax, kg2+elm.kg, [...cargos2, elm], remain2];
     }
   }
-  return [pay1, nb1, cargos1, [...remain1, elm]];
+  return [pay1, pax1, kg1, cargos1, [...remain1, elm]];
 }

@@ -31,16 +31,16 @@ function Route(props) {
         direction: Math.round(getRhumbLineBearing(fr, to)),
         distance: Math.round(convertDistance(getDistance(fr, to), 'sm')),
         flight: {
-          passengers: 0,
+          pax: 0,
           kg: 0,
           pay: 0
         }
       }
     }
-    legs[key].flight.kg += route.cargos[i-1].TripOnly.reduce((acc, elm) => acc + elm.kg, 0);
-    legs[key].flight.kg += route.cargos[i-1].VIP.reduce((acc, elm) => acc + elm.kg, 0);
-    legs[key].flight.passengers += route.cargos[i-1].TripOnly.reduce((acc, elm) => acc + elm.pax, 0);
-    legs[key].flight.passengers += route.cargos[i-1].VIP.reduce((acc, elm) => acc + elm.pax, 0);
+    legs[key].flight.kg += route.cargos[i-1].TripOnly.reduce((acc, elm) => acc + (elm.pax > 0 ? 0 : elm.kg), 0);
+    legs[key].flight.kg += route.cargos[i-1].VIP.reduce((acc, elm) => acc + (elm.pax > 0 ? 0 : elm.kg), 0);
+    legs[key].flight.pax += route.cargos[i-1].TripOnly.reduce((acc, elm) => acc + elm.pax, 0);
+    legs[key].flight.pax += route.cargos[i-1].VIP.reduce((acc, elm) => acc + elm.pax, 0);
     legs[key].flight.pay += route.cargos[i-1].TripOnly.reduce((acc, elm) => acc + elm.pay, 0);
     legs[key].flight.pay += route.cargos[i-1].VIP.reduce((acc, elm) => acc + elm.pay, 0);
   }

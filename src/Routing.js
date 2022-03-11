@@ -136,7 +136,7 @@ function textTotalCargo(cargos, kgPax = true) {
     }
   }
   if (kg) {
-    text.push(kg + 'kg');
+    text.push(kg + ' kg');
   }
   return text.join(' and ');
 }
@@ -618,32 +618,16 @@ const Routing = React.memo((props) => {
         direction: props.options.jobs[k] ? props.options.jobs[k].direction : props.options.flight[k].direction,
       }
       const append = (v, obj) => {
-        if (v.kg) {
-          if (v.kg['Trip-Only'] && !vipOnly) {
-            for (const c of v.kg['Trip-Only']) {
-              if (c.nb > planeMaxKg) { continue; }
-              obj.cargos.TripOnly.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false, id: c.id});
-            }
-          }
-          if (v.kg['VIP']) {
-            for (const c of v.kg['VIP']) {
-              if (c.nb > planeMaxKg) { continue; }
-              obj.cargos.VIP.push({pax: 0, kg: c.nb, pay: c.pay, from: fr, to: to, PT: false, id: c.id});
-            }
+        if (v['Trip-Only'] && !vipOnly) {
+          for (const c of v['Trip-Only']) {
+            if (c.kg > planeMaxKg || c.pax > planeMaxPax) { continue; }
+            obj.cargos.TripOnly.push({from: fr, to: to, ...c});
           }
         }
-        if (v.passengers) {
-          if (v.passengers['Trip-Only'] && !vipOnly) {
-            for (const c of v.passengers['Trip-Only']) {
-              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-              obj.cargos.TripOnly.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: c.PT === true, id: c.id});
-            }
-          }
-          if (v.passengers['VIP']) {
-            for (const c of v.passengers['VIP']) {
-              if (c.nb*77 > planeMaxKg || c.nb > planeMaxPax) { continue; }
-              obj.cargos.VIP.push({pax: c.nb, kg: c.nb*77, pay: c.pay, from: fr, to: to, PT: false, id: c.id});
-            }
+        if (v['VIP']) {
+          for (const c of v['VIP']) {
+            if (c.kg > planeMaxKg || c.pax > planeMaxPax) { continue; }
+            obj.cargos.VIP.push({from: fr, to: to, ...c});
           }
         }
       }
@@ -1007,7 +991,7 @@ const Routing = React.memo((props) => {
                             cargo.from === icao
                               ? cargo.pax
                                 ? <Typography variant="body2" key={j}>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                                : <Typography variant="body2" key={j}>{cargo.kg}kg to {cargo.to} (${cargo.pay})</Typography>
+                                : <Typography variant="body2" key={j}>{cargo.kg} kg to {cargo.to} (${cargo.pay})</Typography>
                               : null
                             )}
                             { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
@@ -1029,7 +1013,7 @@ const Routing = React.memo((props) => {
                             cargo.pax ?
                                 <Typography variant="body2" key={j}>{cargo.pax} VIP passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
                               :
-                                <Typography variant="body2" key={j}>{cargo.kg}kg VIP to {cargo.to} (${cargo.pay})</Typography>
+                                <Typography variant="body2" key={j}>{cargo.kg} kg VIP to {cargo.to} (${cargo.pay})</Typography>
                             )}
                             <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
                             <AddToFlight
