@@ -293,7 +293,6 @@ const FSEMap = React.memo(function FSEMap(props) {
           options={props.options}
           actions={props.actions}
           route={props.route}
-          customIcaos={props.customIcaos}
           icaos={props.icaos}
         />
       }

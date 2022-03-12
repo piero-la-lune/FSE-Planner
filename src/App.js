@@ -46,33 +46,26 @@ const defaultSettings = {
         rentable: 'red',
         selected: 'darkred',
         fse: 'black',
-        sim: 'darkslateblue',
-        custom: 'darkcyan'
+        sim: 'darkslateblue'
       },
       sizes: {
         base: '13',
         rentable: '20',
         selected: '25',
         fse: '3',
-        sim: '3',
-        custom: '20'
+        sim: '3'
       }
     },
     legs: {
       colors: {
         passengers: '#3f51b5',
-        cargo: '#3f51b5',
         highlight: 'yellow',
         flight: 'darkred'
       },
       weights: {
         base: '1.2',
         passengers: '8',
-        cargo: '8',
         flight: '5'
-      },
-      display: {
-        custom: true
       }
     },
     map: {
@@ -269,7 +262,6 @@ function App() {
   const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
-  const [customIcaos, setCustomIcaos] = React.useState(storage.get('customIcaos', []));
   const [routeFinder, setRouteFinder] = React.useState(false);
   const [route, setRoute] = React.useState(null);
   const mapRef = React.useRef();
@@ -356,11 +348,6 @@ function App() {
     mapRef.current.invalidateSize({pan:false});
   }, [routeFinder, filters, orientation, table, windowSize.width, windowSize.height]);
 
-  const isInCustom = React.useCallback((icao) => customIcaos.includes(icao), [customIcaos]);
-  React.useEffect(() => {
-    storage.set('customIcaos', customIcaos);
-  }, [customIcaos]);
-
   // Actions
   const actions = React.useRef(null);
   const setActions = () => {
@@ -378,9 +365,6 @@ function App() {
         f.toIcao = icao;
         return f;
       }),
-      addCustom: (icao) => setCustomIcaos(prev => [...prev, icao]),
-      removeCustom: (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao)),
-      isInCustom: isInCustom,
       contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined,
       measureDistance: () => null,
       markerClick: () => null,
@@ -388,7 +372,7 @@ function App() {
     };
   }
   if (!actions.current) { setActions(); }
-  React.useEffect(setActions, [goTo, isInCustom, filters.fromIcao, filters.toIcao]);
+  React.useEffect(setActions, [goTo, filters.fromIcao, filters.toIcao]);
 
 
   return (
@@ -647,7 +631,6 @@ function App() {
           options={options}
           search={search}
           icaos={icaos}
-          customIcaos={customIcaos}
           route={route}
           mapRef={mapRef}
           actions={actions}
@@ -669,8 +652,6 @@ function App() {
         icaodata={icaodata}
         icaos={icaos}
         settings={settings}
-        customIcaos={customIcaos}
-        setCustomIcaos={setCustomIcaos}
       />
       <SettingsPopup
         open={settingsPopup}

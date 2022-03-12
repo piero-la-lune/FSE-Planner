@@ -383,7 +383,6 @@ function UpdatePopup(props) {
   const [loading, setLoading] = React.useState(false);
   const [openCustom, setOpenCustom] = React.useState(false);
   const [expanded, setExpanded] = React.useState(key ? false : 'panel1');
-  const [customIcaosVal, setCustomIcaosVal] = React.useState(props.customIcaos.join(' '));
   const [userList, setUserList] = React.useState([]);
   const [username, setUsername] = React.useState(storage.get('username', ''));
   const [assignmentKeys, setAssignmentKeys] = React.useState(storage.get('assignmentKeys', [{name: 'Personal assignments', enabled: true}]));
@@ -440,11 +439,6 @@ function UpdatePopup(props) {
       }
     });
   }, []);
-
-  // Update Custom markers input
-  React.useEffect(() => {
-    setCustomIcaosVal(props.customIcaos.join(' '));
-  }, [props.customIcaos]);
 
   // Loop function to get jobs from FSE
   const updateJobsRequest = (icaosList, jobs, dir, callback) => {
@@ -706,35 +700,6 @@ function UpdatePopup(props) {
     // Close popup
     setLoading(false);
     handleClose();
-  }
-
-  // Custom markers button clicked
-  const updateCustom = (evt) => {
-    evt.stopPropagation();
-    setLoading('panel5');
-    const elms = customIcaosVal.split(/[ ,\n]+/);
-    const icaos = [];
-    // Keep only existing ICAO
-    for (const elm of elms) {
-      if (props.icaodata[elm]) {
-        icaos.push(elm);
-      }
-    }
-    // Update var and storage
-    setCustomIcaosVal(icaos.join(' '));
-    props.setCustomIcaos(icaos);
-    // Do not update storage, it is done in App.js
-    // Close popup
-    setLoading(false);
-    handleClose();
-  }
-  const clearCustom = (evt) => {
-    evt.stopPropagation();
-    setLoading('panel5');
-    setCustomIcaosVal('');
-    props.setCustomIcaos([]);
-    storage.remove('customIcaos');
-    setLoading(false);
   }
 
   const panelChange = (panel) => (event, isExpanded) => {
@@ -1019,37 +984,6 @@ function UpdatePopup(props) {
                   arr.push({name: name, key: key, enabled: true})
                   setAssignmentKeys(arr);
                   storage.set('assignmentKeys', arr);
-                }}
-              />
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion expanded={expanded === 'panel5'} onChange={panelChange('panel5')}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
-              <Typography sx={styles.title}>Custom markers</Typography>
-              <Button color="secondary" onClick={clearCustom}>
-                Clear
-              </Button>
-              &nbsp;
-              <span>
-                <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading !== false}>
-                  Apply
-                  {loading === 'panel5' && <CircularProgress size={24} sx={styles.buttonProgress} />}
-                </Button>
-              </span>
-            </AccordionSummary>
-            <AccordionDetails sx={styles.accDetails}>
-              <Alert severity="info" style={{marginBottom: 32}}>These airports will form an highlighted route on the map (you can hide the path to only highlight the aiports in the display settings). You may add new aiports directly on the map with a right click.</Alert>
-              <TextField
-                label="List of FSE ICAOs"
-                multiline
-                rows={4}
-                variant="outlined"
-                placeholder="LFLY EGLL LFPO [...]"
-                helperText="ICAOs can be seperated by a white space, a new line or a coma."
-                value={customIcaosVal}
-                onChange={(evt) => {
-                  setCustomIcaosVal(evt.target.value);
                 }}
               />
             </AccordionDetails>

@@ -360,18 +360,6 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
             }
           });
         }
-        if (props.actions.current.isInCustom(props.icao)) {
-          actions.push({
-            name: 'Remove from Customs Markers',
-            onClick: () => props.actions.current.removeCustom(props.icao)
-          });
-        }
-        else {
-          actions.push({
-            name: 'Add to Customs Markers',
-            onClick: () => props.actions.current.addCustom(props.icao)
-          });
-        }
         actions.push({
           name: 'Mesure distance from this point',
           onClick: () => props.actions.current.measureDistance(evt.latlng)
