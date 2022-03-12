@@ -649,6 +649,8 @@ const Routing = React.memo((props) => {
           minPaxLoad: planesSpecs[model].maxPax*minLoad/100,
           minKgLoad: planesSpecs[model].maxKg*minLoad/100,
           range: planesSpecs[model].range,
+          gph: planesSpecs[model].GPH,
+          speed: planesSpecs[model].speed,
           maxStops: maxStops,
           maxEmptyLeg: maxEmptyLeg,
           model: model,
@@ -1246,49 +1248,47 @@ const Routing = React.memo((props) => {
                       />
                     </Grid>
                     <Grid item xs={6}>
-                      <TextField
-                        label="Max weight"
-                        variant="outlined"
-                        placeholder="2000"
-                        required
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
-                        }}
-                        value={maxKg}
-                        onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
-                      />
+                      <Tooltip title="Maximum weight of fuel AND cargo (passengers + packages) the plane can handle.">
+                        <TextField
+                          label="Max weight (fuel + cargo)"
+                          variant="outlined"
+                          placeholder="2000"
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
+                          }}
+                          value={maxKg}
+                          onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
+                        />
+                      </Tooltip>
                     </Grid>
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>
                     <Grid item xs={6}>
-                      <Tooltip title="Used to compute an estimated flight duration.">
-                        <TextField
-                          label="Cruise speed"
-                          placeholder="250"
-                          variant="outlined"
-                          value={speed}
-                          onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
-                          required
-                          InputProps={{
-                            endAdornment: <InputAdornment position="end">kts</InputAdornment>,
-                          }}
-                        />
-                      </Tooltip>
+                      <TextField
+                        label="Cruise speed"
+                        placeholder="250"
+                        variant="outlined"
+                        value={speed}
+                        onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
+                        required
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">kts</InputAdornment>,
+                        }}
+                      />
                     </Grid>
                     <Grid item xs={6}>
-                      <Tooltip title="Used to prevent legs longer than this distance.">
-                        <TextField
-                          label="Max range"
-                          placeholder="1800"
-                          variant="outlined"
-                          value={range}
-                          onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
-                          required
-                          InputProps={{
-                            endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                          }}
-                        />
-                      </Tooltip>
+                      <TextField
+                        label="Max range"
+                        placeholder="1800"
+                        variant="outlined"
+                        value={range}
+                        onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
+                        required
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                        }}
+                      />
                     </Grid>
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>

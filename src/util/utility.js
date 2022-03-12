@@ -90,10 +90,8 @@ export class Plane {
       this.emptyWeight = p.EmptyWeight;
       // Plane range: maximum length of a single leg
       this.range = Math.round(this.fuelCapacity / p.GPH * p.CruiseSpeed);
-      // Compute fuel weight in kg at 25% fuel load
-      const fuelKg = 0.25 * 2.68735 * this.fuelCapacity;
-      // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
-      this.maxKg = Math.floor(this.MTOW - this.emptyWeight - 77*(1+this.crew) - fuelKg);
+      // Max total weight - Empty plane weight - Weight of pilot and crew
+      this.maxKg = Math.floor(this.MTOW - this.emptyWeight - 77*(1+this.crew));
     }
     else {
       this.model = model;
@@ -133,7 +131,11 @@ export class Plane {
     // Compute fuel weight in kg at given fuel load
     const fuelKg = tank * 2.68735 * this.fuelCapacity;
     // Max total weight - Empty plane weight - Weight of pilot and crew - Weight of fuel at 25% load
-    return this.MTOW - this.emptyWeight - 77*(1+this.crew) - fuelKg;
+    return this.maxKg - fuelKg;
+  }
+  maxKgFromDistance(distance) {
+    const fuelKg = (distance / this.CruiseSpeed) * this.GPH * 2.68735;
+    return this.maxKg - fuelKg;
   }
 }
 
