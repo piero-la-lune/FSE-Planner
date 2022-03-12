@@ -36,8 +36,8 @@ import { default as _debounce } from 'lodash/debounce';
 import { useOrientation, useWindowSize } from 'react-use';
 
 import FSEMap from './Map.js';
-import Routing from './Routing.js';
-import Table from './Table.js';
+import Routing from './Routing/Routing.js';
+import Table from './Table/Table.js';
 import UpdatePopup from './Popups/Update.js';
 import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Page, Text, View, Document, Link, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { getDistance, convertDistance, getRhumbLineBearing } from "geolib";
-import { airportSurface, simName } from './util/utility.js';
+import { airportSurface, simName } from '../util/utility.js';
 
 // Register font
 Font.register({
