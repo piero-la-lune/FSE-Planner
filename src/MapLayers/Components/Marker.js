@@ -364,6 +364,27 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
           name: 'Mesure distance from this point',
           onClick: () => props.actions.current.measureDistance(evt.latlng)
         });
+        // Custom layers action
+        const layers = props.actions.current.getCustomLayers(props.icao);
+        if (layers.length) {
+          actions.push({
+            divider: true
+          });
+          for (const [id, name, exist] of layers) {
+            if (!exist) {
+              actions.push({
+                name: 'Add to layer "'+name+'"',
+                onClick: () => props.actions.current.addToCustomLayer(id, props.icao)
+              });
+            }
+            else {
+              actions.push({
+                name: 'Remove from layer "'+name+'"',
+                onClick: () => props.actions.current.removeFromCustomLayer(id, props.icao)
+              });
+            }
+          }
+        }
         // Chart links
         actions.push({
           divider: true

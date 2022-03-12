@@ -368,7 +368,10 @@ function App() {
       contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined,
       measureDistance: () => null,
       markerClick: () => null,
-      openTable: () => { setRouteFinder(false); setTable(true); }
+      openTable: () => { setRouteFinder(false); setTable(true); },
+      getCustomLayers: (icao) => [],
+      addToCustomLayer: () => null,
+      removeFromCustomLayer: () => null
     };
   }
   if (!actions.current) { setActions(); }

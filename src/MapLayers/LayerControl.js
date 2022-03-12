@@ -886,6 +886,55 @@ function LayerControl(props) {
     setHover(false);
   }, []);
 
+  const handleEditLayer = (ll, id) => {
+    if (layersRef.current[id].layer) {
+      layersRef.current[id].layer.remove();
+    }
+    if (layersRef.current[id].layerInfo.shareEditID) {
+      fetch(process.env.REACT_APP_API_URL+'/layer/'+layersRef.current[id].layerInfo.shareID, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({version: process.env.REACT_APP_VERSION, info: ll.layerInfo, editId: layersRef.current[id].layerInfo.shareEditID})
+      }).then(response => {
+        if (!response.ok) {
+          alert('Unable to update this shared layer. Check your internet connection or try again later.')
+        }
+      });
+      ll.shared = true;
+      ll.layerInfo.shareID = layersRef.current[id].layerInfo.shareID;
+      ll.layerInfo.shareEditID = layersRef.current[id].layerInfo.shareEditID;
+    }
+    layersRef.current[id] = ll;
+  }
+
+  // Set actions
+  React.useState(() => {
+    props.actions.current.getCustomLayers = (icao) => {
+      const arr = [];
+      for (let i = 0; i < layersRef.current.length; i++) {
+        const l = layersRef.current[i];
+        if (l.src === "custom" && (!l.shared || l.layerInfo.shareEditID)) {
+          arr.push([i, l.label, l.icaos.includes(icao)]);
+        }
+      }
+      return arr;
+    }
+    props.actions.current.addToCustomLayer = (id, icao) => {
+      layersRef.current[id].layerInfo.data.icaos.push(icao);
+      const ll = layerFactory(layersRef.current[id].layerInfo, layersRef.current[id].id);
+      handleEditLayer(ll, id);
+      resetLayer(id);
+    };
+    props.actions.current.removeFromCustomLayer = (id, icao) => {
+      layersRef.current[id].layerInfo.data.icaos = layersRef.current[id].layerInfo.data.icaos.filter(elm => elm !== icao);
+      const ll = layerFactory(layersRef.current[id].layerInfo, layersRef.current[id].id);
+      handleEditLayer(ll, id);
+      resetLayer(id);
+    };
+  }, props.actions);
+
   return (
     <Paper
       elevation={3}
@@ -928,26 +977,7 @@ function LayerControl(props) {
           else {
             id = layerEditId.current;
             ll.id = layersRef.current[id].id;
-            if (layersRef.current[id].layer) {
-              layersRef.current[id].layer.remove();
-            }
-            if (layersRef.current[id].layerInfo.shareEditID) {
-              fetch(process.env.REACT_APP_API_URL+'/layer/'+layersRef.current[id].layerInfo.shareID, {
-                method: 'post',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({version: process.env.REACT_APP_VERSION, info: ll.layerInfo, editId: layersRef.current[id].layerInfo.shareEditID})
-              }).then(response => {
-                if (!response.ok) {
-                  alert('Unable to update this shared layer. Check your internet connection or try again later.')
-                }
-              });
-              ll.shared = true;
-              ll.layerInfo.shareID = layersRef.current[id].layerInfo.shareID;
-              ll.layerInfo.shareEditID = layersRef.current[id].layerInfo.shareEditID;
-            }
-            layersRef.current[id] = ll;
+            handleEditLayer(ll, id);
             layerEditId.current = null;
           }
           resetLayer(id);
