@@ -9,30 +9,17 @@ import Typography from '@mui/material/Typography';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import IconButton from '@mui/material/IconButton';
 import Popper from '@mui/material/Popper';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import StarIcon from '@mui/icons-material/Star';
-import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
-import FlightIcon from '@mui/icons-material/Flight';
-import PeopleIcon from '@mui/icons-material/People';
-import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import ExploreIcon from '@mui/icons-material/Explore';
 import UpdateIcon from '@mui/icons-material/Update';
-import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import CloseIcon from '@mui/icons-material/Close';
 import TuneIcon from '@mui/icons-material/Tune';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import BusinessIcon from '@mui/icons-material/Business';
 import TableViewIcon from '@mui/icons-material/TableView';
 import MapIcon from '@mui/icons-material/Map';
 
 import { default as _clone } from 'lodash/cloneDeep';
 import { default as _mergeWith } from 'lodash/mergeWith';
 import { default as _isArray } from 'lodash/isArray';
-import { default as _debounce } from 'lodash/debounce';
 import { useOrientation, useWindowSize } from 'react-use';
 
 import FSEMap from './Map.js';
@@ -43,6 +30,7 @@ import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';
 import Tour from './Tour.js';
 import Storage from './Storage.js';
+import Filters from './Filters';
 import log from './util/logger.js';
 import {wrap} from './util/utility.js';
 
@@ -146,35 +134,6 @@ const PopperMy = function (props) {
 }
 
 const styles = {
-  tgBtn: {
-    color: "rgba(255, 255, 255, 0.5)",
-    borderColor: "rgba(255, 255, 255, 0.5)",
-    '&.Mui-selected': {
-      color: "rgba(255, 255, 255, 1) !important"
-    }
-  },
-  tooltip: {
-    backgroundColor: 'primary.dark',
-    border: '1px solid #fff',
-    fontSize: '0.9em',
-    fontWeight: 'normal',
-    marginTop: '5px',
-    '& .MuiTooltip-arrow': {
-      color: 'primary.dark',
-      "&:before": {
-        border: '1px solid #fff'
-      }
-    }
-  },
-  boxBorder: {
-    borderRadius: 1,
-    border: '1px solid',
-    borderColor: "rgba(255, 255, 255, 0.5)",
-    px: 1,
-    py: 0.9,
-    display: 'flex',
-    alignItems: 'center'
-  },
   menuBtn: {
     '& .MuiButton-startIcon': {
       color: "rgba(255, 255, 255, 0.5)"
@@ -192,20 +151,6 @@ const styles = {
       sm: 0
     }
   },
-  inputM: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    color: "#fff",
-    borderRadius: 1,
-    px: 0.5,
-    width: "55px"
-  },
-  inputS: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    color: "#fff",
-    borderRadius: 1,
-    px: 0.5,
-    width: "45px"
-  },
   inputSearch: {
     backgroundColor: "rgba(0, 0, 0, 0.2)",
     color: "#fff",
@@ -221,17 +166,7 @@ const styles = {
   }
 }
 
-const MyTooltip = ({ children, ...props}) => (
-  <Tooltip componentsProps={{ tooltip: { sx: styles.tooltip }}} arrow {...props}>
-    {children}
-  </Tooltip>
-);
 
-const TooltipToggleButton = ({ children, title, ...props }) => (
-  <MyTooltip title={title}>
-    <ToggleButton sx={styles.tgBtn} {...props}>{children}</ToggleButton>
-  </MyTooltip>
-);
 
 
 function transformPlanes(p) {
@@ -289,33 +224,23 @@ const storage = new Storage();
 
 function App() {
 
-  const [filters, setFilters] = React.useState(false);
-  const [type, setType] = React.useState('Trip-Only');
-  const [cargo, setCargo] = React.useState(['passengers']);
-  const [fromIcaoInput, setFromIcaoInput] = React.useState('');
-  const [fromIcao, setFromIcao] = React.useState(null);
-  const [toIcaoInput, setToIcaoInput] = React.useState('');
-  const [toIcao, setToIcao] = React.useState(null);
-  const [minPax, setMinPax] = React.useState('');
-  const [minKg, setMinKg] = React.useState('');
-  const [maxPax, setMaxPax] = React.useState('');
-  const [maxKg, setMaxKg] = React.useState('');
-  const [minDist, setMinDist] = React.useState('');
-  const [maxDist, setMaxDist] = React.useState('');
-  const [minJobPay, setMinJobPay] = React.useState('');
-  const [minLegPay, setMinLegPay] = React.useState('');
-  const [percentPay, setPercentPay] = React.useState('');
-  const [direction, setDirection] = React.useState('');
-  const [minPaxDebounced, setMinPaxDebounced] = React.useState('');
-  const [minKgDebounced, setMinKgDebounced] = React.useState('');
-  const [maxPaxDebounced, setMaxPaxDebounced] = React.useState('');
-  const [maxKgDebounced, setMaxKgDebounced] = React.useState('');
-  const [minDistDebounced, setMinDistDebounced] = React.useState('');
-  const [maxDistDebounced, setMaxDistDebounced] = React.useState('');
-  const [minJobPayDebounced, setMinJobPayDebounced] = React.useState('');
-  const [minLegPayDebounced, setMinLegPayDebounced] = React.useState('');
-  const [percentPayDebounced, setPercentPayDebounced] = React.useState('');
-  const [directionDebounced, setDirectionDebounced] = React.useState('');
+  const [filtersBar, setFiltersBar] = React.useState(false)
+  const [filters, setFilters] = React.useState({
+    type: 'Trip-Only',
+    cargo: ['passengers'],
+    fromIcao: null,
+    toIcao: null,
+    minPax: '',
+    minKg: '',
+    maxPax: '',
+    maxKg: '',
+    minDist: '',
+    maxDist: '',
+    minJobPay: '',
+    minLegPay: '',
+    percentPay: '',
+    direction: ''
+  });
   const [table, setTable] = React.useState(false);
   const [updatePopup, setUpdatePopup] = React.useState(false);
   const [settingsPopup, setSettingsPopup] = React.useState(false);
@@ -352,46 +277,13 @@ function App() {
   const windowSize = useWindowSize();
 
   const options = React.useMemo(() => ({
-    minPax: minPaxDebounced,
-    maxPax: maxPaxDebounced,
-    minKg: minKgDebounced,
-    maxKg: maxKgDebounced,
-    minDist: minDistDebounced,
-    maxDist: maxDistDebounced,
-    direction: directionDebounced,
-    type: type,
-    cargo: cargo,
-    fromIcao: fromIcao,
-    toIcao: toIcao,
-    minJobPay: minJobPayDebounced,
-    minLegPay: minLegPayDebounced,
-    percentPay: percentPayDebounced,
     jobs: jobs,
     planes: planes,
     flight: flight,
     settings: settings,
-    icaodata: icaodata
-  }), [type, cargo, fromIcao, toIcao, minPaxDebounced, minKgDebounced, maxPaxDebounced, maxKgDebounced, minDistDebounced, maxDistDebounced, minJobPayDebounced, minLegPayDebounced, percentPayDebounced, directionDebounced, jobs, planes, flight, settings, icaodata]);
-  const debounceMinPax = React.useMemo(() => _debounce(setMinPaxDebounced, 500), []);
-  React.useEffect(() => debounceMinPax(minPax), [minPax, debounceMinPax]);
-  const debounceMinKg = React.useMemo(() => _debounce(setMinKgDebounced, 500), []);
-  React.useEffect(() => debounceMinKg(minKg), [minKg, debounceMinKg]);
-  const debounceMaxPax = React.useMemo(() => _debounce(setMaxPaxDebounced, 500), []);
-  React.useEffect(() => debounceMaxPax(maxPax), [maxPax, debounceMaxPax]);
-  const debounceMaxKg = React.useMemo(() => _debounce(setMaxKgDebounced, 500), []);
-  React.useEffect(() => debounceMaxKg(maxKg), [maxKg, debounceMaxKg]);
-  const debounceMinDist = React.useMemo(() => _debounce(setMinDistDebounced, 500), []);
-  React.useEffect(() => debounceMinDist(minDist), [minDist, debounceMinDist]);
-  const debounceMaxDist = React.useMemo(() => _debounce(setMaxDistDebounced, 500), []);
-  React.useEffect(() => debounceMaxDist(maxDist), [maxDist, debounceMaxDist]);
-  const debounceMinJobPay = React.useMemo(() => _debounce(setMinJobPayDebounced, 500), []);
-  React.useEffect(() => debounceMinJobPay(minJobPay), [minJobPay, debounceMinJobPay]);
-  const debounceMinLegPay = React.useMemo(() => _debounce(setMinLegPayDebounced, 500), []);
-  React.useEffect(() => debounceMinLegPay(minLegPay), [minLegPay, debounceMinLegPay]);
-  const debouncePercentPay = React.useMemo(() => _debounce(setPercentPayDebounced, 500), []);
-  React.useEffect(() => debouncePercentPay(percentPay), [percentPay, debouncePercentPay]);
-  const debounceDirection = React.useMemo(() => _debounce(setDirectionDebounced, 500), []);
-  React.useEffect(() => debounceDirection(direction), [direction, debounceDirection]);
+    icaodata: icaodata,
+    ...filters
+  }), [jobs, planes, flight, settings, icaodata, filters]);
 
   React.useEffect(() => {
     const obj = _clone(icaodataSrc);
@@ -464,28 +356,6 @@ function App() {
     mapRef.current.invalidateSize({pan:false});
   }, [routeFinder, filters, orientation, table, windowSize.width, windowSize.height]);
 
-  const setFrom = React.useCallback((icao) => {
-    icao = icao.toUpperCase();
-    setFromIcaoInput(icao);
-    if (icaodata.hasOwnProperty(icao)) {
-      setFromIcao(icao);
-    }
-    else {
-      setFromIcao(null)
-    }
-  }, [icaodata]);
-  const isFromIcao = React.useCallback((icao) => fromIcao === icao, [fromIcao]);
-  const setTo = React.useCallback((icao) => {
-    icao = icao.toUpperCase();
-    setToIcaoInput(icao);
-    if (icaodata.hasOwnProperty(icao)) {
-      setToIcao(icao);
-    }
-    else {
-      setToIcao(null)
-    }
-  }, [icaodata]);
-  const isToIcao = React.useCallback((icao) => toIcao === icao, [toIcao]);
   const isInCustom = React.useCallback((icao) => customIcaos.includes(icao), [customIcaos]);
   React.useEffect(() => {
     storage.set('customIcaos', customIcaos);
@@ -496,10 +366,18 @@ function App() {
   const setActions = () => {
     actions.current = {
       goTo: goTo,
-      fromIcao: setFrom,
-      isFromIcao: isFromIcao,
-      isToIcao: isToIcao,
-      toIcao: setTo,
+      fromIcao: (icao) => setFilters(prev => {
+        const f = {...prev};
+        f.fromIcao = icao;
+        return f;
+      }),
+      isFromIcao: (icao) => filters.fromIcao === icao,
+      isToIcao: (icao) => filters.toIcao === icao,
+      toIcao: (icao) => setFilters(prev => {
+        const f = {...prev};
+        f.toIcao = icao;
+        return f;
+      }),
       addCustom: (icao) => setCustomIcaos(prev => [...prev, icao]),
       removeCustom: (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao)),
       isInCustom: isInCustom,
@@ -510,7 +388,7 @@ function App() {
     };
   }
   if (!actions.current) { setActions(); }
-  React.useEffect(setActions, [goTo, setFrom, isFromIcao, setTo, isToIcao, isInCustom]);
+  React.useEffect(setActions, [goTo, isInCustom, filters.fromIcao, filters.toIcao]);
 
 
   return (
@@ -586,14 +464,14 @@ function App() {
             <Button
               sx={{
                 ...styles.menuBtn,
-                ...(filters && {
+                ...(filtersBar && {
                   backgroundColor: 'rgba(255, 255, 255, 0.3)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.3)',
                   }
                 })
               }}
-              onClick={() => setFilters(!filters)}
+              onClick={() => setFiltersBar(!filtersBar)}
               data-tour="Step7"
               startIcon={<FilterAltIcon />}
             >
@@ -739,186 +617,14 @@ function App() {
             />
           </Box>
         </Toolbar>
-        {filters &&
-          <Box
-            sx={{
-              display: 'flex',
-              px: 1,
-              pb: 1,
-              boxSizing: 'border-box'
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                flexGrow: 1,
-                justifyContent: 'center',
-                gap: {
-                  xs: 1,
-                  xl: 2
-                }
-              }}
-            >
-              <Box sx={styles.boxBorder}>
-                <FlightTakeoffIcon sx={fromIcao === null && toIcao === null ? styles.tgBtn : null}/>
-                &nbsp;&nbsp;
-                <MyTooltip title='Jobs radiating FROM this airport'>
-                  <InputBase
-                    placeholder="From"
-                    sx={styles.inputM}
-                    inputProps={{maxLength:4}}
-                    value={fromIcaoInput}
-                    onChange={evt => setFrom(evt.target.value)}
-                  />
-                </MyTooltip>
-                &nbsp;
-                <MyTooltip title='Jobs radiating TO this airport'>
-                  <InputBase
-                    placeholder="To"
-                    sx={styles.inputM}
-                    inputProps={{maxLength:4}}
-                    value={toIcaoInput}
-                    onChange={evt => setTo(evt.target.value)}
-                  />
-                </MyTooltip>
-              </Box>
-              <MyTooltip title='Jobs going in this direction (+/- 30°)'>
-                <Box sx={styles.boxBorder}>
-                  <ExploreIcon sx={direction === '' ? styles.tgBtn : null}/>
-                  &nbsp;&nbsp;
-                  <InputBase
-                    placeholder="145°"
-                    sx={styles.inputS}
-                    inputProps={{maxLength:3}}
-                    value={direction}
-                    onChange={evt => { setDirection(evt.target.value); }}
-                  />
-                </Box>
-              </MyTooltip>
-              <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} exclusive>
-                <TooltipToggleButton value="Trip-Only" title="Trip Only">
-                  <EmojiPeopleIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="VIP" title="VIP">
-                  <StarIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="All-In" title="All In">
-                  <FlightIcon />
-                </TooltipToggleButton>
-              </ToggleButtonGroup>
-              <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)}>
-                <TooltipToggleButton value="passengers" title="Passengers">
-                  <PeopleIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="kg" title="Cargo">
-                  <BusinessCenterIcon />
-                </TooltipToggleButton>
-              </ToggleButtonGroup>
-              <Box sx={styles.boxBorder}>
-                <PeopleIcon sx={minPax === '' && maxPax === '' ? styles.tgBtn : null} />
-                &nbsp;
-                <MyTooltip title="Minimum number of passengers in the aircraft">
-                  <InputBase
-                    placeholder="min"
-                    sx={styles.inputS}
-                    value={minPax}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinPax(nb); }}
-                  />
-                </MyTooltip>
-                -
-                <MyTooltip title="Maximum number of passengers in the aircraft">
-                  <InputBase
-                    placeholder="max"
-                    sx={styles.inputS}
-                    value={maxPax}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxPax(nb); }}
-                  />
-                </MyTooltip>
-              </Box>
-              <Box sx={styles.boxBorder}>
-                <BusinessCenterIcon sx={minKg === '' && maxKg === '' ? styles.tgBtn : null} />
-                &nbsp;
-                <MyTooltip title="Minimum weight in the aircraft">
-                  <InputBase
-                    placeholder="min"
-                    sx={styles.inputS}
-                    value={minKg}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinKg(nb); }}
-                  />
-                </MyTooltip>
-                -
-                <MyTooltip title="Maximum weight in the aircraft">
-                  <InputBase
-                    placeholder="max"
-                    sx={styles.inputS}
-                    value={maxKg}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxKg(nb); }}
-                  />
-                </MyTooltip>
-              </Box>
-              <Box sx={styles.boxBorder}>
-                <SettingsEthernetIcon sx={minDist === '' && maxDist === '' ? styles.tgBtn : null} />
-                &nbsp;
-                <MyTooltip title='Minimum job distance in NM'>
-                  <InputBase
-                    placeholder="min"
-                    sx={styles.inputS}
-                    value={minDist}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinDist(nb); }}
-                  />
-                </MyTooltip>
-                -
-                <MyTooltip title='Maximum job distance in NM'>
-                  <InputBase
-                    placeholder="max"
-                    sx={styles.inputS}
-                    value={maxDist}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxDist(nb); }}
-                  />
-                </MyTooltip>
-              </Box>
-              <Box sx={styles.boxBorder}>
-                <MonetizationOnIcon sx={minJobPay === '' && minLegPay === '' && percentPay === '' ? styles.tgBtn : null} />
-                &nbsp;
-                <MyTooltip title='Minimum job pay (in $)'>
-                  <InputBase
-                    placeholder="Job $"
-                    sx={styles.inputM}
-                    value={minJobPay}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinJobPay(nb); }}
-                  />
-                </MyTooltip>
-                &nbsp;
-                <MyTooltip title='Minimum leg pay (in $)'>
-                  <InputBase
-                    placeholder="Leg $"
-                    sx={styles.inputM}
-                    value={minLegPay}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinLegPay(nb); }}
-                  />
-                </MyTooltip>
-                &nbsp;
-                <MyTooltip title='Top paying jobs (in percent)'>
-                  <InputBase
-                    placeholder="Top %"
-                    sx={styles.inputM}
-                    value={percentPay}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setPercentPay(nb); }}
-                  />
-                </MyTooltip>
-              </Box>
-              <MyTooltip title='Airport filtering'>
-                <IconButton
-                  onClick={() => setSettingsPopup('panel3')}
-                  sx={styles.tgBtn}
-                >
-                  <BusinessIcon />
-                </IconButton>
-              </MyTooltip>
-            </Box>
-          </Box>
+        {filtersBar &&
+          <Filters
+            filters={filters}
+            setFilters={setFilters}
+            icaodata={icaodata}
+            actions={actions}
+            setSettingsPopup={setSettingsPopup}
+          />
         }
       </AppBar>
       <Box
