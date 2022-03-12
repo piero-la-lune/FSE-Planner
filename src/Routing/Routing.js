@@ -1,6 +1,5 @@
 import React from 'react';
 import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -17,23 +16,12 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from '@mui/material/Link';
-import Timeline from '@mui/lab/Timeline';
-import TimelineItem from '@mui/lab/TimelineItem';
-import TimelineSeparator from '@mui/lab/TimelineSeparator';
-import TimelineConnector from '@mui/lab/TimelineConnector';
-import TimelineContent from '@mui/lab/TimelineContent';
-import TimelineDot from '@mui/lab/TimelineDot';
-import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
 import Popover from '@mui/material/Popover';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import FlightIcon from '@mui/icons-material/Flight';
 import LinearProgress from '@mui/material/LinearProgress';
 import Checkbox from '@mui/material/Checkbox';
 import ListItemText from '@mui/material/ListItemText';
@@ -41,16 +29,15 @@ import Alert from '@mui/material/Alert';
 import Popper from '@mui/material/Popper';
 import Box from '@mui/material/Box';
 
+
 import { getDistance, convertDistance, getBounds } from "geolib";
-import { pdf } from '@react-pdf/renderer';
 
 import RoutingWorker from './routing.worker.js';
-import PDFRoute from './PDFRoute.js';
-import AddToFlight from './Table/AddToFlight.js';
-import { hideAirport, Plane } from "./util/utility.js";
-import log from "./util/logger.js";
+import Result from './Result.js';
+import { hideAirport, Plane } from "../util/utility.js";
+import log from "../util/logger.js";
 
-import aircrafts from "./data/aircraft.json";
+import aircrafts from "../data/aircraft.json";
 
 const styles = {
   content: {
@@ -71,17 +58,9 @@ const styles = {
     marginBottom: 1.5,
     marginTop: 3
   },
-  tlGridText: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
   filtersInput: {
     width: "100%",
     mb: 1
-  },
-  focusAction: {
-    margin: '16px 6px 0 6px'
   },
   searchOption: {
     display: 'flex',
@@ -114,31 +93,6 @@ const styles = {
 const filter = createFilterOptions({limit: 5});
 const PopperMy = function (props) {
   return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
-}
-
-
-function textTotalCargo(cargos, kgPax = true) {
-  const text = [];
-  let pax = 0;
-  let kg = 0;
-  for (const cargo of cargos) {
-    pax += cargo.pax;
-    if (!cargo.pax || kgPax) {
-      kg += cargo.kg;
-    }
-  }
-  if (pax) {
-    if (pax > 1) {
-      text.push(pax + ' passengers');
-    }
-    else {
-      text.push('1 passenger');
-    }
-  }
-  if (kg) {
-    text.push(kg + ' kg');
-  }
-  return text.join(' and ');
 }
 
 function filterText(sortBy, result) {
@@ -271,8 +225,8 @@ const Routing = React.memo((props) => {
   const [aircraftModels, setAircraftModels] = React.useState([]);
   const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
   const [editSpecs, setEditSpecs] = React.useState(false);
-  const [copied, setCopied] = React.useState(false);
-  const [defaultAddToGroup, setDefaultAddToGroup] = React.useState(null);
+
+
   const icaodataArr = React.useMemo(() => Object.values(props.options.icaodata), [props.options.icaodata]);
 
   const sortFunctions = {
@@ -695,6 +649,8 @@ const Routing = React.memo((props) => {
           minPaxLoad: planesSpecs[model].maxPax*minLoad/100,
           minKgLoad: planesSpecs[model].maxKg*minLoad/100,
           range: planesSpecs[model].range,
+          gph: planesSpecs[model].GPH,
+          speed: planesSpecs[model].speed,
           maxStops: maxStops,
           maxEmptyLeg: maxEmptyLeg,
           model: model,
@@ -802,238 +758,14 @@ const Routing = React.memo((props) => {
 
         focus ?
 
-          <React.Fragment>
-            <Box
-              onClick={() => setFocus(null)}
-              sx={{
-                padding: 3,
-                borderBottom: "1px solid #eee",
-                cursor: "pointer",
-                background: "#fff",
-                display: "flex",
-                "&:hover": {
-                  background: "#f9f9f9"
-                }
-              }}
-            >
-              <Typography
-                variant="body1"
-                sx={{
-                  verticalAlign: 'middle',
-                  display: 'inline-flex'
-                }}
-              >
-                <ArrowBackIcon />&nbsp;Back to results
-              </Typography>
-            </Box>
-
-            <Box sx={styles.content}>
-              <Box sx={{
-                textAlign: 'center',
-              }}>
-                <Tooltip title={copied ? 'Copied!' : 'Copy route to clipboard'}>
-                  <IconButton
-                    sx={styles.focusAction}
-                    onClick={() => {
-                      navigator.clipboard.writeText(focus.icaos.join(' '));
-                      setTimeout(() => setCopied(false), 1000);
-                      setCopied(true);
-                    }}
-                    size="large">
-                    <AssignmentIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Export route to PDF document">
-                  <IconButton
-                    sx={styles.focusAction}
-                    onClick={() => {
-                      const blob = pdf(
-                        <PDFRoute
-                          route={focus}
-                          icaodata={props.options.icaodata}
-                          routeParams={{
-                            idleTime: idleTime,
-                            overheadLength: overheadLength,
-                            approachLength: approachLength
-                          }}
-                          settings={props.options.settings}
-                        />
-                      ).toBlob();
-                      blob.then((file) => {
-                        var fileURL = URL.createObjectURL(file);
-                        window.open(fileURL);
-                      });
-                    }}
-                    size="large">
-                    <PictureAsPdfIcon />
-                  </IconButton>
-                </Tooltip>
-                <AddToFlight
-                  style={{
-                    display: 'inline-flex',
-                    margin: '16px 6px 0 6px',
-                    verticalAlign: 'middle'
-                  }}
-                  ids={(() => {
-                    const ids = new Set();
-                    for (const leg of focus.cargos) {
-                      for (const jobs of Object.values(leg)) {
-                        for (const job of jobs) {
-                          ids.add(job.id);
-                        }
-                      }
-                    }
-                    return [...ids];
-                  })()}
-                  variant="hidden"
-                  defaultGroup={defaultAddToGroup}
-                >
-                  <Tooltip title={'Add all assignments to ' + (defaultAddToGroup ? defaultAddToGroup[0] : 'My Flight')}>
-                    <IconButton
-                      size="large"
-                      type="submit"
-                    >
-                      <AddShoppingCartIcon />
-                    </IconButton>
-                  </Tooltip>
-                </AddToFlight>
-                { focus.planeId &&
-                  <form
-                    action="https://server.fseconomy.net/userctl"
-                    method="post"
-                    target="fse"
-                    style={{
-                      display: 'inline-flex',
-                      margin: '16px 6px 0 6px',
-                      verticalAlign: 'middle'
-                    }}
-                  >
-                    <input type="hidden" name="event" value="Aircraft" />
-                    <input type="hidden" name="type" value="add" />
-                    <input type="hidden" name="rentalType" value={focus.rentalType} />
-                    <input type="hidden" name="id" value={focus.planeId} />
-                    <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
-                    <Tooltip title="Rent plane">
-                      <IconButton
-                        size="large"
-                        type="submit"
-                      >
-                        <FlightIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </form>
-                }
-              </Box>
-              <Grid container spacing={1} sx={{ mt: 1 }}>
-                <Grid item xs={4}>
-                  <Typography variant="body1" sx={styles.tlGridText}><AttachMoneyIcon sx={styles.icon} />{focus.pay}</Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="body1" sx={styles.tlGridText}><SettingsEthernetIcon sx={styles.icon} />{focus.distance} NM</Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="body1" sx={styles.tlGridText}><AccessTimeIcon sx={styles.icon} />{focus.time}</Typography>
-                </Grid>
-              </Grid>
-              <Timeline align="right">
-                {focus.icaos.map((icao, i) => {
-                  const onboard = i < focus.icaos.length-1 ? focus.cargos[i].TripOnly.reduce((acc, elm) => elm.from === icao ? acc : [...acc, elm], []) : [];
-                  return (
-                    <TimelineItem key={i}>
-                      <TimelineOppositeContent
-                        sx={{
-                          minWidth: 50,
-                          fontSize: '1.2em',
-                          marginTop: '-4px'
-                        }}
-                      >
-                        <Link href="#" onClick={evt => {evt.preventDefault(); props.actions.current.goTo(icao) }}>{icao}</Link>
-                      </TimelineOppositeContent>
-                      <TimelineSeparator>
-                        <TimelineDot
-                          color={
-                            (
-                                i < focus.icaos.length-1
-                              &&
-                                (
-                                    (
-                                        focus.cargos[i].TripOnly.length
-                                      &&
-                                        focus.cargos[i].TripOnly.reduce((acc, cargo) => acc && cargo.from !== icao, true)
-                                    )
-                                  ||
-                                    (
-                                        !focus.cargos[i].TripOnly.length
-                                      &&
-                                        !focus.cargos[i].VIP.length
-                                    )
-                                )
-                            ) ? 'grey' : 'primary'
-                          }
-                        />
-                        <TimelineConnector />
-                      </TimelineSeparator>
-                      <TimelineContent sx={{ flex: 10 }}>
-                        { i === 0 &&
-                          <React.Fragment>
-                            { focus.reg &&
-                              <React.Fragment>
-                                <Typography variant="body2">Rent {focus.reg} {focus.rentalType} ({focus.plane.model})</Typography>
-                                <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
-                              </React.Fragment>
-                            }
-                            <Typography variant="body2" paragraph>Fuel usage : {focus.fuel} gallons</Typography>
-                          </React.Fragment>
-                        }
-                        {i < focus.icaos.length-1 && focus.cargos[i].TripOnly.length > 0 &&
-                          <Paper variant="outlined" sx={{ px: 2, py: 1 }}>
-                            {focus.cargos[i].TripOnly.map((cargo, j) =>
-                            cargo.from === icao
-                              ? cargo.pax
-                                ? <Typography variant="body2" key={j}>{cargo.pax} passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                                : <Typography variant="body2" key={j}>{cargo.kg} kg to {cargo.to} (${cargo.pay})</Typography>
-                              : null
-                            )}
-                            { onboard.length > 0 && <Typography variant="body2"><i>{textTotalCargo(onboard, false)} already onboard</i></Typography> }
-                            <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].TripOnly)}</Typography>
-                            <AddToFlight
-                              style={{ marginTop: 8 }}
-                              ids={Object.values(focus.cargos[i].TripOnly).map(job => job.id)}
-                              variant="text"
-                              size="small"
-                              btnSx={{ lineHeight: 1, textAlign: 'left' }}
-                              defaultGroup={defaultAddToGroup}
-                              onGroupChange={g => setDefaultAddToGroup(g)}
-                            />
-                          </Paper>
-                        }
-                        {i < focus.icaos.length-1 && focus.cargos[i].VIP.length > 0 &&
-                          <Paper variant="outlined" sx={{ px: 2, py: 1 }}>
-                            {focus.cargos[i].VIP.map((cargo, j) =>
-                            cargo.pax ?
-                                <Typography variant="body2" key={j}>{cargo.pax} VIP passenger{cargo.pax > 1 ? 's' : ''} to {cargo.to} (${cargo.pay})</Typography>
-                              :
-                                <Typography variant="body2" key={j}>{cargo.kg} kg VIP to {cargo.to} (${cargo.pay})</Typography>
-                            )}
-                            <Typography variant="body2" sx={{ mt: 1 }}><b>Total:</b> {textTotalCargo(focus.cargos[i].VIP)}</Typography>
-                            <AddToFlight
-                              style={{ marginTop: 8 }}
-                              ids={Object.values(focus.cargos[i].VIP).map(job => job.id)}
-                              variant="text"
-                              size="small"
-                              btnSx={{ lineHeight: 1, textAlign: 'left' }}
-                              defaultGroup={defaultAddToGroup}
-                              onGroupChange={g => setDefaultAddToGroup(g)}
-                            />
-                          </Paper>
-                        }
-                      </TimelineContent>
-                    </TimelineItem>
-                  )
-                })}
-              </Timeline>
-            </Box>
-          </React.Fragment>
+          <Result
+            focus={focus}
+            setFocus={setFocus}
+            idleTime={idleTime}
+            overheadLength={overheadLength}
+            approachLength={approachLength}
+            options={props.options}
+          />
 
         :
 
@@ -1516,49 +1248,47 @@ const Routing = React.memo((props) => {
                       />
                     </Grid>
                     <Grid item xs={6}>
-                      <TextField
-                        label="Max weight"
-                        variant="outlined"
-                        placeholder="2000"
-                        required
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
-                        }}
-                        value={maxKg}
-                        onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
-                      />
+                      <Tooltip title="Maximum weight of fuel AND cargo (passengers + packages) the plane can handle.">
+                        <TextField
+                          label="Max weight (fuel + cargo)"
+                          variant="outlined"
+                          placeholder="2000"
+                          required
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
+                          }}
+                          value={maxKg}
+                          onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
+                        />
+                      </Tooltip>
                     </Grid>
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>
                     <Grid item xs={6}>
-                      <Tooltip title="Used to compute an estimated flight duration.">
-                        <TextField
-                          label="Cruise speed"
-                          placeholder="250"
-                          variant="outlined"
-                          value={speed}
-                          onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
-                          required
-                          InputProps={{
-                            endAdornment: <InputAdornment position="end">kts</InputAdornment>,
-                          }}
-                        />
-                      </Tooltip>
+                      <TextField
+                        label="Cruise speed"
+                        placeholder="250"
+                        variant="outlined"
+                        value={speed}
+                        onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
+                        required
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">kts</InputAdornment>,
+                        }}
+                      />
                     </Grid>
                     <Grid item xs={6}>
-                      <Tooltip title="Used to prevent legs longer than this distance.">
-                        <TextField
-                          label="Max range"
-                          placeholder="1800"
-                          variant="outlined"
-                          value={range}
-                          onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
-                          required
-                          InputProps={{
-                            endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                          }}
-                        />
-                      </Tooltip>
+                      <TextField
+                        label="Max range"
+                        placeholder="1800"
+                        variant="outlined"
+                        value={range}
+                        onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
+                        required
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                        }}
+                      />
                     </Grid>
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>

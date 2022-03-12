@@ -13,6 +13,11 @@ function closeIcaos(icao, src, maxDist = 20) {
   }
   return cIcaos;
 }
+function maxKgFromDistance(distance, speed, gph, maxKg) {
+  // Keep a 20% error margin in fuel quantity
+  const fuelKg = (distance / speed) * gph * 2.68735 * 1.2;
+  return maxKg - fuelKg;
+}
 // cargo: {pax, kg, pay}
 function maximizeTripOnly(i, cargos, maxPax, maxKg, cache) {
   if (i === 0) {
@@ -273,7 +278,8 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       if (j.distance > options.range) { continue; }
 
       // Compute best load
-      const [pay, pax, kg, loadCargo, remainCargo] = maximizeCargo(j.cargos, options.maxPax, options.maxKg);
+      const maxKg = maxKgFromDistance(j.distance, options.speed, options.gph, options.maxKg);
+      const [pay, pax, kg, loadCargo, remainCargo] = maximizeCargo(j.cargos, options.maxPax, maxKg);
       if (pay <= 0) { continue; }
 
       // Ensure leg is interesting enough considering the number of previous bad legs
@@ -297,9 +303,10 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       // If there is still room, and no VIP, try to find onroute jobs
       // Limitation: if looping, do not search onroute jobs, because the previous taken jobs
       // were not removed from the jobs array.
-      if (pax < options.maxPax && kg < options.maxKg && loadCargo.VIP.length === 0 && indexInHistory < 0) {
-        legStops = getLegStops(icao, to, src, options.maxPax-pax, options.maxKg-kg, options.maxStops);
-        legStopsReverse = getLegStopsReverse(icao, to, src, options.maxPax-pax, options.maxKg-kg, options.maxStops);
+      if (pax < options.maxPax && kg < maxKg && loadCargo.VIP.length === 0 && indexInHistory < 0) {
+        const maxKgStop = maxKgFromDistance(j.distance*1.5, options.speed, options.gph, options.maxKg)
+        legStops = getLegStops(icao, to, src, options.maxPax-pax, maxKgStop-kg, options.maxStops);
+        legStopsReverse = getLegStopsReverse(icao, to, src, options.maxPax-pax, maxKgStop-kg, options.maxStops);
         for (const legStop of legStops) {
           for (var i = 0; i < legStop.cargos.length; i++) {
             legStop.cargos[i] = {TripOnly: [...legStop.cargos[i].TripOnly, ...loadCargo.TripOnly], VIP:[]};
@@ -480,13 +487,17 @@ onmessage = function({data}) {
 
           // Compute remaining space
           if (route.cargos[j-1].VIP.length) { continue; }
-          let [remainPax, remainKg] = computeRemain(route.cargos[j-1], options.maxPax, options.maxKg);
+          const distance = dist(route.icaos[j-1], route.icaos[j], data.src);
+          const maxKg = maxKgFromDistance(distance, options.speed, options.gph, options.maxKg);
+          let [remainPax, remainKg] = computeRemain(route.cargos[j-1], options.maxPax, maxKg);
           if (!remainKg) { continue; }
 
           // Find previous stop having jobs to the same destination
           for (k = j - 2; k >= 0; k--) {
             if (route.cargos[k].VIP.length) { break; }
-            let [remainPax2, remainKg2] = computeRemain(route.cargos[k], options.maxPax, options.maxKg);
+            const distance2 = dist(route.icaos[k], route.icaos[k+1], data.src);
+            const maxKg2 = maxKgFromDistance(distance2, options.speed, options.gph, options.maxKg);
+            let [remainPax2, remainKg2] = computeRemain(route.cargos[k], options.maxPax, maxKg2);
             remainPax = Math.min(remainPax, remainPax2);
             remainKg = Math.min(remainKg, remainKg2);
             if (data.src[route.icaos[k]].j) {
