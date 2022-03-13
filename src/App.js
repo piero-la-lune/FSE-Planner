@@ -364,6 +364,9 @@ function App() {
   // Invalidate map size when routing toogled
   React.useEffect(() => {
     if (!mapRef.current) { return; }
+    if (window.scrollY !== 0) {
+      window.scrollTo(0, 0);
+    }
     mapRef.current.invalidateSize({pan:false});
   }, [routeFinder, filters, orientation, table, windowSize.width, windowSize.height]);
 
@@ -434,13 +437,12 @@ function App() {
     setSearchOptions(filtered);
   }, [searchInput, searchHistory, search, searchDest]);
 
-
   return (
     <Box
       sx={{
         display: "flex",
         flexFlow: "column",
-        height: "100vh"
+        height: "100%"
       }}
     >
       <AppBar position="static">
