@@ -258,13 +258,16 @@ function App() {
     return obj;
   });
   const [search, setSearch] = React.useState(null);
+  const [searchDest, setSearchDest] = React.useState(null);
   const [searchInput, setSearchInput] = React.useState('');
   const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
   const [routeFinder, setRouteFinder] = React.useState(false);
   const [route, setRoute] = React.useState(null);
+  const [searchOptions, setSearchOptions] = React.useState([]);
   const mapRef = React.useRef();
+  const searchDestRef = React.useRef(null);
   const orientation = useOrientation();
   const windowSize = useWindowSize();
 
@@ -318,16 +321,32 @@ function App() {
   // Create goTo function, to allow panning to given ICAO
   // Cannot just use setSearch, because need to pan even if the ICAO was already in search var
   const goToRef = React.useRef(null);
-  const goTo = React.useCallback((icao) => {
+  const goTo = React.useCallback((icao, from = null) => {
     if (icao) {
-      setSearch(prevIcao => prevIcao === icao ? null : icao);
-      goToRef.current = icao;
-      setSearchHistory(prevList => {
-        const list = [...(new Set([icao, ...prevList]))].slice(0, 5);
-        storage.set('searchHistory', list);
-        return list;
-      });
-      window.history.replaceState({icao:icao}, '', '?icao='+icao);
+      if (from) {
+        searchDestRef.current = {...icaodataSrc[icao], from: from};
+        setSearchDest(icao);
+        setSearch(from);
+        setSearchOptions([searchDestRef.current]);
+        setSearchHistory(prevList => {
+          const list = [...(new Set([icao, from, ...prevList]))].slice(0, 5);
+          storage.set('searchHistory', list);
+          return list;
+        });
+        window.history.replaceState({icao:from}, '', '?icao='+from);
+      }
+      else {
+        setSearch(prevIcao => prevIcao === icao ? null : icao);
+        setSearchDest(null);
+        setSearchOptions([icaodataSrc[icao]]);
+        goToRef.current = icao;
+        setSearchHistory(prevList => {
+          const list = [...(new Set([icao, ...prevList]))].slice(0, 5);
+          storage.set('searchHistory', list);
+          return list;
+        });
+        window.history.replaceState({icao:icao}, '', '?icao='+icao);
+      }
     }
     else {
       setSearch(null);
@@ -376,6 +395,44 @@ function App() {
   }
   if (!actions.current) { setActions(); }
   React.useEffect(setActions, [goTo, filters.fromIcao, filters.toIcao]);
+
+  React.useEffect(() => {
+    const inputs = searchInput.split(/\s*[><]+\s*/g);
+    // Should not be more than 2 ICAOS long
+    if (inputs.length > 2) { return setSearchOptions([]); }
+    // If typing a second ICAO, the first one should be valid
+    if (inputs.length > 1 && !icaodataSrc.hasOwnProperty(inputs[0])) { return setSearchOptions([]); }
+    const input = inputs[inputs.length-1];
+
+    let filtered = [];
+    // If input is empty and search history is not, display search history
+    if (!input && searchHistory.length > 0) {
+      filtered = searchHistory.map(icao => icaodataSrc[icao]);
+    }
+    else {
+      // Search for ICAO
+      filtered = filter(icaodataSrcArr, { inputValue: input, getOptionLabel: (a) => a.icao });
+      // If not enough results, search for city name
+      if (filtered.length < 5) {
+        const add = filter(icaodataSrcArr, { inputValue: input, getOptionLabel: (a) => a.name });
+        filtered = filtered.concat(add.slice(0, 5-filtered.length));
+      }
+    }
+    if (inputs.length === 2) {
+      filtered = filtered.map(elm => { return {...elm, from: inputs[0]} });
+    }
+    if (search) {
+      if (searchDest) {
+        const exist = filtered.reduce((acc, elm) => acc || (elm.icao === searchDest && elm.from === search), false);
+        if (!exist) { filtered.push({...icaodataSrc[searchDest], from: search}) }
+      }
+      else {
+        const exist = filtered.reduce((acc, elm) => acc || (elm.icao === search && !elm.from), false);
+        if (!exist) { filtered.push(icaodataSrc[search]) }
+      }
+    }
+    setSearchOptions(filtered);
+  }, [searchInput, searchHistory, search, searchDest]);
 
 
   return (
@@ -503,8 +560,8 @@ function App() {
             }}
           >
             <Autocomplete
-              options={icaodataSrcArr}
-              getOptionLabel={(a) => a.icao ? a.icao : ''}
+              options={searchOptions}
+              getOptionLabel={(a) => a.icao ? (a.from ? a.from + ' > ' + a.icao : a.icao) : ''}
               renderOption={(props, a) =>
                 <li {...props}>
                   <Box
@@ -515,6 +572,25 @@ function App() {
                       overflow: 'hidden'
                     }}
                   >
+                    {a.from &&
+                      <React.Fragment>
+                        <Box
+                          component="b"
+                          sx={{
+                            minWidth: '40px',
+                            textAlign: 'center'
+                          }}
+                        >
+                          {a.from}
+                        </Box>
+                        <Box
+                          component="span"
+                          sx={{ px: 1}}
+                        >
+                          >
+                        </Box>
+                      </React.Fragment>
+                    }
                     <Box
                       component="b"
                       sx={{
@@ -558,20 +634,7 @@ function App() {
                   </Box>
                 </li>
               }
-              filterOptions={(options, params) => {
-                // If input is empty and search history is not, display search history
-                if (!searchInput && searchHistory.length > 0) {
-                  return searchHistory.map(icao => icaodata[icao]);
-                }
-                // Search for ICAO
-                let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
-                // If not enough results, search for city name
-                if (filtered.length < 5) {
-                  const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
-                  filtered = filtered.concat(add.slice(0, 5-filtered.length));
-                }
-                return filtered;
-              }}
+              filterOptions={x => x}
               renderInput={(params) =>
                 <InputBase
                   placeholder="Search..."
@@ -582,6 +645,7 @@ function App() {
                       <IconButton
                         size="small"
                         onClick={() => {
+                          setSearchDest(null);
                           setSearch(null);
                           setSearchInput('');
                           window.history.replaceState(null, '', '?');
@@ -594,9 +658,10 @@ function App() {
                   }
                 />
               }
+              isOptionEqualToValue={(option, value) => option.icao === value.icao && option.from === value.from}
               PopperComponent={PopperMy}
-              onChange={(evt, value) => value && goTo(value.icao)}
-              value={search ? icaodataSrc[search] : null}
+              onChange={(evt, value) => value && goTo(value.icao, value.from)}
+              value={search ? (searchDest ? searchDestRef.current : icaodataSrc[search]) : null}
               inputValue={searchInput}
               onInputChange={(evt, value) => setSearchInput(value)}
               autoHighlight={true}
@@ -633,6 +698,7 @@ function App() {
         <FSEMap
           options={options}
           search={search}
+          searchDest={searchDest}
           icaos={icaos}
           route={route}
           mapRef={mapRef}
@@ -644,6 +710,7 @@ function App() {
           hidden={!table}
           actions={actions}
           search={search}
+          searchDest={searchDest}
         />
       </Box>
       <UpdatePopup

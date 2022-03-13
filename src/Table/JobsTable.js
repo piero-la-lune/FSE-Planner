@@ -250,6 +250,7 @@ function Table(props) {
       for (const [id, leg] of Object.entries(legs)) {
         const [fr, to] = id.split('-');
         if (props.search && props.search !== fr) { continue; }
+        if (props.searchDest && props.searchDest !== to) { continue; }
         if (props.options.maxPax || props.options.maxKg) {
           const maxPax = props.options.maxPax ? props.options.maxPax : 10000;
           const maxKg = props.options.maxKg ? props.options.maxKg : 1000000;
@@ -320,7 +321,7 @@ function Table(props) {
     setRows(arr);
     setPage(0);
     setSelected({});
-  }, [props.options, props.search, props.hidden]);
+  }, [props.options, props.search, props.searchDest, props.hidden]);
 
   React.useEffect(() => {
     const ids = {};
@@ -437,7 +438,7 @@ function Table(props) {
                 variant="h6"
                 component="div"
               >
-                {props.search && <span>{props.search}</span>} Assignments ({type[props.options.type]})
+                {props.search && <span>{props.search}{props.searchDest ? ' > '+props.searchDest : ''}</span>} Assignments ({type[props.options.type]})
                 <IconButton
                   onClick={(evt) => setAnchorEl(evt.currentTarget)}
                   sx={{ ml: 1 }}

@@ -324,6 +324,13 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
             w.focus();
           }
         });
+        actions.push({
+          name: 'View jobs',
+          onClick: () => {
+            props.actions.current.openTable();
+            props.actions.current.goTo(props.icao);
+          }
+        });
         const isFromIcao = props.actions.current.isFromIcao(props.icao);
         const isToIcao = props.actions.current.isToIcao(props.icao);
         if (isFromIcao) {

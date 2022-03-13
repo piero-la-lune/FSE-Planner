@@ -148,12 +148,28 @@ function Job(props) {
             let w = window.open('https://server.fseconomy.net/airport.jsp?icao='+props.toIcao, 'fse');
             w.focus();
           }
+        },
+        {
+          name: <span>View jobs <NavigationIcon fontSize="inherit" sx={{transform: 'rotate('+props.leg.direction+'deg)', verticalAlign: 'text-top'}} /></span>,
+          onClick: () => {
+            props.actions.current.openTable();
+            props.actions.current.goTo(props.toIcao, props.fromIcao);
+          }
         }
       ];
+      if (props.rleg) {
+        actions.push({
+          name: <span>View jobs <NavigationIcon fontSize="inherit" sx={{transform: 'rotate('+(props.leg.direction+180)+'deg)', verticalAlign: 'text-top'}} /></span>,
+          onClick: () => {
+            props.actions.current.openTable();
+            props.actions.current.goTo(props.fromIcao, props.toIcao);
+          }
+        })
+      }
       props.actions.current.contextMenu({
         mouseX: evt.originalEvent.clientX,
         mouseY: evt.originalEvent.clientY,
-        title: <span>{props.fromIcao} - {props.toIcao} <NavigationIcon fontSize="inherit" style={{transform: 'rotate('+props.leg.direction+'deg'}} /></span>,
+        title: <span>{props.fromIcao} - {props.toIcao} <NavigationIcon fontSize="inherit" sx={{transform: 'rotate('+props.leg.direction+'deg)', verticalAlign: 'text-top'}} /></span>,
         actions: actions
       });
     });
