@@ -24,25 +24,17 @@ function addFlight(legs, jobs, opts) {
     }
     if (!legs[keys[i]].hasOwnProperty('flight')) {
       legs[keys[i]].flight = {
-        passengers: 0,
+        pax: 0,
         kg: 0,
         pay: 0,
       }
     }
-    if (leg.passengers) {
-      for (const type of Object.keys(leg.passengers)) {
-        for (const j of leg.passengers[type]) {
-          legs[keys[i]].flight.passengers += j.nb;
-          legs[keys[i]].flight.pay += j.pay;
-        }
-      }
-    }
-    if (leg.kg) {
-      for (const type of Object.keys(leg.kg)) {
-        for (const j of leg.kg[type]) {
-          legs[keys[i]].flight.kg += j.nb;
-          legs[keys[i]].flight.pay += j.pay;
-        }
+    for (const type of ['Trip-Only', 'VIP', 'All-In']) {
+      if (!leg.hasOwnProperty(type)) { continue; }
+      for (const j of leg[type]) {
+        legs[keys[i]].flight.pax += j.pax;
+        legs[keys[i]].flight.kg += j.pax ? 0 : j.kg;
+        legs[keys[i]].flight.pay += j.pay;
       }
     }
   }
@@ -92,7 +84,7 @@ function Jobs(props) {
     if (rleg && fr > to) { continue; }
 
     // Compute line weight
-    const mw = parseFloat(s.display.legs.weights[props.options.cargo === 'passengers' ? 'passengers' : 'cargo']);
+    const mw = parseFloat(s.display.legs.weights.passengers);
     const min = props.options.min || 1;
     const amount = rleg ? Math.max(leg.amount, rleg.amount) : leg.amount;
     let weight = parseFloat(s.display.legs.weights.base);
@@ -101,7 +93,7 @@ function Jobs(props) {
     }
 
     // Compute color
-    let color = s.display.legs.colors[props.options.cargo === 'passengers' ? 'passengers' : 'cargo'];
+    let color = s.display.legs.colors.passengers;
 
     // Special color and weight if My assignments
     if (leg.flight || (rleg && rleg.flight)) {
@@ -116,8 +108,7 @@ function Jobs(props) {
       weight: weight,
       leg: leg,
       rleg: rleg,
-      type: props.options.cargo,
-      separate: props.options.type !== 'Trip-Only' ? true : (props.options.max ? props.options.max : undefined),
+      options: props.options,
       actions: props.actions,
       fromIcao: fr,
       toIcao: to

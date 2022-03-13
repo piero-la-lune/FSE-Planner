@@ -44,11 +44,11 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-function downloadCSV(rows, cargo) {
+function downloadCSV(rows) {
   let csv = "id,from,to,type,amount,pay,PT\n";
   for (const row of rows) {
     for (const job of row.filteredJobs) {
-      csv += job.id+','+row.fr+','+row.to+','+cargo+','+job.nb+','+job.pay+','+(job.PT ? 1 : 0)+"\n";
+      csv += job.id+','+row.fr+','+row.to+','+(row.pax > 0 ? 'passengers' : 'kg')+','+(row.pax > 0 ? row.pax : row.kg)+','+job.pay+','+(job.PT ? 1 : 0)+"\n";
     }
   }
   const blob = new Blob([csv], {type: 'text/csv'});
@@ -72,7 +72,6 @@ const Row = React.memo(function Row(props) {
   const [open, setOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const handleClose = () => setAnchorEl(null);
-  let amountSelected = selected.reduce((acc, e) => acc + e.nb, 0);
   return (
     <React.Fragment>
       <TableRow sx={{ '& > .MuiTableCell-root': { borderBottom: 'unset' } }}>
@@ -94,11 +93,15 @@ const Row = React.memo(function Row(props) {
             {row.to}
           </Link>
         </TableCell>
-        {props.cargo === 'passengers' ?
-          <TableCell>{row.amount} passenger{row.amount > 1 && 's'}</TableCell>
-        :
-          <TableCell>Cargo {row.amount}kg</TableCell>
-        }
+        <TableCell>
+          {row.pax > 0 &&
+            <span>{row.pax} passenger{row.pax > 1 && 's'}</span>
+          }
+          {row.pax > 0 && row.kg > 0 && <br />}
+          {row.kg > 0 &&
+            <span>Cargo {row.kg} kg</span>
+          }
+        </TableCell>
         <TableCell>
           <NavigationIcon fontSize="inherit" sx={{ transform: 'rotate('+row.direction+'deg)', mr: 0.5, verticalAlign: 'text-top' }} />
           {row.direction}°
@@ -138,10 +141,10 @@ const Row = React.memo(function Row(props) {
             </IconButton>
           :
             <Checkbox
-              checked={amountSelected === row.amount}
-              indeterminate={amountSelected !== 0 && amountSelected !== row.amount}
+              checked={selected.length === row.filteredJobs.length}
+              indeterminate={selected.length !== 0 && selected.length !== row.filteredJobs.length}
               onChange={() => {
-                if (amountSelected === row.amount) {
+                if (selected.length === row.filteredJobs.length) {
                   setSelected(row.id, []);
                 }
                 else {
@@ -174,10 +177,10 @@ const Row = React.memo(function Row(props) {
                         })
                       }}
                     >
-                      {props.cargo === 'passengers' ?
-                        <TableCell sx={elm.PT && {color: 'green'}}>{elm.nb} passenger{elm.nb > 1 && 's'}</TableCell>
+                      {elm.pax > 0 ?
+                        <TableCell sx={elm.PT && {color: 'green'}}>{elm.pax} passenger{elm.pax > 1 && 's'}</TableCell>
                       :
-                        <TableCell>Cargo {elm.nb}kg</TableCell>
+                        <TableCell>Cargo {elm.kg} kg</TableCell>
                       }
                       <TableCell>${elm.pay}</TableCell>
                       <TableCell padding="checkbox">
@@ -247,16 +250,22 @@ function Table(props) {
       for (const [id, leg] of Object.entries(legs)) {
         const [fr, to] = id.split('-');
         if (props.search && props.search !== fr) { continue; }
-        if (props.options.max) {
+        if (props.searchDest && props.searchDest !== to) { continue; }
+        if (props.options.maxPax || props.options.maxKg) {
+          const maxPax = props.options.maxPax ? props.options.maxPax : 10000;
+          const maxKg = props.options.maxKg ? props.options.maxKg : 1000000;
           let remain = leg.filteredJobs;
           while (remain.length) {
-            const [pay, nb, jobs, r] = maximizeTripOnly(remain.length, remain, props.options.max);
-            if (props.options.min && nb < props.options.min) { break; }
+            const [pay, pax, kg, jobs, r] = maximizeTripOnly(remain.length, remain, maxPax, maxKg);
+            if (props.options.minPax && pax < props.options.minPax) { break; }
+            if (props.options.minKg && kg < props.options.minKg) { break; }
             arr.push({
               id: id+'-'+remain.length,
               fr: fr,
               to: to,
-              amount: nb,
+              pax: pax,
+              kg: jobs.reduce((acc, job) => acc+(job.pax > 0 ? 0 : job.kg), 0),
+              amount: kg,
               pay: pay,
               distance: leg.distance,
               direction: leg.direction,
@@ -270,6 +279,8 @@ function Table(props) {
             id: id,
             fr: fr,
             to: to,
+            pax: leg.filteredJobs.reduce((acc, job) => acc+job.pax, 0),
+            kg: leg.filteredJobs.reduce((acc, job) => acc+(job.pax > 0 ? 0 : job.kg), 0),
             ...leg
           });
         }
@@ -284,7 +295,9 @@ function Table(props) {
             id: job.id,
             fr: fr,
             to: to,
-            amount: job.nb,
+            pax: job.pax,
+            kg: job.pax ? 0 : job.kg,
+            amount: job.kg,
             pay: job.pay,
             distance: leg.distance,
             direction: leg.direction,
@@ -308,7 +321,7 @@ function Table(props) {
     setRows(arr);
     setPage(0);
     setSelected({});
-  }, [props.options, props.search, props.hidden]);
+  }, [props.options, props.search, props.searchDest, props.hidden]);
 
   React.useEffect(() => {
     const ids = {};
@@ -342,7 +355,8 @@ function Table(props) {
 
   const setSelectedRow = React.useCallback((id, list) => setSelected(s => {return {...s, [id]: list}}), []);
 
-  const amount = Object.values(selected).reduce((acc, list) => acc + list.reduce((acc, e) => acc + e.nb, 0), 0);
+  const amountPax = Object.values(selected).reduce((acc, list) => acc + list.reduce((acc, e) => acc + e.pax, 0), 0);
+  const amountKg = Object.values(selected).reduce((acc, list) => acc + list.reduce((acc, e) => acc + (e.pax > 0 ? 0 : e.kg), 0), 0);
   const pay = Object.values(selected).reduce((acc, list) => acc + list.reduce((acc, e) => acc + e.pay, 0), 0);
 
   const goTo = React.useCallback((evt, icao) => {
@@ -375,7 +389,7 @@ function Table(props) {
             flexShrink: 0
           }}
         >
-          { amount > 0 ?
+          { amountKg > 0 || amountPax > 0 ?
             <React.Fragment>
               <Typography
                 sx={{ flexGrow: 1 }}
@@ -383,7 +397,13 @@ function Table(props) {
                 variant="subtitle1"
                 component="div"
               >
-                {amount}{props.options.cargo === 'passengers' ? ' passenger' + (amount > 1 ? 's' : '') : 'kg'} (${pay}) selected
+                {amountPax > 0 &&
+                  amountPax + ' passenger' + (amountPax > 1 ? 's' : '') + (amountKg > 0 ? ' & ' : '')
+                }
+                {amountKg > 0 &&
+                  'Cargo ' + amountKg + ' kg'
+                }
+                &nbsp;(${pay}) selected
               </Typography>
               <AddToFlight
                 style={{ flexShrink: 1, display: 'flex' }}
@@ -418,7 +438,7 @@ function Table(props) {
                 variant="h6"
                 component="div"
               >
-                {props.search && <span>{props.search}</span>} Assignments ({type[props.options.type]} {props.options.cargo === 'passengers' ? 'passengers' : 'cargo'})
+                {props.search && <span>{props.search}{props.searchDest ? ' > '+props.searchDest : ''}</span>} Assignments ({type[props.options.type]})
                 <IconButton
                   onClick={(evt) => setAnchorEl(evt.currentTarget)}
                   sx={{ ml: 1 }}
@@ -433,7 +453,7 @@ function Table(props) {
                   <MenuItem onClick={() => { setAnchorEl(null); props.setTable('planes') }}>Aircrafts table</MenuItem>
                 </Menu>
               </Typography>
-              <Button onClick={() => downloadCSV(rows, props.options.cargo)}>Download CSV</Button>
+              <Button onClick={() => downloadCSV(rows)}>Download CSV</Button>
             </React.Fragment>
           }
 
@@ -467,7 +487,7 @@ function Table(props) {
                     direction={order}
                     onClick={() => handleRequestSort('amount')}
                   >
-                    {props.options.cargo === 'passengers' ? 'Passengers' : 'Cargo'}
+                    Cargo
                   </TableSortLabel>
                 </TableCell>
                 <TableCell sortDirection={orderBy === 'direction' ? order : false}>
@@ -517,7 +537,6 @@ function Table(props) {
                 <Row
                   key={row.id}
                   row={row}
-                  cargo={props.options.cargo}
                   allIn={props.options.type === 'All-In'}
                   selected={selected[row.id]}
                   setSelected={setSelectedRow}

@@ -9,23 +9,11 @@ import Typography from '@mui/material/Typography';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import IconButton from '@mui/material/IconButton';
 import Popper from '@mui/material/Popper';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import StarIcon from '@mui/icons-material/Star';
-import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
-import FlightIcon from '@mui/icons-material/Flight';
-import PeopleIcon from '@mui/icons-material/People';
-import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import ExploreIcon from '@mui/icons-material/Explore';
 import UpdateIcon from '@mui/icons-material/Update';
-import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import CloseIcon from '@mui/icons-material/Close';
 import TuneIcon from '@mui/icons-material/Tune';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import BusinessIcon from '@mui/icons-material/Business';
 import TableViewIcon from '@mui/icons-material/TableView';
 import MapIcon from '@mui/icons-material/Map';
 
@@ -35,13 +23,14 @@ import { default as _isArray } from 'lodash/isArray';
 import { useOrientation, useWindowSize } from 'react-use';
 
 import FSEMap from './Map.js';
-import Routing from './Routing.js';
-import Table from './Table.js';
+import Routing from './Routing/Routing.js';
+import Table from './Table/Table.js';
 import UpdatePopup from './Popups/Update.js';
 import SettingsPopup from './Popups/Settings.js';
 import CreditsPopup from './Popups/Credits.js';
 import Tour from './Tour.js';
 import Storage from './Storage.js';
+import Filters from './Filters';
 import log from './util/logger.js';
 import {wrap} from './util/utility.js';
 
@@ -57,33 +46,26 @@ const defaultSettings = {
         rentable: 'red',
         selected: 'darkred',
         fse: 'black',
-        sim: 'darkslateblue',
-        custom: 'darkcyan'
+        sim: 'darkslateblue'
       },
       sizes: {
         base: '13',
         rentable: '20',
         selected: '25',
         fse: '3',
-        sim: '3',
-        custom: '20'
+        sim: '3'
       }
     },
     legs: {
       colors: {
         passengers: '#3f51b5',
-        cargo: '#3f51b5',
         highlight: 'yellow',
         flight: 'darkred'
       },
       weights: {
         base: '1.2',
         passengers: '8',
-        cargo: '8',
         flight: '5'
-      },
-      display: {
-        custom: true
       }
     },
     map: {
@@ -130,7 +112,9 @@ const defaultSettings = {
     direction: 'from',
     jobsPlanes: 'around',
     jobsPlanesRequests: 1,
-    jobsPlanesMax: 10
+    jobsPlanesMax: 10,
+    express: true,
+    expiration: ''
   }
 };
 
@@ -143,35 +127,6 @@ const PopperMy = function (props) {
 }
 
 const styles = {
-  tgBtn: {
-    color: "rgba(255, 255, 255, 0.5)",
-    borderColor: "rgba(255, 255, 255, 0.5)",
-    '&.Mui-selected': {
-      color: "rgba(255, 255, 255, 1) !important"
-    }
-  },
-  tooltip: {
-    backgroundColor: 'primary.dark',
-    border: '1px solid #fff',
-    fontSize: '0.9em',
-    fontWeight: 'normal',
-    marginTop: '5px',
-    '& .MuiTooltip-arrow': {
-      color: 'primary.dark',
-      "&:before": {
-        border: '1px solid #fff'
-      }
-    }
-  },
-  boxBorder: {
-    borderRadius: 1,
-    border: '1px solid',
-    borderColor: "rgba(255, 255, 255, 0.5)",
-    px: 1,
-    py: 0.9,
-    display: 'flex',
-    alignItems: 'center'
-  },
   menuBtn: {
     '& .MuiButton-startIcon': {
       color: "rgba(255, 255, 255, 0.5)"
@@ -189,20 +144,6 @@ const styles = {
       sm: 0
     }
   },
-  inputM: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    color: "#fff",
-    borderRadius: 1,
-    px: 0.5,
-    width: "55px"
-  },
-  inputS: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    color: "#fff",
-    borderRadius: 1,
-    px: 0.5,
-    width: "45px"
-  },
   inputSearch: {
     backgroundColor: "rgba(0, 0, 0, 0.2)",
     color: "#fff",
@@ -218,17 +159,7 @@ const styles = {
   }
 }
 
-const MyTooltip = ({ children, ...props}) => (
-  <Tooltip componentsProps={{ tooltip: { sx: styles.tooltip }}} arrow {...props}>
-    {children}
-  </Tooltip>
-);
 
-const TooltipToggleButton = ({ children, title, ...props }) => (
-  <MyTooltip title={title}>
-    <ToggleButton sx={styles.tgBtn} {...props}>{children}</ToggleButton>
-  </MyTooltip>
-);
 
 
 function transformPlanes(p) {
@@ -255,17 +186,15 @@ function transformJobs(j) {
         distance: leg[1]
       }
       for (const [txt, arr] of Object.entries(leg[2])) {
-        const unit = txt[0] === 'p' ? 'passengers' : 'kg';
-        if (!jobs[key].hasOwnProperty(unit)) {
-          jobs[key][unit] = {};
-        }
+        const pax = txt[0] === 'p' ? true : false;
         const type = (txt[1] === 'p' || txt[1] === 't') ? 'Trip-Only' : (txt[1] === 'v' ? 'VIP' : 'All-In');
-        if (!jobs[key][unit].hasOwnProperty(type)) {
-          jobs[key][unit][type] = [];
+        if (!jobs[key].hasOwnProperty(type)) {
+          jobs[key][type] = [];
         }
         for (const [nb, pay, id, aid] of arr) {
           const obj = {
-            nb: nb,
+            pax: pax ? nb : 0,
+            kg: pax ? nb*77 : nb,
             pay: pay,
             id: id
           };
@@ -275,7 +204,7 @@ function transformJobs(j) {
           if (txt[1] === 'p') {
             obj.PT = true;
           }
-          jobs[key][unit][type].push(obj);
+          jobs[key][type].push(obj);
         }
       }
     }
@@ -288,23 +217,23 @@ const storage = new Storage();
 
 function App() {
 
-  const [filters, setFilters] = React.useState(false);
-  const [type, setType] = React.useState('Trip-Only');
-  const [cargo, setCargo] = React.useState('passengers');
-  const [fromIcaoInput, setFromIcaoInput] = React.useState('');
-  const [fromIcao, setFromIcao] = React.useState(null);
-  const [toIcaoInput, setToIcaoInput] = React.useState('');
-  const [toIcao, setToIcao] = React.useState(null);
-  const [minPax, setMinPax] = React.useState('');
-  const [minKg, setMinKg] = React.useState('');
-  const [maxPax, setMaxPax] = React.useState('');
-  const [maxKg, setMaxKg] = React.useState('');
-  const [minDist, setMinDist] = React.useState('');
-  const [maxDist, setMaxDist] = React.useState('');
-  const [minJobPay, setMinJobPay] = React.useState('');
-  const [minLegPay, setMinLegPay] = React.useState('');
-  const [percentPay, setPercentPay] = React.useState('');
-  const [direction, setDirection] = React.useState('');
+  const [filtersBar, setFiltersBar] = React.useState(false)
+  const [filters, setFilters] = React.useState({
+    type: 'Trip-Only',
+    cargo: ['passengers'],
+    fromIcao: null,
+    toIcao: null,
+    minPax: '',
+    minKg: '',
+    maxPax: '',
+    maxKg: '',
+    minDist: '',
+    maxDist: '',
+    minJobPay: '',
+    minLegPay: '',
+    percentPay: '',
+    direction: ''
+  });
   const [table, setTable] = React.useState(false);
   const [updatePopup, setUpdatePopup] = React.useState(false);
   const [settingsPopup, setSettingsPopup] = React.useState(false);
@@ -329,36 +258,27 @@ function App() {
     return obj;
   });
   const [search, setSearch] = React.useState(null);
+  const [searchDest, setSearchDest] = React.useState(null);
   const [searchInput, setSearchInput] = React.useState('');
   const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
-  const [customIcaos, setCustomIcaos] = React.useState(storage.get('customIcaos', []));
   const [routeFinder, setRouteFinder] = React.useState(false);
   const [route, setRoute] = React.useState(null);
+  const [searchOptions, setSearchOptions] = React.useState([]);
   const mapRef = React.useRef();
+  const searchDestRef = React.useRef(null);
   const orientation = useOrientation();
   const windowSize = useWindowSize();
 
   const options = React.useMemo(() => ({
-    min: cargo === 'passengers' ? minPax : minKg,
-    max: cargo === 'passengers' ? maxPax : maxKg,
-    minDist: minDist,
-    maxDist: maxDist,
-    direction: direction,
-    type: type,
-    cargo: cargo,
-    fromIcao: fromIcao,
-    toIcao: toIcao,
-    minJobPay: minJobPay,
-    minLegPay: minLegPay,
-    percentPay: percentPay,
     jobs: jobs,
     planes: planes,
     flight: flight,
     settings: settings,
-    icaodata: icaodata
-  }), [type, cargo, fromIcao, toIcao, minPax, minKg, maxPax, maxKg, minDist, maxDist, minJobPay, minLegPay, percentPay, direction, jobs, planes, flight, settings, icaodata]);
+    icaodata: icaodata,
+    ...filters
+  }), [jobs, planes, flight, settings, icaodata, filters]);
 
   React.useEffect(() => {
     const obj = _clone(icaodataSrc);
@@ -401,16 +321,32 @@ function App() {
   // Create goTo function, to allow panning to given ICAO
   // Cannot just use setSearch, because need to pan even if the ICAO was already in search var
   const goToRef = React.useRef(null);
-  const goTo = React.useCallback((icao) => {
+  const goTo = React.useCallback((icao, from = null) => {
     if (icao) {
-      setSearch(prevIcao => prevIcao === icao ? null : icao);
-      goToRef.current = icao;
-      setSearchHistory(prevList => {
-        const list = [...(new Set([icao, ...prevList]))].slice(0, 5);
-        storage.set('searchHistory', list);
-        return list;
-      });
-      window.history.replaceState({icao:icao}, '', '?icao='+icao);
+      if (from) {
+        searchDestRef.current = {...icaodataSrc[icao], from: from};
+        setSearchDest(icao);
+        setSearch(from);
+        setSearchOptions([searchDestRef.current]);
+        setSearchHistory(prevList => {
+          const list = [...(new Set([icao, from, ...prevList]))].slice(0, 5);
+          storage.set('searchHistory', list);
+          return list;
+        });
+        window.history.replaceState({icao:from}, '', '?icao='+from);
+      }
+      else {
+        setSearch(prevIcao => prevIcao === icao ? null : icao);
+        setSearchDest(null);
+        setSearchOptions([icaodataSrc[icao]]);
+        goToRef.current = icao;
+        setSearchHistory(prevList => {
+          const list = [...(new Set([icao, ...prevList]))].slice(0, 5);
+          storage.set('searchHistory', list);
+          return list;
+        });
+        window.history.replaceState({icao:icao}, '', '?icao='+icao);
+      }
     }
     else {
       setSearch(null);
@@ -428,64 +364,85 @@ function App() {
   // Invalidate map size when routing toogled
   React.useEffect(() => {
     if (!mapRef.current) { return; }
+    if (window.scrollY !== 0) {
+      window.scrollTo(0, 0);
+    }
     mapRef.current.invalidateSize({pan:false});
   }, [routeFinder, filters, orientation, table, windowSize.width, windowSize.height]);
-
-  const setFrom = React.useCallback((icao) => {
-    icao = icao.toUpperCase();
-    setFromIcaoInput(icao);
-    if (icaodata.hasOwnProperty(icao)) {
-      setFromIcao(icao);
-    }
-    else {
-      setFromIcao(null)
-    }
-  }, [icaodata]);
-  const isFromIcao = React.useCallback((icao) => fromIcao === icao, [fromIcao]);
-  const setTo = React.useCallback((icao) => {
-    icao = icao.toUpperCase();
-    setToIcaoInput(icao);
-    if (icaodata.hasOwnProperty(icao)) {
-      setToIcao(icao);
-    }
-    else {
-      setToIcao(null)
-    }
-  }, [icaodata]);
-  const isToIcao = React.useCallback((icao) => toIcao === icao, [toIcao]);
-  const isInCustom = React.useCallback((icao) => customIcaos.includes(icao), [customIcaos]);
-  React.useEffect(() => {
-    storage.set('customIcaos', customIcaos);
-  }, [customIcaos]);
 
   // Actions
   const actions = React.useRef(null);
   const setActions = () => {
     actions.current = {
       goTo: goTo,
-      fromIcao: setFrom,
-      isFromIcao: isFromIcao,
-      isToIcao: isToIcao,
-      toIcao: setTo,
-      addCustom: (icao) => setCustomIcaos(prev => [...prev, icao]),
-      removeCustom: (icao) => setCustomIcaos(prev => prev.filter(elm => elm !== icao)),
-      isInCustom: isInCustom,
+      fromIcao: (icao) => setFilters(prev => {
+        const f = {...prev};
+        f.fromIcao = icao;
+        return f;
+      }),
+      isFromIcao: (icao) => filters.fromIcao === icao,
+      isToIcao: (icao) => filters.toIcao === icao,
+      toIcao: (icao) => setFilters(prev => {
+        const f = {...prev};
+        f.toIcao = icao;
+        return f;
+      }),
       contextMenu: (actions.current && actions.current.contextMenu) ? actions.current.contextMenu : undefined,
       measureDistance: () => null,
       markerClick: () => null,
-      openTable: () => { setRouteFinder(false); setTable(true); }
+      openTable: () => { setRouteFinder(false); setTable(true); },
+      getCustomLayers: (icao) => [],
+      addToCustomLayer: () => null,
+      removeFromCustomLayer: () => null
     };
   }
   if (!actions.current) { setActions(); }
-  React.useEffect(setActions, [goTo, setFrom, isFromIcao, setTo, isToIcao, isInCustom]);
+  React.useEffect(setActions, [goTo, filters.fromIcao, filters.toIcao]);
 
+  React.useEffect(() => {
+    const inputs = searchInput.split(/\s*[><]+\s*/g);
+    // Should not be more than 2 ICAOS long
+    if (inputs.length > 2) { return setSearchOptions([]); }
+    // If typing a second ICAO, the first one should be valid
+    if (inputs.length > 1 && !icaodataSrc.hasOwnProperty(inputs[0])) { return setSearchOptions([]); }
+    const input = inputs[inputs.length-1];
+
+    let filtered = [];
+    // If input is empty and search history is not, display search history
+    if (!input && searchHistory.length > 0) {
+      filtered = searchHistory.map(icao => icaodataSrc[icao]);
+    }
+    else {
+      // Search for ICAO
+      filtered = filter(icaodataSrcArr, { inputValue: input, getOptionLabel: (a) => a.icao });
+      // If not enough results, search for city name
+      if (filtered.length < 5) {
+        const add = filter(icaodataSrcArr, { inputValue: input, getOptionLabel: (a) => a.name });
+        filtered = filtered.concat(add.slice(0, 5-filtered.length));
+      }
+    }
+    if (inputs.length === 2) {
+      filtered = filtered.map(elm => { return {...elm, from: inputs[0]} });
+    }
+    if (search) {
+      if (searchDest) {
+        const exist = filtered.reduce((acc, elm) => acc || (elm.icao === searchDest && elm.from === search), false);
+        if (!exist) { filtered.push({...icaodataSrc[searchDest], from: search}) }
+      }
+      else {
+        const exist = filtered.reduce((acc, elm) => acc || (elm.icao === search && !elm.from), false);
+        if (!exist) { filtered.push(icaodataSrc[search]) }
+      }
+    }
+    setSearchOptions(filtered);
+  }, [searchInput, searchHistory, search, searchDest]);
 
   return (
     <Box
       sx={{
         display: "flex",
         flexFlow: "column",
-        height: "100vh"
+        height: "100%"
       }}
     >
       <AppBar position="static">
@@ -553,14 +510,14 @@ function App() {
             <Button
               sx={{
                 ...styles.menuBtn,
-                ...(filters && {
+                ...(filtersBar && {
                   backgroundColor: 'rgba(255, 255, 255, 0.3)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.3)',
                   }
                 })
               }}
-              onClick={() => setFilters(!filters)}
+              onClick={() => setFiltersBar(!filtersBar)}
               data-tour="Step7"
               startIcon={<FilterAltIcon />}
             >
@@ -605,8 +562,8 @@ function App() {
             }}
           >
             <Autocomplete
-              options={icaodataSrcArr}
-              getOptionLabel={(a) => a.icao ? a.icao : ''}
+              options={searchOptions}
+              getOptionLabel={(a) => a.icao ? (a.from ? a.from + ' > ' + a.icao : a.icao) : ''}
               renderOption={(props, a) =>
                 <li {...props}>
                   <Box
@@ -617,6 +574,25 @@ function App() {
                       overflow: 'hidden'
                     }}
                   >
+                    {a.from &&
+                      <React.Fragment>
+                        <Box
+                          component="b"
+                          sx={{
+                            minWidth: '40px',
+                            textAlign: 'center'
+                          }}
+                        >
+                          {a.from}
+                        </Box>
+                        <Box
+                          component="span"
+                          sx={{ px: 1}}
+                        >
+                          >
+                        </Box>
+                      </React.Fragment>
+                    }
                     <Box
                       component="b"
                       sx={{
@@ -660,20 +636,7 @@ function App() {
                   </Box>
                 </li>
               }
-              filterOptions={(options, params) => {
-                // If input is empty and search history is not, display search history
-                if (!searchInput && searchHistory.length > 0) {
-                  return searchHistory.map(icao => icaodata[icao]);
-                }
-                // Search for ICAO
-                let filtered = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.icao });
-                // If not enough results, search for city name
-                if (filtered.length < 5) {
-                  const add = filter(options, { inputValue: searchInput, getOptionLabel: (a) => a.name });
-                  filtered = filtered.concat(add.slice(0, 5-filtered.length));
-                }
-                return filtered;
-              }}
+              filterOptions={x => x}
               renderInput={(params) =>
                 <InputBase
                   placeholder="Search..."
@@ -684,6 +647,7 @@ function App() {
                       <IconButton
                         size="small"
                         onClick={() => {
+                          setSearchDest(null);
                           setSearch(null);
                           setSearchInput('');
                           window.history.replaceState(null, '', '?');
@@ -696,9 +660,10 @@ function App() {
                   }
                 />
               }
+              isOptionEqualToValue={(option, value) => option.icao === value.icao && option.from === value.from}
               PopperComponent={PopperMy}
-              onChange={(evt, value) => value && goTo(value.icao)}
-              value={search ? icaodataSrc[search] : null}
+              onChange={(evt, value) => value && goTo(value.icao, value.from)}
+              value={search ? (searchDest ? searchDestRef.current : icaodataSrc[search]) : null}
               inputValue={searchInput}
               onInputChange={(evt, value) => setSearchInput(value)}
               autoHighlight={true}
@@ -706,191 +671,14 @@ function App() {
             />
           </Box>
         </Toolbar>
-        {filters &&
-          <Box
-            sx={{
-              display: 'flex',
-              px: 1,
-              pb: 1,
-              boxSizing: 'border-box'
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                flexGrow: 1,
-                justifyContent: 'center',
-                gap: {
-                  xs: 1,
-                  xl: 2
-                }
-              }}
-            >
-              <Box sx={styles.boxBorder}>
-                <FlightTakeoffIcon sx={fromIcao === null && toIcao === null ? styles.tgBtn : null}/>
-                &nbsp;&nbsp;
-                <MyTooltip title='Jobs radiating FROM this airport'>
-                  <InputBase
-                    placeholder="From"
-                    sx={styles.inputM}
-                    inputProps={{maxLength:4}}
-                    value={fromIcaoInput}
-                    onChange={evt => setFrom(evt.target.value)}
-                  />
-                </MyTooltip>
-                &nbsp;
-                <MyTooltip title='Jobs radiating TO this airport'>
-                  <InputBase
-                    placeholder="To"
-                    sx={styles.inputM}
-                    inputProps={{maxLength:4}}
-                    value={toIcaoInput}
-                    onChange={evt => setTo(evt.target.value)}
-                  />
-                </MyTooltip>
-              </Box>
-              <MyTooltip title='Jobs going in this direction (+/- 30°)'>
-                <Box sx={styles.boxBorder}>
-                  <ExploreIcon sx={direction === '' ? styles.tgBtn : null}/>
-                  &nbsp;&nbsp;
-                  <InputBase
-                    placeholder="145°"
-                    sx={styles.inputS}
-                    inputProps={{maxLength:3}}
-                    value={direction}
-                    onChange={evt => { setDirection(evt.target.value); }}
-                  />
-                </Box>
-              </MyTooltip>
-              <ToggleButtonGroup value={type} onChange={(evt, val) => {setType(val)}} exclusive>
-                <TooltipToggleButton value="Trip-Only" title="Trip Only">
-                  <EmojiPeopleIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="VIP" title="VIP">
-                  <StarIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="All-In" title="All In">
-                  <FlightIcon />
-                </TooltipToggleButton>
-              </ToggleButtonGroup>
-              <ToggleButtonGroup value={cargo} onChange={(evt, val) => setCargo(val)} exclusive>
-                <TooltipToggleButton value="passengers" title="Passengers">
-                  <PeopleIcon />
-                </TooltipToggleButton>
-                <TooltipToggleButton value="kg" title="Cargo">
-                  <BusinessCenterIcon />
-                </TooltipToggleButton>
-              </ToggleButtonGroup>
-              <Box sx={styles.boxBorder}>
-                {cargo === 'passengers' ?
-                  <React.Fragment>
-                    <PeopleIcon sx={minPax === '' && maxPax === '' ? styles.tgBtn : null} />
-                    &nbsp;
-                    <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
-                      <InputBase
-                        placeholder="min"
-                        sx={styles.inputS}
-                        value={minPax}
-                        onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinPax(nb); }}
-                      />
-                    </MyTooltip>
-                    -
-                    <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
-                      <InputBase
-                        placeholder="max"
-                        sx={styles.inputS}
-                        value={maxPax}
-                        onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxPax(nb); }}
-                      />
-                    </MyTooltip>
-                  </React.Fragment>
-                :
-                  <React.Fragment>
-                    <BusinessCenterIcon sx={minKg === '' && maxKg === '' ? styles.tgBtn : null} />
-                    &nbsp;
-                    <MyTooltip title={cargo === 'passengers' ? "Minimum number of passengers per segment" : "Minimum weight per segment"}>
-                      <InputBase
-                        placeholder="min"
-                        sx={styles.inputS}
-                        value={minKg}
-                        onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinKg(nb); }}
-                      />
-                    </MyTooltip>
-                    -
-                    <MyTooltip title={cargo === 'passengers' ? "Maximum number of passengers per job" : "Maximum weight per job"}>
-                      <InputBase
-                        placeholder="max"
-                        sx={styles.inputS}
-                        value={maxKg}
-                        onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxKg(nb); }}
-                      />
-                    </MyTooltip>
-                  </React.Fragment>
-                }
-              </Box>
-              <Box sx={styles.boxBorder}>
-                <SettingsEthernetIcon sx={minDist === '' && maxDist === '' ? styles.tgBtn : null} />
-                &nbsp;
-                <MyTooltip title='Minimum job distance in NM'>
-                  <InputBase
-                    placeholder="min"
-                    sx={styles.inputS}
-                    value={minDist}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinDist(nb); }}
-                  />
-                </MyTooltip>
-                -
-                <MyTooltip title='Maximum job distance in NM'>
-                  <InputBase
-                    placeholder="max"
-                    sx={styles.inputS}
-                    value={maxDist}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMaxDist(nb); }}
-                  />
-                </MyTooltip>
-              </Box>
-              <Box sx={styles.boxBorder}>
-                <MonetizationOnIcon sx={minJobPay === '' && minLegPay === '' && percentPay === '' ? styles.tgBtn : null} />
-                &nbsp;
-                <MyTooltip title='Minimum job pay (in $)'>
-                  <InputBase
-                    placeholder="Job $"
-                    sx={styles.inputM}
-                    value={minJobPay}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinJobPay(nb); }}
-                  />
-                </MyTooltip>
-                &nbsp;
-                <MyTooltip title='Minimum leg pay (in $)'>
-                  <InputBase
-                    placeholder="Leg $"
-                    sx={styles.inputM}
-                    value={minLegPay}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setMinLegPay(nb); }}
-                  />
-                </MyTooltip>
-                &nbsp;
-                <MyTooltip title='Top paying jobs (in percent)'>
-                  <InputBase
-                    placeholder="Top %"
-                    sx={styles.inputM}
-                    value={percentPay}
-                    onChange={evt => { let nb = parseInt(evt.target.value, 10) || ''; setPercentPay(nb); }}
-                  />
-                </MyTooltip>
-              </Box>
-              <MyTooltip title='Airport filtering'>
-                <IconButton
-                  onClick={() => setSettingsPopup('panel3')}
-                  sx={styles.tgBtn}
-                >
-                  <BusinessIcon />
-                </IconButton>
-              </MyTooltip>
-            </Box>
-          </Box>
+        {filtersBar &&
+          <Filters
+            filters={filters}
+            setFilters={setFilters}
+            icaodata={icaodata}
+            actions={actions}
+            setSettingsPopup={setSettingsPopup}
+          />
         }
       </AppBar>
       <Box
@@ -912,8 +700,8 @@ function App() {
         <FSEMap
           options={options}
           search={search}
+          searchDest={searchDest}
           icaos={icaos}
-          customIcaos={customIcaos}
           route={route}
           mapRef={mapRef}
           actions={actions}
@@ -924,6 +712,7 @@ function App() {
           hidden={!table}
           actions={actions}
           search={search}
+          searchDest={searchDest}
         />
       </Box>
       <UpdatePopup
@@ -935,8 +724,6 @@ function App() {
         icaodata={icaodata}
         icaos={icaos}
         settings={settings}
-        customIcaos={customIcaos}
-        setCustomIcaos={setCustomIcaos}
       />
       <SettingsPopup
         open={settingsPopup}

@@ -43,6 +43,53 @@ class Storage {
         this.remove('jobs');
         this.remove('flight');
       }
+      if (semver.lt(oldVersion, '1.11.0-alpha.0')) {
+        const icaos = this.get('customIcaos', []);
+        const layers = this.get('layers', [{"visible":true},{"visible":false},{"visible":false},{"visible":true},{"visible":true},{"visible":true}]);
+        let layersOrder = this.get('layersOrder', [0, 1, 2, 3, 4, 5]);
+        if (icaos.length > 0) {
+          const connections = [];
+          const settings = this.get('settings', {});
+          if (settings.display && settings.display.legs && settings.display.legs.display && settings.display.legs.display.custom) {
+            for (let i = 0; i < icaos.length - 1; i++) {
+              connections.push([icaos[i], icaos[i+1]]);
+            }
+          }
+          layers.push({
+            visible: true,
+            info: {
+              type: 'custom',
+              filters: {
+                size: [0, 23500],
+                surface: [1, 2, 3, 4, 5, 6, 7, 8],
+                runway: [0, 30000],
+                onlySim: false,
+                onlyBM: false,
+                onlyILS: false,
+                excludeMilitary: false,
+                price: [0, 0]
+              },
+              display: {
+                name: "Custom markers",
+                color: "#2980b9",
+                size: 20
+              },
+              data: {
+                icaos: icaos,
+                connections: connections,
+                points: []
+              }
+            },
+            id: uid()
+          });
+          layersOrder.push(layers.length - 1);
+        }
+        layers.splice(5, 1);
+        layersOrder = layersOrder.filter(elm => elm !== 5);
+        layersOrder = layersOrder.map(elm => elm > 5 ? elm-1 : elm);
+        this.set('layers', layers);
+        this.set('layersOrder', layersOrder);
+      }
       localStorage.setItem('version', version);
     }
   }

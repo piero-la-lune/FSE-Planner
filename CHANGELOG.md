@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.11.0] - 2022-03-13
+
+### New
+- The search box can now be used to search for a leg (type the departing ICAO code, then a ">" and finally the destination ICAO): the leg will be highlighted and focused on the Map view, the Table view will be filtered to keep only the corresponding jobs
+- New settings to prevent loading jobs that will expire soon
+- Right click on airport to open the Table view, right click on leg to open the Table view
+- Right click on airport to add (or remove) ICAO to an existing custom layer
+- New option to load jobs both FROM and TO the selected area/layer
+
+### Changed
+- Passenger and package jobs can now be displayed at the same time on the map
+- Removed Custom Markers feature
+
+### Fixed
+- Fixed Route Finder that was finding jobs too heavy to add the necessary fuel for the leg
+- Fixed application height bug in Safari mobile
+- In Route Finder, disable Add to My Flight button when there is a VIP job in the list
+
+
+
 ## [1.10.2] - 2022-03-07
 
 ### Fixed

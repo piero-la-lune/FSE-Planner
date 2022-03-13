@@ -1,7 +1,7 @@
 import React from 'react';
 import { Page, Text, View, Document, Link, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { getDistance, convertDistance, getRhumbLineBearing } from "geolib";
-import { airportSurface, simName } from './util/utility.js';
+import { airportSurface, simName } from '../util/utility.js';
 
 // Register font
 Font.register({
@@ -313,35 +313,35 @@ function PDFRoute({route, icaodata, routeParams, settings}) {
                     leg.cargo.map((c, i) => c.pax ?
                         <Text key={i} style={styles.cell}>&nbsp;</Text>
                       :
-                        <Text key={i} style={styles.cell}>{c.kg}kg package</Text>
+                        <Text key={i} style={styles.cell}>{c.kg} kg package</Text>
                     )
                   }
                   {
                     leg.VIPcargo.map((c, i) => c.pax ?
                         <Text key={i} style={styles.cell}>&nbsp;</Text>
                       :
-                        <Text key={i} style={styles.cell}>{c.kg}kg VIP package</Text>
+                        <Text key={i} style={styles.cell}>{c.kg} kg VIP package</Text>
                     )
                   }
-                  <Text style={styles.cellFooter}>{leg.cargo.reduce((acc, c) => c.pax ? acc : acc+c.kg, 0)+leg.VIPcargo.reduce((acc, c) => c.pax ? acc : acc+c.kg, 0)}kg</Text>
+                  <Text style={styles.cellFooter}>{leg.cargo.reduce((acc, c) => c.pax ? acc : acc+c.kg, 0)+leg.VIPcargo.reduce((acc, c) => c.pax ? acc : acc+c.kg, 0)} kg</Text>
                 </View>
                 <View style={{ flexDirection: 'column' }}>
                   <Text style={styles.cellHeader}>Weight</Text>
                   {
                     leg.cargo.map((c, i) => c.pax ?
-                        <Text key={i} style={styles.cell}>{c.pax*77}kg</Text>
+                        <Text key={i} style={styles.cell}>{c.pax*77} kg</Text>
                       :
-                        <Text key={i} style={styles.cell}>{c.kg}kg</Text>
+                        <Text key={i} style={styles.cell}>{c.kg} kg</Text>
                     )
                   }
                   {
                     leg.VIPcargo.map((c, i) => c.pax ?
-                        <Text key={i} style={styles.cell}>{c.pax*77}kg</Text>
+                        <Text key={i} style={styles.cell}>{c.pax*77} kg</Text>
                       :
-                        <Text key={i} style={styles.cell}>{c.kg}kg</Text>
+                        <Text key={i} style={styles.cell}>{c.kg} kg</Text>
                     )
                   }
-                  <Text style={styles.cellFooter}>{leg.kg}kg</Text>
+                  <Text style={styles.cellFooter}>{leg.kg} kg</Text>
                 </View>
                 <View style={{ flexDirection: 'column' }}>
                   <Text style={styles.cellHeader}>Revenue</Text>
@@ -360,7 +360,7 @@ function PDFRoute({route, icaodata, routeParams, settings}) {
                 :
                   <Text style={styles.item}>No seat available</Text>
               }
-              <Text style={styles.item}>{route.plane.preciseMaxKg(0) - leg.kg}kg available for fuel</Text>
+              <Text style={styles.item}>{route.plane.preciseMaxKg(0) - leg.kg} kg available for fuel</Text>
             </React.Fragment>
 
           )

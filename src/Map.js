@@ -13,8 +13,10 @@ import { getBounds, getDistance, getRhumbLineBearing, convertDistance } from "ge
 import L from "leaflet";
 import "@maplibre/maplibre-gl-leaflet";
 
+import { cleanLegs } from "./util/utility.js";
 import Canvas from "./MapLayers/Components/Canvas.js";
 import Marker from "./MapLayers/Components/Marker.js";
+import Job from "./MapLayers/Components/Job.js";
 import LayerControl from "./MapLayers/LayerControl.js";
 
 
@@ -143,6 +145,9 @@ const FSEMap = React.memo(function FSEMap(props) {
   // Display search marker
   const searchRef = React.useRef(null);
   const prevSearchRef = React.useRef(null);
+  const searchDestRef = React.useRef(null);
+  const searchDestLegRef = React.useRef(null);
+  const prevSearchDestRef = React.useRef(null);
   React.useEffect(() => {
     // Do not update is map is closed
     if (props.hidden) { return false; }
@@ -152,8 +157,64 @@ const FSEMap = React.memo(function FSEMap(props) {
       searchRef.current.remove();
       searchRef.current = null;
     }
+    if (searchDestRef.current) {
+      searchDestRef.current.remove();
+      searchDestRef.current = null;
+      searchDestLegRef.current.remove();
+      searchDestLegRef.current = null;
+    }
 
     // Only draw marker if search is not empty
+    if (props.searchDest) {
+      // Get jobs and draw line
+      let legs = [];
+      const key = props.search+'-'+props.searchDest;
+      if (props.options.jobs[key]) {
+        [legs, ] = cleanLegs({[key]: props.options.jobs[key]}, props.options);
+      }
+      if (!legs[key]) {
+        const fr = { latitude: props.options.icaodata[props.search].lat, longitude: props.options.icaodata[props.search].lon };
+        const to = { latitude: props.options.icaodata[props.searchDest].lat, longitude: props.options.icaodata[props.searchDest].lon };
+        legs[key] = {
+          amount: 0,
+          pay: 0,
+          direction: Math.round(getRhumbLineBearing(fr, to)),
+          distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
+        };
+      }
+      searchDestLegRef.current = Job({
+        positions: [[props.options.icaodata[props.search].lat, props.options.icaodata[props.search].lon], [props.options.icaodata[props.searchDest].lat, props.options.icaodata[props.searchDest].lon]],
+        color: s.display.markers.colors.selected,
+        highlight: s.display.legs.colors.highlight,
+        weight: s.display.legs.weights.flight,
+        leg: legs[key],
+        options: props.options,
+        actions: props.actions,
+        fromIcao: props.search,
+        toIcao: props.searchDest
+      })
+        .addTo(mapRef.current);
+      // Draw marker
+      searchDestRef.current = Marker({
+        position: [props.options.icaodata[props.searchDest].lat, props.options.icaodata[props.searchDest].lon],
+        size: s.display.markers.sizes.selected,
+        color: s.display.markers.colors.selected,
+        icao: props.searchDest,
+        icaodata: props.options.icaodata,
+        planes: props.options.planes[props.searchDest],
+        siminfo: s.display.sim,
+        actions: props.actions
+      })
+        .addTo(mapRef.current);
+      // Zoom on leg if one ICAO has changed
+      if ((prevSearchRef.current !== props.search || prevSearchDestRef.current !== props.searchDest) && props.search !== props.searchDest) {
+        const points = [props.search, props.searchDest].map(elm => props.options.icaodata[elm]);
+        const b = getBounds(points);
+        // Need a small delay, otherwise does not work because of invalidateSize in App.js
+        setTimeout(() => { mapRef.current.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]]) }, 10);
+        ;
+      }
+    }
     if (props.search) {
       searchRef.current = Marker({
         position: [props.options.icaodata[props.search].lat, props.options.icaodata[props.search].lon],
@@ -167,19 +228,18 @@ const FSEMap = React.memo(function FSEMap(props) {
       })
         .addTo(mapRef.current);
       // Only open popup if search ICAO has changed
-      if (prevSearchRef.current !== props.search) {
+      if (prevSearchRef.current !== props.search && !props.searchDest) {
         setTimeout(() => { searchRef.current && searchRef.current.openPopup() }, 10);
       }
     }
 
     prevSearchRef.current = props.search;
+    prevSearchDestRef.current = props.searchDest;
   }, [
     props.search,
-    props.options.icaodata,
-    props.options.planes,
-    s.display.sim,
-    s.display.markers.colors.selected,
-    s.display.markers.sizes.selected,
+    props.searchDest,
+    props.options,
+    s,
     props.actions,
     props.hidden
   ]);
@@ -188,6 +248,10 @@ const FSEMap = React.memo(function FSEMap(props) {
   React.useEffect(() => {
     if (searchRef.current) {
       searchRef.current.bringToFront();
+    }
+    if (searchDestRef.current) {
+      searchDestRef.current.bringToFront();
+      searchDestLegRef.current.bringToFront();
     }
   }, [props.options]);
 
@@ -293,7 +357,6 @@ const FSEMap = React.memo(function FSEMap(props) {
           options={props.options}
           actions={props.actions}
           route={props.route}
-          customIcaos={props.customIcaos}
           icaos={props.icaos}
         />
       }

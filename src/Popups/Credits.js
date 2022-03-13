@@ -99,6 +99,30 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.11.0 (2022-03-13)</Typography>
+            <Alert sx={{m:1}} severity="warning">The "Custom markers" feature has been removed. Your custom markers have been automatically migrated to a new custom layer named "Custom markers".</Alert>
+            <Typography variant="h6">New</Typography>
+            <List dense>
+              <ListItem>The search box can now be used to search for a leg (type the departing ICAO code, then a "&gt;" and finally the destination ICAO): the leg will be highlighted and focused on the Map view, the Table view will be filtered to keep only the corresponding jobs</ListItem>
+              <ListItem>New settings to prevent loading jobs that will expire soon</ListItem>
+              <ListItem>Right click on airport to open the Table view, right click on leg to open the Table view</ListItem>
+              <ListItem>Right click on airport to add (or remove) ICAO to an existing custom layer</ListItem>
+              <ListItem>New option to load jobs both FROM and TO the selected area/layer</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Passenger and package jobs can now be displayed at the same time on the map</ListItem>
+              <ListItem>Removed Custom Markers feature</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed Route Finder that was finding jobs too heavy to add the necessary fuel for the leg</ListItem>
+              <ListItem>Fixed application height bug in Safari mobile</ListItem>
+              <ListItem>In Route Finder, disable Add to My Flight button when there is a VIP job in the list</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.10.2 (2022-03-07)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
@@ -110,7 +134,6 @@ function CreditsPopup(props) {
 
           <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.10.0 (2022-03-05)</Typography>
-            <Alert sx={{m:1}} severity="info">The "Custom markers" feature will be removed in a future release, because all underlying features are now also available in the custom layers. Custom markers will not be lost, they will be automatically transferred to a new custom layer.</Alert>
             <Typography variant="h6">New</Typography>
             <List dense>
               <ListItem>New Table view: display all available assignments and planes in a table instead of the map. Filters are shared between the Map view and the Table view</ListItem>

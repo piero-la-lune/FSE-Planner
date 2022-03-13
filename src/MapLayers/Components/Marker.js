@@ -324,6 +324,13 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
             w.focus();
           }
         });
+        actions.push({
+          name: 'View jobs',
+          onClick: () => {
+            props.actions.current.openTable();
+            props.actions.current.goTo(props.icao);
+          }
+        });
         const isFromIcao = props.actions.current.isFromIcao(props.icao);
         const isToIcao = props.actions.current.isToIcao(props.icao);
         if (isFromIcao) {
@@ -360,22 +367,31 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
             }
           });
         }
-        if (props.actions.current.isInCustom(props.icao)) {
-          actions.push({
-            name: 'Remove from Customs Markers',
-            onClick: () => props.actions.current.removeCustom(props.icao)
-          });
-        }
-        else {
-          actions.push({
-            name: 'Add to Customs Markers',
-            onClick: () => props.actions.current.addCustom(props.icao)
-          });
-        }
         actions.push({
           name: 'Mesure distance from this point',
           onClick: () => props.actions.current.measureDistance(evt.latlng)
         });
+        // Custom layers action
+        const layers = props.actions.current.getCustomLayers(props.icao);
+        if (layers.length) {
+          actions.push({
+            divider: true
+          });
+          for (const [id, name, exist] of layers) {
+            if (!exist) {
+              actions.push({
+                name: 'Add to layer "'+name+'"',
+                onClick: () => props.actions.current.addToCustomLayer(id, props.icao)
+              });
+            }
+            else {
+              actions.push({
+                name: 'Remove from layer "'+name+'"',
+                onClick: () => props.actions.current.removeFromCustomLayer(id, props.icao)
+              });
+            }
+          }
+        }
         // Chart links
         actions.push({
           divider: true

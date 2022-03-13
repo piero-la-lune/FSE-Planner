@@ -1,7 +1,7 @@
 import React from 'react';
 
-import JobsTable from './Table/JobsTable.js';
-import PlanesTable from './Table/PlanesTable.js';
+import JobsTable from './JobsTable.js';
+import PlanesTable from './PlanesTable.js';
 
 function Table(props) {
   const [table, setTable] = React.useState('jobs');

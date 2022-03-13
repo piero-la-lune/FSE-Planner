@@ -207,7 +207,8 @@ function SettingsPopup(props) {
   const directionOptions = [
     ['from', 'Jobs FROM the selected area/layer'],
     ['to', 'Jobs TO the selected area/layer'],
-    ['both', 'Jobs inside the selected area/layer']
+    ['from&to', 'Jobs FROM and TO the selected area/layer'],
+    ['both', 'Jobs INSIDE the selected area/layer']
   ];
   const jobsPlanesOptions = [
     ['strict', 'Strict: only load jobs from the exact airports where a plane is available'],
@@ -262,20 +263,15 @@ function SettingsPopup(props) {
               <Setting s={s} setS={setS} label="FSE airport size" setting='display.markers.sizes.fse' />
               <Setting s={s} setS={setS} label="Simulator airport color" setting='display.markers.colors.sim' />
               <Setting s={s} setS={setS} label="Simulator airport size" setting='display.markers.sizes.sim' />
-              <Setting s={s} setS={setS} label="Custom marker airport color" setting='display.markers.colors.custom' />
-              <Setting s={s} setS={setS} label="Custom marker airport size" setting='display.markers.sizes.custom' />
-              <Setting s={s} setS={setS} label="Passenger leg color" setting='display.legs.colors.passengers' xs={3} />
-              <Setting s={s} setS={setS} label="Cargo leg color" setting='display.legs.colors.cargo' xs={3} />
-              <Setting s={s} setS={setS} label="My assignments leg color" setting='display.legs.colors.flight' xs={3} />
-              <Setting s={s} setS={setS} label="Highlighted leg color" setting='display.legs.colors.highlight' xs={3} />
-              <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" xs={3} />
-              <Setting s={s} setS={setS} label="Max passenger leg weight" setting='display.legs.weights.passengers' helperText="Leave empty to disable adaptative weight" xs={3} />
-              <Setting s={s} setS={setS} label="Max cargo leg weight" setting='display.legs.weights.cargo' helperText="Leave empty to disable adaptative weight" xs={3} />
-              <Setting s={s} setS={setS} label="My assignments leg weight" setting='display.legs.weights.flight' xs={3} />
+              <Setting s={s} setS={setS} label="Passenger leg color" setting='display.legs.colors.passengers' xs={4} />
+              <Setting s={s} setS={setS} label="My assignments leg color" setting='display.legs.colors.flight' xs={4} />
+              <Setting s={s} setS={setS} label="Highlighted leg color" setting='display.legs.colors.highlight' xs={4} />
+              <Setting s={s} setS={setS} label="Min leg weight" setting='display.legs.weights.base' helperText="Also used when adaptative weight is disabled" xs={4} />
+              <Setting s={s} setS={setS} label="Max passenger leg weight" setting='display.legs.weights.passengers' helperText="Leave empty to disable adaptative weight" xs={4} />
+              <Setting s={s} setS={setS} label="My assignments leg weight" setting='display.legs.weights.flight' xs={4} />
               <SettingSelect s={s} setS={setS} label="Default map" setting='display.map.basemap' options={mapOptions} />
               <SettingSelect s={s} setS={setS} label="Simulator" setting='display.sim' options={simOptions} />
               <SettingSlider s={s} setS={setS} label="Map center" setting='display.map.center' xs={12} />
-              <SettingSwitch s={s} setS={setS} label="Join Custom markers with a line to form a route" setting="display.legs.display.custom" xs={12} />
             </Grid>
           </AccordionDetails>
         </Accordion>
@@ -413,6 +409,10 @@ function SettingsPopup(props) {
           <AccordionDetails>
             <div>
               <Grid container spacing={3}>
+                <Setting s={s} setS={setS} label="Minimum job expiration (in hours)" end="H" setting='update.expiration' xs={6} helperText="Select only jobs that expires in, at least, this many hours. Leave empty to select all jobs" />
+                <SettingSwitch s={s} setS={setS} label="Include Express jobs" setting='update.express' xs={6} />
+              </Grid>
+              <Grid container spacing={3} sx={{ mt: 2 }}>
                 <SettingSelect s={s} setS={setS} label="Job direction for the selected area/layer" setting='update.direction' xs={6} options={directionOptions} />
               </Grid>
               <Grid container spacing={3} sx={{ mt: 2 }}>

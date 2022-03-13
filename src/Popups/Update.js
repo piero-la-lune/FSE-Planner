@@ -220,8 +220,16 @@ function cleanPlanes(list, username, rentable = true) {
   return planes;
 }
 
-function cleanJobs(list, icaodata, icaos = null) {
+function cleanJobs(list, icaodata, settings, icaos = null) {
   const jobs = {};
+  // If min expiration is set, compute max time
+  const minExpiration = new Date();
+  if (settings.expiration !== '') {
+    minExpiration.setTime(
+      minExpiration.getTime() +
+      parseInt(settings.expiration, 10) * 60 * 60 * 1000
+    );
+  }
   for (const job of list) {
     // Do not keep non paying jobs
     if (!parseInt(job.Pay)) { continue; }
@@ -232,6 +240,15 @@ function cleanJobs(list, icaodata, icaos = null) {
 
     // Do not keep jobs in the wrong direction
     if (icaos !== null && !icaos.includes(toIcao)) { continue; }
+
+    // Do not keep Express job if disabled in settings
+    if (!settings.express && job.Express === 'True') { continue; }
+
+    // Do not keep jobs close to expiration date
+    if (settings.expiration !== '') {
+      const expire = new Date(`${job.ExpireDateTime.replace(' ', 'T')}Z`);
+      if (expire < minExpiration) { continue; }
+    }
 
     // Ensure leg exist in jobs object
     if (!jobs.hasOwnProperty(frIcao)) {
@@ -366,7 +383,6 @@ function UpdatePopup(props) {
   const [loading, setLoading] = React.useState(false);
   const [openCustom, setOpenCustom] = React.useState(false);
   const [expanded, setExpanded] = React.useState(key ? false : 'panel1');
-  const [customIcaosVal, setCustomIcaosVal] = React.useState(props.customIcaos.join(' '));
   const [userList, setUserList] = React.useState([]);
   const [username, setUsername] = React.useState(storage.get('username', ''));
   const [assignmentKeys, setAssignmentKeys] = React.useState(storage.get('assignmentKeys', [{name: 'Personal assignments', enabled: true}]));
@@ -397,7 +413,9 @@ function UpdatePopup(props) {
 
   // Update the number of request for loading jobs each time one input changes
   React.useEffect(() => {
-    setJobsRequests(getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings)[1].length);
+    let nb = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings)[1].length;
+    if (props.settings.update.direction === 'from&to') { nb *= 2; }
+    setJobsRequests(nb);
   }, [jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings]);
 
   // Close popup
@@ -422,18 +440,12 @@ function UpdatePopup(props) {
     });
   }, []);
 
-  // Update Custom markers input
-  React.useEffect(() => {
-    setCustomIcaosVal(props.customIcaos.join(' '));
-  }, [props.customIcaos]);
-
   // Loop function to get jobs from FSE
-  const updateJobsRequest = (icaosList, jobs, callback) => {
+  const updateJobsRequest = (icaosList, jobs, dir, callback) => {
     if (!icaosList.length) {
       callback(jobs);
       return;
     }
-    const dir = props.settings.update.direction === 'to' ? 'jobsto' : 'jobsfrom';
     const url = 'data?userkey='+key+'&format=csv&query=icao&search='+dir+'&icaos='+icaosList.pop();
     // Fetch job list
     fetch(process.env.REACT_APP_PROXY+url)
@@ -449,7 +461,7 @@ function UpdatePopup(props) {
       if (parse.errors.length > 0) {
         throw new ParsingError(csv);
       }
-      updateJobsRequest(icaosList, [...jobs, ...parse.data], callback);
+      updateJobsRequest(icaosList, [...jobs, ...parse.data], dir, callback);
     })
     .catch(function(error) {
       log.error("Error while updating Jobs", error);
@@ -457,28 +469,46 @@ function UpdatePopup(props) {
       setLoading(false);
     });
   }
+  // Save jobs
+  const saveJobs = (jobs) => {
+    // Update jobs
+    storage.set('jobs', jobs, true);
+    props.setJobs(jobs);
+    // Update date
+    let date = new Date().toString();
+    storage.set('jobsTime', date);
+    setJobsTime(date);
+    // Update area
+    storage.set('jobsAreas', jobsAreas);
+    storage.set('jobsCustom', jobsCustom);
+    storage.set('jobsLayers', jobsLayers.map(elm => elm.id));
+    // Close popup
+    setLoading(false);
+    handleClose();
+  }
   // Jobs Update button clicked
   const updateJobs = (evt) => {
     evt.stopPropagation();
     setLoading('panel2');
     // Compute ICAO list
     const [icaos, icaosList] = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings);
-    updateJobsRequest(icaosList, [], (list) => {
-      const jobs = cleanJobs(list, props.icaodata, props.settings.update.direction === 'both' ? icaos : null);
-      // Update jobs
-      storage.set('jobs', jobs, true);
-      props.setJobs(jobs);
-      // Update date
-      let date = new Date().toString();
-      storage.set('jobsTime', date);
-      setJobsTime(date);
-      // Update area
-      storage.set('jobsAreas', jobsAreas);
-      storage.set('jobsCustom', jobsCustom);
-      storage.set('jobsLayers', jobsLayers.map(elm => elm.id));
-      // Close popup
-      setLoading(false);
-      handleClose();
+    const dir = props.settings.update.direction === 'to' ? 'jobsto' : 'jobsfrom';
+    updateJobsRequest([...icaosList], [], dir, (list) => {
+      const jobs = cleanJobs(list, props.icaodata, props.settings.update, props.settings.update.direction === 'both' ? icaos : null);
+      if (props.settings.update.direction === 'from&to') {
+        updateJobsRequest(icaosList, [], 'jobsto', (list) => {
+          const jobs2 = cleanJobs(list, props.icaodata, props.settings.update, null);
+          for (const key of Object.keys(jobs2)) {
+            if (!jobs.hasOwnProperty(key)) {
+              jobs[key] = jobs2[key];
+            }
+          }
+          saveJobs(jobs);
+        });
+      }
+      else {
+        saveJobs(jobs);
+      }
     });
   }
   // Jobs Clicked button clicked
@@ -645,7 +675,7 @@ function UpdatePopup(props) {
     evt.stopPropagation();
     setLoading('panel4');
     updateFlightRequest([...assignmentKeys], [], arr => {
-      const jobs = cleanJobs(arr, props.icaodata);
+      const jobs = cleanJobs(arr, props.icaodata, props.settings.update);
       // Update flight
       storage.set('flight', jobs);
       props.setFlight(jobs);
@@ -670,35 +700,6 @@ function UpdatePopup(props) {
     // Close popup
     setLoading(false);
     handleClose();
-  }
-
-  // Custom markers button clicked
-  const updateCustom = (evt) => {
-    evt.stopPropagation();
-    setLoading('panel5');
-    const elms = customIcaosVal.split(/[ ,\n]+/);
-    const icaos = [];
-    // Keep only existing ICAO
-    for (const elm of elms) {
-      if (props.icaodata[elm]) {
-        icaos.push(elm);
-      }
-    }
-    // Update var and storage
-    setCustomIcaosVal(icaos.join(' '));
-    props.setCustomIcaos(icaos);
-    // Do not update storage, it is done in App.js
-    // Close popup
-    setLoading(false);
-    handleClose();
-  }
-  const clearCustom = (evt) => {
-    evt.stopPropagation();
-    setLoading('panel5');
-    setCustomIcaosVal('');
-    props.setCustomIcaos([]);
-    storage.remove('customIcaos');
-    setLoading(false);
   }
 
   const panelChange = (panel) => (event, isExpanded) => {
@@ -983,37 +984,6 @@ function UpdatePopup(props) {
                   arr.push({name: name, key: key, enabled: true})
                   setAssignmentKeys(arr);
                   storage.set('assignmentKeys', arr);
-                }}
-              />
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion expanded={expanded === 'panel5'} onChange={panelChange('panel5')}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
-              <Typography sx={styles.title}>Custom markers</Typography>
-              <Button color="secondary" onClick={clearCustom}>
-                Clear
-              </Button>
-              &nbsp;
-              <span>
-                <Button variant="contained" color="primary" onClick={updateCustom} disabled={loading !== false}>
-                  Apply
-                  {loading === 'panel5' && <CircularProgress size={24} sx={styles.buttonProgress} />}
-                </Button>
-              </span>
-            </AccordionSummary>
-            <AccordionDetails sx={styles.accDetails}>
-              <Alert severity="info" style={{marginBottom: 32}}>These airports will form an highlighted route on the map (you can hide the path to only highlight the aiports in the display settings). You may add new aiports directly on the map with a right click.</Alert>
-              <TextField
-                label="List of FSE ICAOs"
-                multiline
-                rows={4}
-                variant="outlined"
-                placeholder="LFLY EGLL LFPO [...]"
-                helperText="ICAOs can be seperated by a white space, a new line or a coma."
-                value={customIcaosVal}
-                onChange={(evt) => {
-                  setCustomIcaosVal(evt.target.value);
                 }}
               />
             </AccordionDetails>
