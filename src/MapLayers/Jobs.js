@@ -84,7 +84,7 @@ function Jobs(props) {
     if (rleg && fr > to) { continue; }
 
     // Compute line weight
-    const mw = parseFloat(s.display.legs.weights[props.options.cargo === 'passengers' ? 'passengers' : 'cargo']);
+    const mw = parseFloat(s.display.legs.weights.passengers);
     const min = props.options.min || 1;
     const amount = rleg ? Math.max(leg.amount, rleg.amount) : leg.amount;
     let weight = parseFloat(s.display.legs.weights.base);
@@ -93,7 +93,7 @@ function Jobs(props) {
     }
 
     // Compute color
-    let color = s.display.legs.colors[props.options.cargo === 'passengers' ? 'passengers' : 'cargo'];
+    let color = s.display.legs.colors.passengers;
 
     // Special color and weight if My assignments
     if (leg.flight || (rleg && rleg.flight)) {
@@ -108,7 +108,6 @@ function Jobs(props) {
       weight: weight,
       leg: leg,
       rleg: rleg,
-      type: props.options.cargo,
       options: props.options,
       actions: props.actions,
       fromIcao: fr,

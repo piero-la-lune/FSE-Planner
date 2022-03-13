@@ -253,8 +253,7 @@ const imgs = [
   "settings/LayerZones.png",
   "settings/LayerSim.png",
   "settings/LayerJobs.png",
-  "settings/LayerRoute.png",
-  "settings/LayerCustom.png"
+  "settings/LayerRoute.png"
 ];
 
 const defaultLayer = {
@@ -334,20 +333,13 @@ function LayerControl(props) {
       type: 'route',
       layer: null,
       img: imgs[6]
-    },
-    {
-      label: "Custom markers",
-      visible: false,
-      type: 'airports-custom',
-      layer: null,
-      img: imgs[7]
-    },
+    }
   ]);
   const simIcaodataRef = React.useRef(null);
   const simRef = React.useRef(s.display.sim);
   const loadedRef = React.useRef(false);
   const toUpdateRef = React.useRef([]);
-  const orderRef = React.useRef(storage.get('layersOrder', [0, 1, 2, 3, 4, 5]));
+  const orderRef = React.useRef(storage.get('layersOrder', [0, 1, 2, 3, 4]));
   const unbuiltRef = React.useRef(null);
   const forsaleRef = React.useRef(null);
   const layerEditId = React.useRef(null);
@@ -410,27 +402,6 @@ function LayerControl(props) {
             options: props.options,
             actions: props.actions,
             route: props.route
-          });
-          showLayer(i);
-        }
-        else if (layerRef.type === 'airports-custom') {
-          const connections = [];
-          for (var j = 1; j < props.customIcaos.length; j++) {
-            connections.push([props.customIcaos[j-1], props.customIcaos[j]]);
-          }
-          layersRef.current[i].layer = AirportsLayer({
-            icaos: props.customIcaos,
-            icaodata: props.options.icaodata,
-            fseicaodata: props.options.icaodata,
-            planes: props.options.planes,
-            color: s.display.markers.colors.custom,
-            size: s.display.markers.sizes.custom,
-            weight: s.display.legs.weights.flight,
-            highlight: s.display.legs.colors.highlight,
-            colorPlanes: s.display.markers.colors.rentable,
-            actions: props.actions,
-            connections: s.display.legs.display.custom ? connections : undefined,
-            settings: s
           });
           showLayer(i);
         }
@@ -542,7 +513,6 @@ function LayerControl(props) {
     props.options,
     props.actions,
     props.route,
-    props.customIcaos,
     props.icaos,
     s
   ]);
@@ -575,15 +545,6 @@ function LayerControl(props) {
       }
     })
   }, [props.options, props.actions, props.route]);
-
-  // Update custom icaos
-  React.useEffect(() => {
-    layersRef.current.forEach((layerRef, id) => {
-      if (layerRef.type === 'airports-custom') {
-        toUpdateRef.current.push(id);
-      }
-    })
-  }, [props.options, props.actions, props.customIcaos]);
 
   // Update sim airports
   React.useEffect(() => {
@@ -619,7 +580,7 @@ function LayerControl(props) {
       }
     });
     toUpdateRef.current = [];
-  }, [props.options, props.actions, props.route, props.customIcaos, props.icaos, resetLayer]);
+  }, [props.options, props.actions, props.route, props.icaos, resetLayer]);
 
   // Layer factory for custom layers
   const layerFactory = (l, id = null) => {
@@ -662,7 +623,7 @@ function LayerControl(props) {
   // Show default layers and preload images
   React.useEffect(() => {
     if (!loadedRef.current) {
-      const ls = storage.get('layers', [{"visible":true},{"visible":false},{"visible":false},{"visible":true},{"visible":true},{"visible":true}]);
+      const ls = storage.get('layers', [{"visible":true},{"visible":false},{"visible":false},{"visible":true},{"visible":true}]);
       ls.forEach((l, i) => {
         if (l.info) {
           const ll = layerFactory(l.info, l.id);
@@ -925,6 +886,55 @@ function LayerControl(props) {
     setHover(false);
   }, []);
 
+  const handleEditLayer = (ll, id) => {
+    if (layersRef.current[id].layer) {
+      layersRef.current[id].layer.remove();
+    }
+    if (layersRef.current[id].layerInfo.shareEditID) {
+      fetch(process.env.REACT_APP_API_URL+'/layer/'+layersRef.current[id].layerInfo.shareID, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({version: process.env.REACT_APP_VERSION, info: ll.layerInfo, editId: layersRef.current[id].layerInfo.shareEditID})
+      }).then(response => {
+        if (!response.ok) {
+          alert('Unable to update this shared layer. Check your internet connection or try again later.')
+        }
+      });
+      ll.shared = true;
+      ll.layerInfo.shareID = layersRef.current[id].layerInfo.shareID;
+      ll.layerInfo.shareEditID = layersRef.current[id].layerInfo.shareEditID;
+    }
+    layersRef.current[id] = ll;
+  }
+
+  // Set actions
+  React.useState(() => {
+    props.actions.current.getCustomLayers = (icao) => {
+      const arr = [];
+      for (let i = 0; i < layersRef.current.length; i++) {
+        const l = layersRef.current[i];
+        if (l.src === "custom" && (!l.shared || l.layerInfo.shareEditID)) {
+          arr.push([i, l.label, l.icaos.includes(icao)]);
+        }
+      }
+      return arr;
+    }
+    props.actions.current.addToCustomLayer = (id, icao) => {
+      layersRef.current[id].layerInfo.data.icaos.push(icao);
+      const ll = layerFactory(layersRef.current[id].layerInfo, layersRef.current[id].id);
+      handleEditLayer(ll, id);
+      resetLayer(id);
+    };
+    props.actions.current.removeFromCustomLayer = (id, icao) => {
+      layersRef.current[id].layerInfo.data.icaos = layersRef.current[id].layerInfo.data.icaos.filter(elm => elm !== icao);
+      const ll = layerFactory(layersRef.current[id].layerInfo, layersRef.current[id].id);
+      handleEditLayer(ll, id);
+      resetLayer(id);
+    };
+  }, props.actions);
+
   return (
     <Paper
       elevation={3}
@@ -967,26 +977,7 @@ function LayerControl(props) {
           else {
             id = layerEditId.current;
             ll.id = layersRef.current[id].id;
-            if (layersRef.current[id].layer) {
-              layersRef.current[id].layer.remove();
-            }
-            if (layersRef.current[id].layerInfo.shareEditID) {
-              fetch(process.env.REACT_APP_API_URL+'/layer/'+layersRef.current[id].layerInfo.shareID, {
-                method: 'post',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({version: process.env.REACT_APP_VERSION, info: ll.layerInfo, editId: layersRef.current[id].layerInfo.shareEditID})
-              }).then(response => {
-                if (!response.ok) {
-                  alert('Unable to update this shared layer. Check your internet connection or try again later.')
-                }
-              });
-              ll.shared = true;
-              ll.layerInfo.shareID = layersRef.current[id].layerInfo.shareID;
-              ll.layerInfo.shareEditID = layersRef.current[id].layerInfo.shareEditID;
-            }
-            layersRef.current[id] = ll;
+            handleEditLayer(ll, id);
             layerEditId.current = null;
           }
           resetLayer(id);
@@ -1044,8 +1035,8 @@ function LayerControl(props) {
                 img={elm.img}
                 color={elm.color}
                 loading={loading === i}
-                handleRemove={i > 5 ? () => { removeLayer(i); } : null}
-                handleEdit={i > 5 && (!elm.shared || elm.layerInfo.shareEditID) ? () => { editLayer(i); } : null}
+                handleRemove={i > 4 ? () => { removeLayer(i); } : null}
+                handleEdit={i > 4 && (!elm.shared || elm.layerInfo.shareEditID) ? () => { editLayer(i); } : null}
                 onContextMenu={evt => openContextMenu(evt, i)}
                 shared={elm.shared}
               />
