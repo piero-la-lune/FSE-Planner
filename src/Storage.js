@@ -29,12 +29,14 @@ class Storage {
       }
       if (semver.lt(oldVersion, '1.8.1')) {
         const layers = this.get('layers');
-        for (const layer of layers) {
-          if (layer.info) {
-            layer.id = uid();
+        if (layers !== null) {
+          for (const layer of layers) {
+            if (layer.info) {
+              layer.id = uid();
+            }
           }
+          this.set('layers', layers);  
         }
-        this.set('layers', layers);
       }
       if (semver.lt(oldVersion, '1.10.1')) {
         this.remove('planes');

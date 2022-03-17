@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.11.1] - 2022-03-17
+
+### Fixed
+- Infinite loading screen due to a bug in data migration from older FSE Planner versions
+
+
+
 ## [1.11.0] - 2022-03-13
 
 ### New
