@@ -99,6 +99,14 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.11.1 (2022-03-17)</Typography>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Infinite loading screen due to a bug in data migration from older FSE Planner versions</ListItem>
+            </List>
+          </Paper>
+
             <Typography variant="h5" sx={styles.version}>v1.11.0 (2022-03-13)</Typography>
             <Alert sx={{m:1}} severity="warning">The "Custom markers" feature has been removed. Your custom markers have been automatically migrated to a new custom layer named "Custom markers".</Alert>
             <Typography variant="h6">New</Typography>
