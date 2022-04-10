@@ -290,9 +290,9 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       }
       else if (dest && !options.loop) {
         // If a given destination is set (and different from origin), only keep legs going in the right direction
-        const d = dist(to, dest, src);
-        const dir = getRhumbLineBearing(src[to].c, src[dest].c);
-        if ((180 - Math.abs(Math.abs(j.direction - dir) - 180)) > 30 || j.distance / d > 1.2) {
+        const d = dist(icao, dest, src);
+        const dir = getRhumbLineBearing(src[icao].c, src[dest].c);
+        if ((180 - Math.abs(Math.abs(j.direction - dir) - 180)) > 50 || j.distance / d > 1.2) {
           if (!badLegsCount) { continue; }
           newBadLegsCount -= 1;
         }
