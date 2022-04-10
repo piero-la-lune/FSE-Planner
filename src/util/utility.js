@@ -209,7 +209,7 @@ export function cleanLegs(jobs, opts) {
       if (opts.maxKg && job.kg > opts.maxKg) { return false; }
       // Filter out jobs with not enought cargo
       if (opts.type !== 'Trip-Only') {
-        if (opts.minMax && job.pax < opts.minPax) { return false; }
+        if (opts.minPax && job.pax < opts.minPax) { return false; }
         if (opts.minKg && job.kg < opts.minKg) { return false; }
       }
       amountPax += job.pax;
