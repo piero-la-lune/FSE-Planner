@@ -12,7 +12,9 @@ import Link from '@mui/material/Link';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Alert from '@mui/material/Alert';
-import { downloadReport } from '../util/logger.js';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import { downloadReport, uploadReport } from '../util/logger.js';
 
 
 const styles = {
@@ -41,14 +43,11 @@ function CreditsPopup(props) {
 
   const [expanded, setExpanded] = React.useState(0);
   const handleChange = (panel, newValue) => {
-    if (newValue === 2) {
+    if (newValue === 3) {
       handleClose();
       props.openTutorial();
     }
-    else if (newValue === 3) {
-      downloadReport();
-    }
-    else if (newValue !== 4){
+    else if (newValue < 3){
       setExpanded(newValue);
     }
   };
@@ -71,8 +70,8 @@ function CreditsPopup(props) {
         >
           <Tab label="Changelog" />
           <Tab label="Credits" />
+          <Tab label="Bug report" />
           <Tab label="Tutorial" />
-          <Tab label="Debug" />
           <Tab
             label="Donate"
             component="a"
@@ -99,7 +98,6 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
-          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.11.1 (2022-03-17)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
@@ -107,6 +105,7 @@ function CreditsPopup(props) {
             </List>
           </Paper>
 
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.11.0 (2022-03-13)</Typography>
             <Alert sx={{m:1}} severity="warning">The "Custom markers" feature has been removed. Your custom markers have been automatically migrated to a new custom layer named "Custom markers".</Alert>
             <Typography variant="h6">New</Typography>
@@ -580,6 +579,33 @@ function CreditsPopup(props) {
               <ListItem><Link href="https://leafletjs.com/">Leaflet</Link></ListItem>
               <ListItem>&copy;&nbsp;<Link href="https://www.openstreetmap.org/copyright">OpenStreetMap</Link>&nbsp;contributors</ListItem>
             </List>
+          </Paper>
+        </div>
+        <div hidden={expanded !== 2}>
+          <Paper sx={styles.content}>
+            <Typography variant="body1">To report a bug, open an <Link href="https://github.com/piero-la-lune/FSE-Planner/issues" target="_blank">issue in GitHub</Link>.</Typography>
+            <Typography variant="body1">Please attach to your issue the debug file that can be downloaded just below.</Typography>
+            <Box sx={{my: 1}}>
+              <Button variant="contained" onClick={downloadReport}>
+                Download debug file
+              </Button>
+            </Box>
+            { process.env.REACT_APP_DEBUG === 'true' &&
+              <Box sx={{mt: 2}}>
+                <label htmlFor="jsonImport">
+                  <input
+                    accept="text/json"
+                    id="jsonImport"
+                    type="file"
+                    style={{ display: 'none' }}
+                    onChange={uploadReport}
+                  />
+                  <Button variant="contained" component="span">
+                    Import debug file
+                  </Button>
+                </label>
+              </Box>
+            }
           </Paper>
         </div>
       </DialogContent>
