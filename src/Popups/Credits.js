@@ -98,6 +98,20 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.11.2 (2022-04-17)</Typography>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated MSFS data</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed "minimum number of passengers" filter bug with VIP jobs</ListItem>
+              <ListItem>Fixed wrong "bad leg" count in Route Finder when using the Free Search option with a destination</ListItem>
+              <ListItem>Fixed bug where closed MSFS airports would wrongly be displayed</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.11.1 (2022-03-17)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
