@@ -362,7 +362,6 @@ function SettingsPopup(props) {
                     <input
                       accept="image/*"
                       id="pdfImage"
-                      multiple
                       type="file"
                       style={{ display: 'none' }}
                       onChange={evt => {

@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.11.2] - 2022-04-17
+
+### Changed
+- Updated MSFS data
+
+### Fixed
+- Fixed "minimum number of passengers" filter bug with VIP jobs
+- Fixed wrong "bad leg" count in Route Finder when using the Free Search option with a destination
+- Fixed bug where closed MSFS airports would wrongly be displayed
+
+
+
 ## [1.11.1] - 2022-03-17
 
 ### Fixed

@@ -1,21 +1,22 @@
 {
   "name": "fseplanner",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "license": "MIT",
   "author": "piero-la-lune",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.7.1",
-    "@emotion/styled": "^11.6.0",
+    "@emotion/react": "^11.9.0",
+    "@emotion/styled": "^11.8.1",
     "@maplibre/maplibre-gl-leaflet": "^0.0.15",
-    "@mui/icons-material": "^5.4.1",
-    "@mui/lab": "^5.0.0-alpha.68",
-    "@mui/material": "^5.4.1",
-    "@mui/styles": "^5.4.1",
+    "@mui/icons-material": "^5.6.1",
+    "@mui/lab": "^5.0.0-alpha.77",
+    "@mui/material": "^5.6.1",
+    "@mui/styles": "^5.6.1",
     "@react-pdf/renderer": "^2.1.1",
-    "@testing-library/jest-dom": "^5.16.2",
+    "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
+    "env-cmd": "^10.1.0",
     "geolib": "^3.3.3",
     "he": "^1.2.0",
     "leaflet": "^1.7.1",
@@ -24,28 +25,29 @@
     "lodash": "^4.17.21",
     "lz-string": "^1.4.4",
     "react": "^17.0.2",
-    "react-app-rewired": "^2.1.11",
+    "react-app-rewired": "^2.2.1",
     "react-dom": "^17.0.2",
     "react-papaparse": "^4.0.2",
     "react-scripts": "4.0.3",
     "react-use": "^17.3.2",
     "reactour": "^1.18.7",
-    "semver": "^7.3.5",
+    "semver": "^7.3.7",
     "worker-loader": "^3.0.8"
   },
   "scripts": {
     "preinstall": "npx npm-force-resolutions",
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build"
+    "build": "react-app-rewired build",
+    "build:staging": "env-cmd -f .env.staging npm run build"
   },
   "resolutions": {
-    "react-error-overlay": "6.0.9"
+    "react-error-overlay": "6.0.11"
   },
   "eslintConfig": {
     "extends": "react-app"
   },
   "devDependencies": {
-    "react-error-overlay": "6.0.9"
+    "react-error-overlay": "6.0.11"
   },
   "browserslist": {
     "production": [
