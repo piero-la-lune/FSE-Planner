@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.11.3] - 2022-04-23
+
+### Changed
+- Updated FSE plane list (added Boeing 247D W42 and Rutan Long EZ RTW)
+- Updated libraries/dependencies
+
+### Fixed
+- Fixed X-Plane data (a lot of airports were missing)
+- Fixed bug where clicking on an airport name in Route Finder results would do nothing or crash the app
+- Fixed display bug with distance measuring tool
+
+
+
 ## [1.11.2] - 2022-04-17
 
 ### Changed

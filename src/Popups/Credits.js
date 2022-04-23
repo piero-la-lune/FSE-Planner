@@ -98,6 +98,21 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.11.3 (2022-04-23)</Typography>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE plane list (added Boeing 247D W42 and Rutan Long EZ RTW)</ListItem>
+              <ListItem>Updated libraries/dependencies</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed X-Plane data (a lot of airports were missing)</ListItem>
+              <ListItem>Fixed bug where clicking on an airport name in Route Finder results would do nothing or crash the app</ListItem>
+              <ListItem>Fixed display bug with distance measuring tool</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.11.2 (2022-04-17)</Typography>
             <Typography variant="h6">Changed</Typography>
             <List dense>
