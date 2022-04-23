@@ -1,12 +1,15 @@
 import React from 'react';
 import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 import Theme from './Theme.js';
 import ErrorBoundary from './ErrorBoundary.js';
 
-ReactDOM.render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
   <React.StrictMode>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={Theme}>
@@ -15,6 +18,5 @@ ReactDOM.render(
         </ErrorBoundary>
       </ThemeProvider>
     </StyledEngineProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
+  </React.StrictMode>
 );

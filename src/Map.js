@@ -141,7 +141,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   const prevSearchDestRef = React.useRef(null);
   React.useEffect(() => {
     // Do not update is map is closed
-    if (props.hidden) { return false; }
+    if (props.hidden) { return; }
 
     // If marker already exists remove it
     if (searchRef.current) {
