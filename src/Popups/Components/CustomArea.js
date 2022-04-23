@@ -7,8 +7,10 @@ import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import CloseIcon from '@mui/icons-material/Close';
 import L from "leaflet";
-import "leaflet-path-transform";
 
+import "@geoman-io/leaflet-geoman-free";
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+L.PM.setOptIn(true);
 
 function Map({mapCenter, bounds, setBounds}) {
 
@@ -26,15 +28,15 @@ function Map({mapCenter, bounds, setBounds}) {
         bounds: newBounds,
         boundsOptions: { animate:false },
         attributionControl: false,
+        pmIgnore: false
       });
       mapRef.current.fitBounds(newBounds);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current);
       // Create draggable and resizable rectangle
-      rectangleRef.current = L.rectangle(newBounds, {transform: true, draggable: true});
+      rectangleRef.current = L.rectangle(newBounds, { pmIgnore: false });
       rectangleRef.current.addTo(mapRef.current);
-      rectangleRef.current.transform.enable({rotation: false, scaling: true, uniformScaling: false});
-      rectangleRef.current.dragging.enable();
-      rectangleRef.current.on('transformed', () => setBounds(rectangleRef.current.getBounds()));
+      mapRef.current.pm.enableGlobalEditMode({ hideMiddleMarkers: true, preventMarkerRemoval: true });
+      rectangleRef.current.on('pm:markerdragend', () => setBounds(rectangleRef.current.getBounds()));
     }
     else {
       mapRef.current.fitBounds(newBounds);

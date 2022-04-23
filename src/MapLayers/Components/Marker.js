@@ -310,9 +310,6 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
       minWidth: sim ? 50 : Math.min(250, window.innerWidth-10),
       maxWidth: Math.max(600, window.innerWidth-10)
     })
-    .on('click', (evt) => {
-      props.actions.current.markerClick(evt);
-    })
     .on('contextmenu', (evt) => {
       L.DomEvent.stopPropagation(evt);
       const actions = [];
