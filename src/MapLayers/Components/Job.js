@@ -6,7 +6,8 @@ import Typography from '@mui/material/Typography';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import Theme from '../../Theme.js';
 
-import ReactDOM from "react-dom";
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import L from "leaflet";
 
 import { maximizeTripOnly } from '../../util/utility.js';
@@ -125,11 +126,14 @@ function Job(props) {
   })
     .bindTooltip(() => {
       var div = document.createElement('div');
-      ReactDOM.render((
-        <ThemeProvider theme={Theme}>
-          <Tooltip {...props} />
-        </ThemeProvider>
-      ), div);
+      const root = createRoot(div);
+      flushSync(() => {
+        root.render((
+          <ThemeProvider theme={Theme}>
+            <Tooltip {...props} />
+          </ThemeProvider>
+        ));
+      });
       return div;
     }, {sticky: true})
     .on('contextmenu', (evt) => {

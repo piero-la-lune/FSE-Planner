@@ -190,7 +190,7 @@ function Table(props) {
 
   // Update rows when data has changed
   React.useEffect(() => {
-    if (props.hidden) { return false; }
+    if (props.hidden) { return; }
 
     const planes = [];
     let lookup = Object.entries(props.options.planes);

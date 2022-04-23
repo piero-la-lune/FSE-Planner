@@ -394,7 +394,7 @@ function UpdatePopup(props) {
 
   // Update available custom layers when opening the popup
   React.useEffect(() => {
-    if (!props.open) { return false; }
+    if (!props.open) { return; }
     const arr = storage.get('layers', []);
     const l = [];
     for (const layer of arr) {

@@ -4,7 +4,8 @@ import JobSegment from "./Components/JobSegment.js";
 import Typography from '@mui/material/Typography';
 import Theme from '../Theme.js';
 
-import ReactDOM from "react-dom";
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
@@ -54,11 +55,14 @@ function GPSLayer(props) {
       })
         .bindTooltip(() => {
           var div = document.createElement('div');
-          ReactDOM.render((
-            <ThemeProvider theme={Theme}>
-              <Typography variant="body1"><b>{leg.distance} NM</b></Typography>
-            </ThemeProvider>
-          ), div);
+          const root = createRoot(div);
+          flushSync(() => {
+            root.render((
+              <ThemeProvider theme={Theme}>
+                <Typography variant="body1"><b>{leg.distance} NM</b></Typography>
+              </ThemeProvider>
+            ));
+          });
           return div;
         }, {sticky: true})
         .addTo(group);

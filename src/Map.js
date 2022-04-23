@@ -12,6 +12,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import { getBounds, getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import L from "leaflet";
 import "@maplibre/maplibre-gl-leaflet";
+import "@geoman-io/leaflet-geoman-free";
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 
 import { cleanLegs } from "./util/utility.js";
 import Canvas from "./MapLayers/Components/Canvas.js";
@@ -19,6 +21,7 @@ import Marker from "./MapLayers/Components/Marker.js";
 import Job from "./MapLayers/Components/Job.js";
 import LayerControl from "./MapLayers/LayerControl.js";
 
+L.PM.setOptIn(true);
 
 const FSEMap = React.memo(function FSEMap(props) {
 
@@ -31,53 +34,17 @@ const FSEMap = React.memo(function FSEMap(props) {
   const mapRef = React.useRef(null);
   const distanceRef = React.useRef(null);
 
-  // When user has clicked a second time on the map to measure a distance
-  const endMeasure = latlng => {
-    distanceRef.current = {
-      startLatlng: distanceRef.current.startLatlng,
-      stopLatlng: latlng,
-      line2: L.polyline([distanceRef.current.startLatlng, latlng], { color: '#fff', weight: 4 }).addTo(mapRef.current),
-      line1: L.polyline([distanceRef.current.startLatlng, latlng], { color: '#000' }).addTo(mapRef.current),
-      startMarker: L.circleMarker(distanceRef.current.startLatlng, {
-        color: '#fff',
-        weight: 1,
-        fillColor: '#000',
-        fillOpacity: 1,
-        draggable: true
-      }).on('dragend', evt => {
-        let fr = evt.target.getLatLng();
-        let to = distanceRef.current.stopLatlng;
-        distanceRef.current.line1.setLatLngs([fr, to])
-        distanceRef.current.line2.setLatLngs([fr, to])
-        distanceRef.current.startLatlng = fr;
-        setMeasureDistance({
-          direction: Math.round(getRhumbLineBearing(fr, to)),
-          distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
-        });
-      }).addTo(mapRef.current),
-      stopMarker: L.circleMarker(latlng, {
-        color: '#fff',
-        weight: 1,
-        fillColor: '#000',
-        fillOpacity: 1,
-        draggable: true
-      }).on('dragend', evt => {
-        let fr = distanceRef.current.startLatlng;
-        let to = evt.target.getLatLng();
-        distanceRef.current.line1.setLatLngs([fr, to])
-        distanceRef.current.line2.setLatLngs([fr, to])
-        distanceRef.current.stopLatlng = to;
-        setMeasureDistance({
-          direction: Math.round(getRhumbLineBearing(fr, to)),
-          distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
-        });
-      }).addTo(mapRef.current)
-    };
-    setMeasureDistance({
-      direction: Math.round(getRhumbLineBearing(distanceRef.current.startLatlng, latlng)),
-      distance: Math.round(convertDistance(getDistance(distanceRef.current.startLatlng, latlng), 'sm'))
-    });
-  }
+  const startDistanceMeasure = React.useRef((latlng) => {
+    // If already measuring a distance, remove previous line
+    if (distanceRef.current !== null) {
+      distanceRef.current.remove();
+      distanceRef.current = null;
+    }
+    setMeasureDistance(true);
+    // Enable drawing a line and add clicked location as first point
+    mapRef.current.pm.enableDraw('Line', {tooltips: false});
+    mapRef.current.pm.Draw.Line._createVertex({latlng: latlng})
+  });
 
   // Initialize map
   React.useEffect(() => {
@@ -92,6 +59,7 @@ const FSEMap = React.memo(function FSEMap(props) {
       renderer: canvas,
       zoomControl: false,
       attributionControl: false,
+      pmIgnore: false
     });
     mapRef.current.on('contextmenu', (evt) => {
       evt.originalEvent.stopPropagation();
@@ -105,17 +73,40 @@ const FSEMap = React.memo(function FSEMap(props) {
         actions: [{
           name: 'Mesure distance from this point',
           onClick: () => {
-            setMeasureDistance(true);
-            distanceRef.current = { startLatlng: evt.latlng };
+            startDistanceMeasure.current(evt.latlng);
           }
         }]
       });
     });
-    mapRef.current.on('click', (evt) => {
-      if (distanceRef.current && !distanceRef.current.stopLatlng) {
-        endMeasure(evt.latlng);
-      }
-    })
+    // When measuring line is finished: enable editing
+    mapRef.current.on('pm:create', e => {
+      const updateMeasure = () => {
+        const [fr, to] = e.layer.getLatLngs();
+        setMeasureDistance({
+          direction: Math.round(getRhumbLineBearing(fr, to)),
+          distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
+        });
+      };
+      // Enable editing
+      e.layer.setStyle({ pmIgnore: false });
+      L.PM.reInitLayer(e.layer);
+      e.layer.pm.enable({ hideMiddleMarkers: true, preventMarkerRemoval: true });
+      distanceRef.current = e.layer;
+      // Update distance and bearing
+      updateMeasure();
+      e.layer.on('pm:markerdragend', () => {
+        updateMeasure();
+      });
+    });
+    // When measuring line starts: register event to limit the line to 2 points
+    mapRef.current.on('pm:drawstart', e => {
+      const { workingLayer } = e;
+      workingLayer.on('pm:vertexadded', e => {
+        if (workingLayer.getLatLngs().length >= 2) {
+         mapRef.current.pm.Draw.Line._finishShape();
+        }
+      });
+    });
     setInit(true);
   }, []);
 
@@ -150,7 +141,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   const prevSearchDestRef = React.useRef(null);
   React.useEffect(() => {
     // Do not update is map is closed
-    if (props.hidden) { return false; }
+    if (props.hidden) { return; }
 
     // If marker already exists remove it
     if (searchRef.current) {
@@ -289,17 +280,7 @@ const FSEMap = React.memo(function FSEMap(props) {
   }, [s.display.map.center]);
 
   props.actions.current.contextMenu = setContextMenu;
-  props.actions.current.measureDistance = (latlng) => {
-    setMeasureDistance(true);
-    distanceRef.current = { startLatlng: latlng };
-  }
-  props.actions.current.markerClick = (evt) => {
-    if (distanceRef.current && !distanceRef.current.stopLatlng) {
-      evt.originalEvent.preventDefault();
-      evt.originalEvent.stopPropagation();
-      endMeasure(evt.latlng);
-    }
-  }
+  props.actions.current.measureDistance = startDistanceMeasure.current;
 
   const closeContextMenu = () => {
     setContextMenu(null);
@@ -374,12 +355,7 @@ const FSEMap = React.memo(function FSEMap(props) {
               size="small"
               color="inherit"
               onClick={() => {
-                if (distanceRef.current.line1) {
-                  distanceRef.current.line1.remove();
-                  distanceRef.current.line2.remove();
-                  distanceRef.current.startMarker.remove();
-                  distanceRef.current.stopMarker.remove();
-                }
+                distanceRef.current.remove();
                 distanceRef.current = null;
                 setMeasureDistance(false);
               }}

@@ -12,7 +12,8 @@ import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Theme from '../../Theme.js';
 
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
-import ReactDOM from "react-dom";
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
@@ -290,28 +291,30 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
   )
     .bindPopup(() => {
       var div = document.createElement('div');
+      const root = createRoot(div);
       if (sim) {
-        ReactDOM.render((
-          <ThemeProvider theme={Theme}>
-            <Typography variant="h5" style={{padding:'3px 24px 3px 8px'}}>{props.icao}</Typography>
-          </ThemeProvider>
-        ), div);
+        flushSync(() => {
+          root.render((
+            <ThemeProvider theme={Theme}>
+              <Typography variant="h5" style={{padding:'3px 24px 3px 8px'}}>{props.icao}</Typography>
+            </ThemeProvider>
+          ));
+        });
       }
       else {
-        ReactDOM.render((
-          <ThemeProvider theme={Theme}>
-            <Popup {...props} />
-          </ThemeProvider>
-        ), div);
+        flushSync(() => {
+          root.render((
+            <ThemeProvider theme={Theme}>
+              <Popup {...props} />
+            </ThemeProvider>
+          ));
+        });
       }
       return div;
     }, {
       autoPanPadding: new L.Point(30, 30),
       minWidth: sim ? 50 : Math.min(250, window.innerWidth-10),
       maxWidth: Math.max(600, window.innerWidth-10)
-    })
-    .on('click', (evt) => {
-      props.actions.current.markerClick(evt);
     })
     .on('contextmenu', (evt) => {
       L.DomEvent.stopPropagation(evt);

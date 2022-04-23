@@ -242,7 +242,7 @@ function Table(props) {
 
   // Update rows when data has changed
   React.useEffect(() => {
-    if (props.hidden) { return false; }
+    if (props.hidden) { return; }
 
     let legs = cleanLegs(props.options.jobs, props.options)[0];
     const arr = [];

@@ -765,6 +765,7 @@ const Routing = React.memo((props) => {
             overheadLength={overheadLength}
             approachLength={approachLength}
             options={props.options}
+            actions={props.actions}
           />
 
         :
