@@ -6,34 +6,28 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import Autocomplete from '@mui/material/Autocomplete';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import InputAdornment from '@mui/material/InputAdornment';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from '@mui/material/Link';
-import Popover from '@mui/material/Popover';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import LinearProgress from '@mui/material/LinearProgress';
 import Checkbox from '@mui/material/Checkbox';
 import ListItemText from '@mui/material/ListItemText';
 import Alert from '@mui/material/Alert';
-import Popper from '@mui/material/Popper';
 import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
 
 
 import { getDistance, convertDistance, getBounds } from "geolib";
 
 import RoutingWorker from './routing.worker.js';
 import Result from './Result.js';
+import Results from './Results.js';
+import IcaoSearch from './IcaoSearch.js';
 import { hideAirport, Plane } from "../util/utility.js";
 import log from "../util/logger.js";
 
@@ -46,139 +40,15 @@ const styles = {
     scrollbarWidth: "thin",
     background: "#fff"
   },
-  icon: {
-    marginRight: 0.2
-  },
-  gridText: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
   formLabel: {
     marginBottom: 1.5,
     marginTop: 3
-  },
-  filtersInput: {
-    width: "100%",
-    mb: 1
-  },
-  searchOption: {
-    display: 'flex',
-    alignItems: 'center',
-    overflow: 'hidden'
-  },
-  searchInfos: {
-    display: 'flex',
-    flexDirection: 'column',
-    marginLeft: 2,
-    overflow: 'hidden',
-  },
-  searchLocation: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    color: '#aaa'
-  },
-  searchName: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap'
-  },
-  searchIcao: {
-    minWidth: 40,
-    textAlign: 'center'
   }
 };
 
-const filter = createFilterOptions({limit: 5});
-const PopperMy = function (props) {
-  return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
-}
-
-function filterText(sortBy, result) {
-  switch(sortBy) {
-    case 'payNM': return '$'+Math.round(result.payNM)+'/NM';
-    case 'payLeg': return '$'+Math.round(result.payLeg)+'/leg';
-    case 'payTime': return '$'+Math.round(result.payTime)+'/H';
-    case 'pay': return '';
-    default: return '$'+result.b+' bonus';
-  }
-}
-
-const Results = React.memo(({results, showDetail, goTo, setRoute, nbDisplay, sortBy}) => {
-  return (
-    results.slice(0, nbDisplay).map(result =>
-      <Box
-        sx={{
-          padding: 3,
-          borderBottom: "1px solid #eee",
-          cursor: "pointer",
-          "&:hover": {
-            background: "#f9f9f9"
-          },
-          position: "relative"
-        }}
-        key={result.id}
-        onClick={() => showDetail(result)}
-        onMouseEnter={() => setRoute(result)}
-      >
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          sx={{
-            '& .MuiBreadcrumbs-separator': {
-              marginLeft: '1px',
-              marginRight: '1px'
-            }
-          }}
-          maxItems={5}
-          itemsBeforeCollapse={3}
-        >
-          {result.icaos.map((icao, i) =>
-            <Link
-              href="#"
-              onClick={evt => {
-                evt.stopPropagation();
-                evt.preventDefault();
-                goTo(icao)
-              }}
-              key={i}
-            >{icao}</Link>
-          )}
-        </Breadcrumbs>
-        <Grid container spacing={1} sx={{ mt: 1, ml: -2 }}>
-          <Grid item xs={4}>
-            <Typography variant="body2" sx={styles.gridText}><AttachMoneyIcon sx={styles.icon} />{result.pay}</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="body2" sx={styles.gridText}><SettingsEthernetIcon sx={styles.icon} />{result.distance} NM</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="body2" sx={styles.gridText}><AccessTimeIcon sx={styles.icon} />{result.time}</Typography>
-          </Grid>
-        </Grid>
-        <Typography
-          variant="body2"
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            color: "#aaa",
-            fontSize: "0.8em"
-          }}
-        >
-          {filterText(sortBy, result)}
-        </Typography>
-      </Box>
-    )
-  );
-});
-
 
 const Routing = React.memo((props) => {
-  const results = React.useRef(null);
-  const resultsScroll = React.useRef(0);
-  const resultsDiv = React.useRef(null);
-  const [filteredResults, setFilteredResults] = React.useState(null);
+  const [results, setResults] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [nbResults, setNbResults] = React.useState(0);
   const [moreSettings, setMoreSettings] = React.useState(false);
@@ -191,9 +61,7 @@ const Routing = React.memo((props) => {
   const [rentFee, setRentFee] = React.useState(0);
   const [rentType, setRentType] = React.useState('dry');
   const [fromIcao, setFromIcao] = React.useState(null);
-  const [fromIcaoInput, setFromIcaoInput] = React.useState('');
   const [toIcao, setToIcao] = React.useState(null);
-  const [toIcaoInput, setToIcaoInput] = React.useState('');
   const [maxHops, setMaxHops] = React.useState(props.options.settings.routeFinder.maxHops);
   const [maxStops, setMaxStops] = React.useState(props.options.settings.routeFinder.maxStops);
   const [idleTime, setIdleTime] = React.useState(props.options.settings.routeFinder.idleTime);
@@ -207,18 +75,7 @@ const Routing = React.memo((props) => {
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
   const [maxBadLegs, setMaxBadLegs] = React.useState(props.options.settings.routeFinder.maxBadLegs);
   const [maxEmptyLeg, setMaxEmptyLeg] = React.useState(props.options.settings.routeFinder.maxEmptyLeg);
-  const [sortBy, setSortBy] = React.useState('payTime');
   const [focus, setFocus] = React.useState(null);
-  const [filterMenu, setFilterMenu] = React.useState(null);
-  const [minDist, setMinDist] = React.useState('');
-  const [maxDist, setMaxDist] = React.useState('');
-  const [minPay, setMinPay] = React.useState('');
-  const [maxPay, setMaxPay] = React.useState('');
-  const [minTime, setMinTime] = React.useState('');
-  const [maxTime, setMaxTime] = React.useState('');
-  const [filterIcaos, setFilterIcaos] = React.useState([]);
-  const [filterIcaosInput, setFilterIcaosInput] = React.useState('');
-  const [nbDisplay, setNbDisplay] = React.useState(20);
   const [progress, setProgress] = React.useState(0);
   const [cancel, setCancel] = React.useState(null);
   const [availableModels, setAvailableModels] = React.useState([]);
@@ -226,88 +83,16 @@ const Routing = React.memo((props) => {
   const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
   const [editSpecs, setEditSpecs] = React.useState(false);
 
-
   const icaodataArr = React.useMemo(() => Object.values(props.options.icaodata), [props.options.icaodata]);
-
-  const sortFunctions = {
-    payNM: (a, b) => b.payNM - a.payNM,
-    payLeg: (a, b) => b.payLeg - a.payLeg,
-    payTime: (a, b) => b.payTime - a.payTime,
-    pay: (a, b) => b.pay - a.pay,
-    bonus: (a, b) => b.b - a.b,
-  }
-
-  const changeSortBy = (evt) => {
-    setSortBy(evt.target.value);
-    if (results.current !== null) {
-      filteredResults.sort(sortFunctions[evt.target.value]);
-      setFilteredResults([...filteredResults]);
-    }
-  }
-  const filterResults = () => {
-    if (results.current !== null) {
-      let minTimeNb = null;
-      let maxTimeNb = null;
-      if (minTime) {
-        const t = minTime.split(':');
-        if (t.length === 2) {
-          minTimeNb = parseInt(t[0]) + parseInt(t[1])/60;
-        }
-        else {
-          setMinTime('');
-        }
-      }
-      if (maxTime) {
-        const t = maxTime.split(':');
-        if (t.length === 2) {
-          maxTimeNb = parseInt(t[0]) + parseInt(t[1])/60;
-        }
-        else {
-          setMaxTime('');
-        }
-      }
-
-      const r = results.current.filter(elm => {
-        return !(
-             (minDist && elm.distance < minDist)
-          || (maxDist && elm.distance > maxDist)
-          || (minPay && elm.pay < minPay)
-          || (maxPay && elm.pay > maxPay)
-          || (minTimeNb && elm.timeNb < minTimeNb)
-          || (maxTimeNb && elm.timeNb > maxTimeNb)
-          || (filterIcaos.length && !filterIcaos.every(x => elm.icaos.includes(x.icao)))
-        );
-      })
-      r.sort(sortFunctions[sortBy]);
-      setFilteredResults(r);
-      setFilterMenu(null);
-    }
-  }
 
   const setRoute = props.setRoute;
   const showDetail = React.useCallback((result) => {
-    resultsScroll.current = resultsDiv.current.scrollTop;
     setFocus(result);
     setRoute(result);
     // Center map on route
     const b = getBounds(result.icaos.map(elm => props.options.icaodata[elm]));
     props.mapRef.current.fitBounds([[b.minLat, b.minLng], [b.maxLat, b.maxLng]]);
   }, [props.options.icaodata, props.mapRef, setRoute]);
-
-  // Scroll back to previous position when returning to results list
-  React.useEffect(() => {
-    if (focus === null && resultsDiv.current) {
-      resultsDiv.current.scrollTo(0, resultsScroll.current);
-    }
-  }, [focus]);
-
-  // Scroll to top when filtering / changing sortby of results
-  React.useEffect(() => {
-    if (resultsDiv.current) {
-      resultsDiv.current.scrollTo(0 ,0);
-      setNbDisplay(20);
-    }
-  }, [filteredResults]);
 
   // Update list of available aircraft models
   React.useEffect(() => {
@@ -473,10 +258,8 @@ const Routing = React.memo((props) => {
       allResults[i].fuelCost = Math.ceil(fuelCost);
       allResults[i].plane = plane;
     }
-    allResults.sort(sortFunctions[sortBy]);
 
-    results.current = allResults;
-    filterResults();
+    setResults(allResults);
     setLoading(false);
     setCancel(null);
   }
@@ -485,7 +268,6 @@ const Routing = React.memo((props) => {
     setProgress(0);
     setLoading(true);
     setNbResults(0);
-    results.current = null;
 
     // Check ICAO if free mode
     if (type === 'free') {
@@ -555,6 +337,9 @@ const Routing = React.memo((props) => {
     else {
       icaos.push(fromIcao);
       addIcao(fromIcao);
+      if (toIcao) {
+        addIcao(toIcao);
+      }
     }
     const total = icaos.length;
 
@@ -754,293 +539,38 @@ const Routing = React.memo((props) => {
         </IconButton>
       </Typography>
 
-      {filteredResults ?
-
-        focus ?
-
-          <Result
-            focus={focus}
-            setFocus={setFocus}
-            idleTime={idleTime}
-            overheadLength={overheadLength}
-            approachLength={approachLength}
-            options={props.options}
-            actions={props.actions}
+      {results && !loading &&
+        <React.Fragment>
+          <Results
+            showDetail={showDetail}
+            setRoute={props.setRoute}
+            goTo={props.actions.current.goTo}
+            icaodataArr={icaodataArr}
+            close={() => {
+              setResults(null);
+              props.setRoute(null);
+              setMoreSettings(false);
+            }}
+            results={results}
+            type={type}
+            display={focus ? false : true}
           />
 
-        :
+          {focus &&
+            <Result
+              focus={focus}
+              setFocus={setFocus}
+              idleTime={idleTime}
+              overheadLength={overheadLength}
+              approachLength={approachLength}
+              options={props.options}
+              actions={props.actions}
+            />
+          }
+        </React.Fragment>
+      }
 
-          <React.Fragment>
-            <Box
-              sx={{
-                background: "#fff",
-                display: "flex",
-                alignItems: "center"
-              }}
-            >
-              <Box
-                sx={{
-                  cursor: "pointer",
-                  height: "100%",
-                  "&:hover": {
-                    background: "#f9f9f9"
-                  }
-                }}
-                onClick={() => {
-                  setFilteredResults(null);
-                  props.setRoute(null);
-                  results.current = null;
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    lineHeight: 0.8,
-                    textAlign: "center",
-                    py: 2,
-                    px: 1.5
-                  }}
-                >
-                  <ArrowBackIcon /><br />New search
-                </Typography>
-              </Box>
-              <Box sx={{ py: 2, px: 1 }}>
-                <Button
-                  variant="contained"
-                  onClick={(evt) => setFilterMenu(evt.currentTarget)}
-                  startIcon={<FilterListIcon />}
-                >
-                  Filters
-                </Button>
-                <Popover
-                  anchorEl={filterMenu}
-                  keepMounted
-                  open={Boolean(filterMenu)}
-                  onClose={() => setFilterMenu(null)}
-                  sx={{
-                    '& .MuiPaper-root': {
-                      maxWidth: 300,
-                      py: 1,
-                      px: 2
-                    }
-                  }}
-                >
-                  <Typography variant="body1" sx={{ mb: 2 }}>Route filters:</Typography>
-                  <Grid container spacing={1}>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Min distance"
-                        variant="outlined"
-                        value={minDist}
-                        onChange={(evt) => setMinDist(evt.target.value.replace(/[^0-9]/g, ''))}
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                        }}
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                        size="small"
-                        sx={styles.filtersInput}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Max distance"
-                        variant="outlined"
-                        value={maxDist}
-                        onChange={(evt) => setMaxDist(evt.target.value.replace(/[^0-9]/g, ''))}
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                        }}
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                        size="small"
-                        sx={styles.filtersInput}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Min duration"
-                        variant="outlined"
-                        value={minTime}
-                        placeholder="1:30"
-                        onChange={(evt) => {
-                          const val = evt.target.value;
-                          if (val.match(/^[0-9:]*$/g)) {
-                            setMinTime(val);
-                          }
-                        }}
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                        size="small"
-                        sx={styles.filtersInput}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Max duration"
-                        variant="outlined"
-                        value={maxTime}
-                        placeholder="6:30"
-                        onChange={(evt) => {
-                          const val = evt.target.value;
-                          if (val.match(/^[0-9:]*$/g)) {
-                            setMaxTime(val);
-                          }
-                        }}
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                        size="small"
-                        sx={styles.filtersInput}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Min pay"
-                        variant="outlined"
-                        value={minPay}
-                        onChange={(evt) => setMinPay(evt.target.value.replace(/[^0-9]/g, ''))}
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                        }}
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                        size="small"
-                        sx={styles.filtersInput}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Max pay"
-                        variant="outlined"
-                        value={maxPay}
-                        onChange={(evt) => setMaxPay(evt.target.value.replace(/[^0-9]/g, ''))}
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                        }}
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                        size="small"
-                        sx={styles.filtersInput}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Autocomplete
-                        options={icaodataArr}
-                        getOptionLabel={(a) => a.icao ? a.icao : ''}
-                        renderOption={(props, a) =>
-                          <li {...props}>
-                            <Box component="span" sx={styles.searchOption}>
-                              <Box component="b" sx={styles.searchIcao}>{a.icao}</Box>
-                              <Box component="span" sx={styles.searchInfos}>
-                                <Box component="span" sx={styles.searchName}>{a.name}</Box>
-                                <Typography variant="caption" sx={styles.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
-                              </Box>
-                            </Box>
-                          </li>
-                        }
-                        filterOptions={(options, params) => {
-                          // Search for ICAO
-                          let filtered = filter(options, { inputValue: filterIcaosInput, getOptionLabel: (a) => a.icao });
-                          // If not enough results, search for city name
-                          if (filtered.length < 5) {
-                            const add = filter(options, { inputValue: filterIcaosInput, getOptionLabel: (a) => a.name });
-                            filtered = filtered.concat(add.slice(0, 5-filtered.length));
-                          }
-                          return filtered;
-                        }}
-                        renderInput={(params) =>
-                          <TextField
-                            {...params}
-                            label="Include ICAO(s)"
-                            variant="outlined"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            size="small"
-                            sx={styles.filtersInput}
-                          />
-                        }
-                        PopperComponent={PopperMy}
-                        onChange={(evt, value) => {
-                          setFilterIcaos(value);
-                        }}
-                        value={filterIcaos}
-                        inputValue={filterIcaosInput}
-                        onInputChange={(evt, value) => setFilterIcaosInput(value)}
-                        autoHighlight={true}
-                        selectOnFocus={false}
-                        multiple
-                      />
-                    </Grid>
-                  </Grid>
-                  <Button variant="contained" color="primary" onClick={filterResults} sx={{ mt: 1 }}>Apply</Button>
-                </Popover>
-              </Box>
-              <Box sx={{ py: 2, px: 1 }}>
-                <TextField
-                  value={sortBy}
-                  onChange={changeSortBy}
-                  label="Sort by"
-                  variant="outlined"
-                  size="small"
-                  select
-                  sx={{
-                    width: 150,
-                    fontSize: "0.8em"
-                  }}
-                  InputProps={{style:{fontSize:"1em"}}}
-                  InputLabelProps={{style:{fontSize:"1em"}}}
-                >
-                  <MenuItem value="payNM">Pay per NM</MenuItem>
-                  <MenuItem value="payLeg">Pay per leg</MenuItem>
-                  <MenuItem value="payTime">Pay per flight time</MenuItem>
-                  <MenuItem value="pay">Total pay</MenuItem>
-                  {type === "rent" && <MenuItem value="bonus">Plane bonus</MenuItem>}
-                </TextField>
-              </Box>
-            </Box>
-            <Box
-              sx={{
-                background: "#fff",
-                borderBottom: "1px solid #eee",
-                padding: 1
-              }}
-            >
-              {
-                filteredResults.length > 0 ?
-                  <Typography variant="body2">{filteredResults.length} routes found.</Typography>
-                :
-                  <Typography variant="body2">No route found.</Typography>
-              }
-            </Box>
-            <Box
-              ref={resultsDiv}
-              sx={styles.content}
-              onScroll={() => {
-                if (resultsDiv.current.scrollHeight - resultsDiv.current.scrollTop - resultsDiv.current.clientHeight < 400 && nbDisplay < filteredResults.length) {
-                  setNbDisplay(nbDisplay + 20);
-                }
-              }}
-            >
-              <Results
-                results={filteredResults}
-                showDetail={showDetail}
-                goTo={props.actions.current.goTo}
-                setRoute={props.setRoute}
-                nbDisplay={nbDisplay}
-                sortBy={sortBy}
-              />
-            </Box>
-          </React.Fragment>
-
-      :
-
+      {!results && !loading &&
         <Box sx={{ ...styles.content, ...{ p: 2 }}}>
 
           <ToggleButtonGroup
@@ -1049,9 +579,6 @@ const Routing = React.memo((props) => {
             onChange={(evt, newType) => {
               if (newType !== null) {
                 setType(newType);
-                if (newType !== 'rent' && sortBy === 'bonus') {
-                  setSortBy('payTime');
-                }
               }
             }}
             sx={{
@@ -1066,6 +593,16 @@ const Routing = React.memo((props) => {
 
           { type === "rent" ?
             <React.Fragment>
+              <Box
+                sx={{
+                  background: "rgba(0, 0, 0, 0.04)",
+                  borderRadius: 1,
+                  border: "1px solid rgba(0, 0, 0, 0.12)",
+                  p: 1
+                }}
+              >
+                <Typography variant="body">Search for the best paying routes using a rented aircraft.</Typography>
+              </Box>
               {availableModels.length ?
                 <Autocomplete
                   multiple
@@ -1094,43 +631,23 @@ const Routing = React.memo((props) => {
             </React.Fragment>
           :
             <React.Fragment>
+              <Box
+                sx={{
+                  background: "rgba(0, 0, 0, 0.04)",
+                  borderRadius: 1,
+                  border: "1px solid rgba(0, 0, 0, 0.12)",
+                  p: 1
+                }}
+              >
+                <Typography variant="body">Search for the best paying routes given a starting location and an aircraft model.</Typography>
+              </Box>
               <Typography variant="body1" sx={styles.formLabel}>Restrict search to specific route:</Typography>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
-                  <Autocomplete
+                  <IcaoSearch
                     options={icaodataArr}
-                    getOptionLabel={(a) => a.icao ? a.icao : ''}
-                    renderOption={(props, a) =>
-                      <li {...props}>
-                        <Box component="span" sx={styles.searchOption}>
-                          <Box component="b" sx={styles.searchIcao}>{a.icao}</Box>
-                          <Box component="span" sx={styles.searchInfos}>
-                            <Box component="span" sx={styles.searchName}>{a.name}</Box>
-                            <Typography variant="caption" sx={styles.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
-                          </Box>
-                        </Box>
-                      </li>
-                    }
-                    filterOptions={(options, params) => {
-                      // Search for ICAO
-                      let filtered = filter(options, { inputValue: fromIcaoInput, getOptionLabel: (a) => a.icao });
-                      // If not enough results, search for city name
-                      if (filtered.length < 5) {
-                        const add = filter(options, { inputValue: fromIcaoInput, getOptionLabel: (a) => a.name });
-                        filtered = filtered.concat(add.slice(0, 5-filtered.length));
-                      }
-                      return filtered;
-                    }}
-                    renderInput={(params) =>
-                      <TextField
-                        {...params}
-                        label="From"
-                        variant="outlined"
-                        placeholder="ICAO"
-                        required
-                      />
-                    }
-                    PopperComponent={PopperMy}
+                    label="From"
+                    required
                     onChange={(evt, value) => {
                       if (value) {
                         setFromIcao(value.icao);
@@ -1140,47 +657,12 @@ const Routing = React.memo((props) => {
                       }
                     }}
                     value={fromIcao ? props.options.icaodata[fromIcao] : null}
-                    inputValue={fromIcaoInput}
-                    onInputChange={(evt, value) => setFromIcaoInput(value)}
-                    autoHighlight={true}
-                    autoSelect={true}
-                    selectOnFocus={false}
                   />
                 </Grid>
                 <Grid item xs={6}>
-                  <Autocomplete
+                  <IcaoSearch
                     options={icaodataArr}
-                    getOptionLabel={(a) => a.icao ? a.icao : ''}
-                    renderOption={(props, a) =>
-                      <li {...props}>
-                        <Box component="span" sx={styles.searchOption}>
-                          <Box component="b" sx={styles.searchIcao}>{a.icao}</Box>
-                          <Box component="span" sx={styles.searchInfos}>
-                            <Box component="span" sx={styles.searchName}>{a.name}</Box>
-                            <Typography variant="caption" sx={styles.searchLocation}>{a.city}, {a.state ? a.state+', ' : ''}{a.country}</Typography>
-                          </Box>
-                        </Box>
-                      </li>
-                    }
-                    filterOptions={(options, params) => {
-                      // Search for ICAO
-                      let filtered = filter(options, { inputValue: toIcaoInput, getOptionLabel: (a) => a.icao });
-                      // If not enough results, search for city name
-                      if (filtered.length < 5) {
-                        const add = filter(options, { inputValue: toIcaoInput, getOptionLabel: (a) => a.name });
-                        filtered = filtered.concat(add.slice(0, 5-filtered.length));
-                      }
-                      return filtered;
-                    }}
-                    renderInput={(params) =>
-                      <TextField
-                        {...params}
-                        label="To"
-                        variant="outlined"
-                        placeholder="ICAO"
-                      />
-                    }
-                    PopperComponent={PopperMy}
+                    label="To"
                     onChange={(evt, value) => {
                       if (value) {
                         setToIcao(value.icao);
@@ -1190,11 +672,6 @@ const Routing = React.memo((props) => {
                       }
                     }}
                     value={toIcao ? props.options.icaodata[toIcao] : null}
-                    inputValue={toIcaoInput}
-                    onInputChange={(evt, value) => setToIcaoInput(value)}
-                    autoHighlight={true}
-                    autoSelect={true}
-                    selectOnFocus={false}
                   />
                 </Grid>
               </Grid>
@@ -1203,9 +680,10 @@ const Routing = React.memo((props) => {
                 <Alert severity="info" sx={styles.formLabel}>
                   Recommended algorithm parameters when setting a destination:
                   <ul>
-                    <li><i>Iterations</i>: 10 or more</li>
-                    <li><i>Min plane load</i>: 20% or less</li>
-                    <li><i>Max empty legs</i>: 50NM or more</li>
+                    <li><i>Max number of legs</i>: 10</li>
+                    <li><i>Min plane load</i>: 20%</li>
+                    <li><i>Max number of "bad" legs</i>: 2</li>
+                    <li><i>Max length of empty legs</i>: 50NM</li>
                   </ul>
                 </Alert>
               }
@@ -1384,14 +862,32 @@ const Routing = React.memo((props) => {
           }
 
           {moreSettings &&
-            <div>
+            <Paper
+              sx={{
+                p:1,
+                position: 'relative',
+                mt: 2
+              }}
+              variant="outlined"
+            >
+              <IconButton
+                sx={{
+                  position: 'absolute',
+                  right: 3,
+                  top: 3,
+                  color: 'grey[500]',
+                }}
+                onClick={() => setMoreSettings(false)}
+              >
+                <CloseIcon />
+              </IconButton>
 
-              <Typography variant="body1" sx={styles.formLabel}>Advanced algorithm parameters:</Typography>
+              <Typography variant="body1" sx={{...styles.formLabel, mt: 1}}>Advanced algorithm parameters:</Typography>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
-                  <Tooltip title="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops.">
+                  <Tooltip title="Maximum number of legs in a route.">
                     <TextField
-                      label="Iterations"
+                      label="Max number of legs"
                       placeholder="5"
                       variant="outlined"
                       value={maxHops}
@@ -1403,7 +899,7 @@ const Routing = React.memo((props) => {
                 <Grid item xs={6}>
                   <Tooltip title="Number of possible stops along a leg to drop passengers/cargo, in order to better fill the plane part of the leg.">
                     <TextField
-                      label="Max stops"
+                      label="Max intermediate stops"
                       variant="outlined"
                       placeholder="1"
                       value={maxStops}
@@ -1430,9 +926,9 @@ const Routing = React.memo((props) => {
                   </Tooltip>
                 </Grid>
                 <Grid item xs={6}>
-                  <Tooltip title="Number of possible legs bellow the minimum plane load.">
+                  <Tooltip title="Number of possible legs bellow the minimum plane load or in the wrong direction (if destination is set).">
                     <TextField
-                      label="Max bad legs"
+                      label='Max number of "bad" legs'
                       variant="outlined"
                       placeholder="2"
                       value={maxBadLegs}
@@ -1444,9 +940,9 @@ const Routing = React.memo((props) => {
               </Grid>
               <Grid container spacing={1} style={{marginTop:12}}>
                 <Grid item xs={6}>
-                  <Tooltip title="Maximum length of entirely empty legs (no cargo/pax at all). Do not set this too high, it quickly becomes very computer intensive.">
+                  <Tooltip title="Maximum distance of entirely empty legs (no cargo/pax at all). Do not set this too high in dense airports areas, it quickly becomes very computer intensive.">
                     <TextField
-                      label="Max empty legs"
+                      label="Max length of empty legs"
                       variant="outlined"
                       placeholder="2"
                       value={maxEmptyLeg}
@@ -1586,7 +1082,7 @@ const Routing = React.memo((props) => {
                 sx={styles.formLabel}
               />
 
-            </div>
+            </Paper>
           }
 
           <Box
@@ -1596,32 +1092,48 @@ const Routing = React.memo((props) => {
               textAlign: "center"
             }}
           >
-            {!loading &&
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={startSearch}
-                disabled={
-                  !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
-                           || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
-                           || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range || !aircraftSpecsModel))
-                           || (type === "rent" && (!availableModels.length))
-                }
-              >
-                Find best routes
-              </Button>
-            }
-            {loading && <LinearProgress variant="determinate" value={progress} sx={{ my: 2 }} />}
-            {cancel !== null &&
-              <div>
-                <Typography variant="body2" gutterBottom>{nbResults} routes found</Typography>
-                <Button color="secondary" onClick={cancelWorkers}>
-                  Cancel
-                </Button>
-              </div>
-            }
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={startSearch}
+              disabled={
+                !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
+                         || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
+                         || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range || !aircraftSpecsModel))
+                         || (type === "rent" && (!availableModels.length))
+              }
+            >
+              Find best routes
+            </Button>
           </Box>
+        </Box>
+      }
+
+      {loading &&
+        <Box
+          sx={{
+            m:2,
+            textAlign: "center"
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ width: '100%', mr: 1 }}>
+              <LinearProgress variant="determinate" value={progress} sx={{ my: 2 }} />
+            </Box>
+            <Box sx={{ minWidth: 35 }}>
+              <Typography variant="body2" color="text.secondary">{`${Math.floor(progress)}%`}</Typography>
+            </Box>
+          </Box>
+          {cancel !== null &&
+            <div>
+              <Typography variant="body2">Searching routes...</Typography>
+              <Typography variant="body2" gutterBottom>({nbResults} routes found)</Typography>
+              <Button color="secondary" onClick={cancelWorkers}>
+                Cancel
+              </Button>
+            </div>
+          }
         </Box>
       }
     </Box>

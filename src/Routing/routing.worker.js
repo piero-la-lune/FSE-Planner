@@ -89,7 +89,7 @@ function getLegStops(fr, to, src, maxPax, maxKg, maxStops) {
   const jobsFiltered = [];
   for (const [i, j] of src[fr].j) {
     if (i === to) { continue; }
-    
+
     // Discard farther legs
     if (j.distance > maxDist) { continue; }
 
@@ -169,7 +169,7 @@ function getLegStopsReverse(fr, to, src, maxPax, maxKg, maxStops) {
   for (const i of src[to].r) {
     if (i === fr) { continue; }
     const j = src[i].j.get(to);
-    
+
     // Discard farther legs
     if (j.distance > maxDist) { continue; }
 
@@ -321,7 +321,7 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       else {
         legStops.push({icaos:[], cargos:[], pay: 0, distance: 0});
       }
-      
+
       // Save cargos for later use
       const savedCargos =  j.cargos;
       src[icao].j.get(to).cargos = remainCargo;
@@ -384,7 +384,7 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       if (src[icao].j && src[icao].j.get(i)) { continue; }
 
       // Compute routes
-      const newRoutes = route(i, dest, src, options, hop+1, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
+      const newRoutes = route(i, dest, src, options, hop, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
 
       // Append routes to result
       for (const newRoute of newRoutes) {
@@ -539,6 +539,9 @@ onmessage = function({data}) {
       }
     }
   }
+
+  // Filter routes longer than maxHops
+  allResults = allResults.filter(e => e.icaos.length <= data.maxHops+1);
 
   // Add aircraft model to all routes
   allResults = allResults.map(elm => {
