@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.11.4] - 2022-05-20
+
+### Changed
+- Updated FSE plane list (added Cessna 310R and Diamond DA-50RG)
+- Reworked part of the Route Finder interface to improve user experience and make the parameters clearer
+- Route Finder "Iterations" parameter changed to "Max number of legs" to enforce the maximum number of legs in resulting routes
+
+### Fixed
+- Fixed bug in Route Finder when setting a destination that would give no result
+- Fixed bug that would prevent to drag the custom area box (#137)
+
+
+
 ## [1.11.3] - 2022-04-23
 
 ### Changed

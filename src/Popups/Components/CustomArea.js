@@ -35,8 +35,14 @@ function Map({mapCenter, bounds, setBounds}) {
       // Create draggable and resizable rectangle
       rectangleRef.current = L.rectangle(newBounds, { pmIgnore: false });
       rectangleRef.current.addTo(mapRef.current);
-      mapRef.current.pm.enableGlobalEditMode({ hideMiddleMarkers: true, preventMarkerRemoval: true });
+      rectangleRef.current.pm.enableLayerDrag();
+      rectangleRef.current.pm.enable({ hideMiddleMarkers: true, preventMarkerRemoval: true });
       rectangleRef.current.on('pm:markerdragend', () => setBounds(rectangleRef.current.getBounds()));
+      rectangleRef.current.on('pm:dragend', () => setBounds(rectangleRef.current.getBounds()));
+      rectangleRef.current.on('pm:drag', () => {
+        rectangleRef.current.pm._initMarkers();
+        rectangleRef.current.pm.applyOptions();
+      });
     }
     else {
       mapRef.current.fitBounds(newBounds);

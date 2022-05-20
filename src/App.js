@@ -96,7 +96,7 @@ const defaultSettings = {
     excludeMilitary: false
   },
   routeFinder: {
-    maxHops: 4,
+    maxHops: 5,
     maxStops: 1,
     minLoad: 80,
     maxBadLegs: 2,
