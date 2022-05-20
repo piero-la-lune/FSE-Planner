@@ -98,6 +98,21 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.11.4 (2022-05-20)</Typography>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE plane list (added Cessna 310R and Diamond DA-50RG)</ListItem>
+              <ListItem>Reworked part of the Route Finder interface to improve user experience and make the parameters clearer</ListItem>
+              <ListItem>Route Finder "Iterations" parameter changed to "Max number of legs" to enforce the maximum number of legs in resulting routes</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed bug in Route Finder when setting a destination that would give no result</ListItem>
+              <ListItem>Fixed bug that would prevent to drag the custom area box (<IssueLink id={137} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.11.3 (2022-04-23)</Typography>
             <Typography variant="h6">Changed</Typography>
             <List dense>
