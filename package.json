@@ -1,6 +1,6 @@
 {
   "name": "fseplanner",
-  "version": "1.11.4",
+  "version": "1.11.5",
   "license": "MIT",
   "author": "piero-la-lune",
   "private": true,
@@ -28,7 +28,7 @@
     "leaflet-polylinedecorator": "^1.6.0",
     "lodash": "^4.17.21",
     "lz-string": "^1.4.4",
-    "maplibre-gl": "^2.1.9",
+    "maplibre-gl": "^1.15.3",
     "process": "^0.11.10",
     "react": "^18.1.0",
     "react-app-rewired": "^2.2.1",

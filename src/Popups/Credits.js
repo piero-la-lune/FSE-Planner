@@ -98,6 +98,14 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.11.5 (2022-05-22)</Typography>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed bug in Route Finder with result sorting</ListItem>
+              <ListItem>Fixed bug with alternative map</ListItem>
+            </List>
+          </Paper>
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.11.4 (2022-05-20)</Typography>
             <Typography variant="h6">Changed</Typography>
             <List dense>

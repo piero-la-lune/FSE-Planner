@@ -376,7 +376,7 @@ const Results = React.memo((props) => {
             value={sortBy}
             onChange={(evt) => {
               setFilteredResults(r => {
-                r.sort(sortFunctions[sortBy]);
+                r.sort(sortFunctions[evt.target.value]);
                 return [...r];
               });
               setSortBy(evt.target.value);
