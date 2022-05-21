@@ -6,7 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
-## [1.11.4] - 2022-05-20
+## [1.11.5] - 2022-05-22
+
+### Fixed
+- Fixed bug in Route Finder with result sorting
+- Fixed bug with alternative map
+
+
 
 ### Changed
 - Updated FSE plane list (added Cessna 310R and Diamond DA-50RG)
