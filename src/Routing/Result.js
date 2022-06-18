@@ -193,7 +193,7 @@ function Result({focus, setFocus, options, ...props}) {
               <input type="hidden" name="type" value="add" />
               <input type="hidden" name="rentalType" value={focus.rentalType} />
               <input type="hidden" name="id" value={focus.planeId} />
-              <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
+              <input type="hidden" name="returnpage" value="/myflight.jsp" />
               <Tooltip title="Rent plane">
                 <IconButton
                   size="large"
