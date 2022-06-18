@@ -147,7 +147,7 @@ export function cleanLegs(jobs, opts) {
         if (opts.toIcao !== toIcao && 180 - Math.abs(Math.abs(getRhumbLineBearing(fr, to) - getRhumbLineBearing(to, toIcaoFilter)) - 180) > parseInt(opts.settings.to.angle)) { continue; }
       }
     }
-    if (opts.direction) {
+    if (opts.direction !== '') {
       if (180 - Math.abs(Math.abs(leg.direction - opts.direction) - 180) > parseInt(opts.settings.direction.angle)) { continue; }
     }
 
