@@ -8,7 +8,7 @@
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@geoman-io/leaflet-geoman-free": "^2.13.0",
-    "@maplibre/maplibre-gl-leaflet": "^0.0.16",
+    "@maplibre/maplibre-gl-leaflet": "^0.0.17",
     "@mui/icons-material": "^5.8.4",
     "@mui/lab": "^5.0.0-alpha.86",
     "@mui/material": "^5.8.4",
@@ -27,7 +27,7 @@
     "leaflet-polylinedecorator": "^1.6.0",
     "lodash": "^4.17.21",
     "lz-string": "^1.4.4",
-    "maplibre-gl": "^1.15.3",
+    "maplibre-gl": "^2.1.9",
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",
@@ -52,9 +52,8 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "defaults",
+      "not ie 11"
     ],
     "development": [
       "last 1 chrome version",
