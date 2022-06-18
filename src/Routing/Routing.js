@@ -70,7 +70,7 @@ const Routing = React.memo((props) => {
   const [overheadLength, setOverheadLength] = React.useState(props.options.settings.routeFinder.overheadLength);
   const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
   const [memory, setMemory] = React.useState(props.options.settings.routeFinder.memory);
-  const [vipOnly, setVipOnly] = React.useState(false);
+  const [vipOnly, setVipOnly] = React.useState('both');
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
@@ -359,14 +359,14 @@ const Routing = React.memo((props) => {
         direction: props.options.jobs[k] ? props.options.jobs[k].direction : props.options.flight[k].direction,
       }
       const append = (v, obj) => {
-        if (v['Trip-Only'] && !vipOnly) {
+        if (v['Trip-Only'] && vipOnly !== 'only') {
           for (const c of v['Trip-Only']) {
             if (c.pax && c.pax > planeMaxPax) { continue; }
             if (!c.pax && c.kg > planeMaxCargo) { continue; }
             obj.cargos.TripOnly.push({from: fr, to: to, ...c});
           }
         }
-        if (v['VIP']) {
+        if (v['VIP'] && vipOnly !== 'exclude') {
           for (const c of v['VIP']) {
             if (c.pax && c.pax > planeMaxPax) { continue; }
             if (!c.pax && c.kg > planeMaxCargo) { continue; }
@@ -1098,11 +1098,19 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
 
-              <FormControlLabel
-                control={<Switch checked={vipOnly} onChange={(evt) => setVipOnly(evt.target.checked)} />}
-                label="VIP jobs only"
+              <TextField
+                label="VIP jobs"
+                variant="outlined"
+                value={vipOnly}
+                onChange={(evt) => setVipOnly(evt.target.value)}
+                select
+                fullWidth
                 sx={styles.formLabel}
-              />
+              >
+                <MenuItem value="both">Include VIP jobs</MenuItem>
+                <MenuItem value="exclude">Exclude VIP jobs</MenuItem>
+                <MenuItem value="only">VIP jobs only</MenuItem>
+              </TextField>
 
             </Paper>
           }
