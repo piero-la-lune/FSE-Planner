@@ -38,6 +38,7 @@ function filterText(sortBy, result) {
     case 'payNM': return '$'+Math.round(result.payNM)+'/NM';
     case 'payLeg': return '$'+Math.round(result.payLeg)+'/leg';
     case 'payTime': return '$'+Math.round(result.payTime)+'/H';
+    case 'distance': return '';
     case 'pay': return '';
     default: return '$'+result.b+' bonus';
   }
@@ -124,6 +125,7 @@ const sortFunctions = {
   payLeg: (a, b) => b.payLeg - a.payLeg,
   payTime: (a, b) => b.payTime - a.payTime,
   pay: (a, b) => b.pay - a.pay,
+  distance: (a, b) => a.distance - b.distance,
   bonus: (a, b) => b.b - a.b,
 }
 
@@ -396,6 +398,7 @@ const Results = React.memo((props) => {
             <MenuItem value="payLeg">Pay per leg</MenuItem>
             <MenuItem value="payTime">Pay per flight time</MenuItem>
             <MenuItem value="pay">Total pay</MenuItem>
+            <MenuItem value="distance">Shortest distance</MenuItem>
             {props.type === "rent" && <MenuItem value="bonus">Plane bonus</MenuItem>}
           </TextField>
         </Box>

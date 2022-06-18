@@ -53,15 +53,17 @@ const Routing = React.memo((props) => {
   const [nbResults, setNbResults] = React.useState(0);
   const [moreSettings, setMoreSettings] = React.useState(false);
   const [maxPax, setMaxPax] = React.useState('');
+  const [maxCargo, setMaxCargo] = React.useState('');
   const [maxKg, setMaxKg] = React.useState('');
   const [speed, setSpeed] = React.useState(250);
   const [consumption, setConsumption] = React.useState(60);
-  const [range, setRange] = React.useState(1800);
+  const [fuelCapacity, setFuelCapacity] = React.useState(500);
   const [fuelType, setFuelType] = React.useState(1);
   const [rentFee, setRentFee] = React.useState(0);
   const [rentType, setRentType] = React.useState('dry');
   const [fromIcao, setFromIcao] = React.useState(null);
   const [toIcao, setToIcao] = React.useState(null);
+  const [heading, setHeading] = React.useState('');
   const [maxHops, setMaxHops] = React.useState(props.options.settings.routeFinder.maxHops);
   const [maxStops, setMaxStops] = React.useState(props.options.settings.routeFinder.maxStops);
   const [idleTime, setIdleTime] = React.useState(props.options.settings.routeFinder.idleTime);
@@ -69,7 +71,7 @@ const Routing = React.memo((props) => {
   const [overheadLength, setOverheadLength] = React.useState(props.options.settings.routeFinder.overheadLength);
   const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
   const [memory, setMemory] = React.useState(props.options.settings.routeFinder.memory);
-  const [vipOnly, setVipOnly] = React.useState(false);
+  const [vipOnly, setVipOnly] = React.useState('both');
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
@@ -295,28 +297,29 @@ const Routing = React.memo((props) => {
     }
 
     // Compute aircraft specifications
-    let planeMaxKg = maxKg;
+    let planeMaxCargo = maxCargo;
     let planeMaxPax = maxPax;
     let planesSpecs = {};
     if (type === "rent") {
-      planeMaxKg = 0;
+      planeMaxCargo = 0;
       planeMaxPax = 0;
       // Go through every available planes, to build an objetc
       // with the specifications of all plane models available
       for (const model of aircraftModels.length ? aircraftModels : availableModels) {
         planesSpecs[model] = new Plane(model);
-        planeMaxKg = Math.max(planeMaxKg, planesSpecs[model].maxKg);
+        planeMaxCargo = Math.max(planeMaxCargo, planesSpecs[model].maxCargo);
         planeMaxPax = Math.max(planeMaxPax, planesSpecs[model].maxPax);
       }
     }
     else {
       planesSpecs['free'] = new Plane(aircraftSpecsModel, {
         maxPax: maxPax,
+        maxCargo: maxCargo,
         maxKg: maxKg,
         speed: speed,
         GPH: consumption,
         fuelType: fuelType,
-        range: range
+        fuelCapacity: fuelCapacity
       });
     }
 
@@ -357,15 +360,17 @@ const Routing = React.memo((props) => {
         direction: props.options.jobs[k] ? props.options.jobs[k].direction : props.options.flight[k].direction,
       }
       const append = (v, obj) => {
-        if (v['Trip-Only'] && !vipOnly) {
+        if (v['Trip-Only'] && vipOnly !== 'only') {
           for (const c of v['Trip-Only']) {
-            if (c.kg > planeMaxKg || c.pax > planeMaxPax) { continue; }
+            if (c.pax && c.pax > planeMaxPax) { continue; }
+            if (!c.pax && c.kg > planeMaxCargo) { continue; }
             obj.cargos.TripOnly.push({from: fr, to: to, ...c});
           }
         }
-        if (v['VIP']) {
+        if (v['VIP'] && vipOnly !== 'exclude') {
           for (const c of v['VIP']) {
-            if (c.kg > planeMaxKg || c.pax > planeMaxPax) { continue; }
+            if (c.pax && c.pax > planeMaxPax) { continue; }
+            if (!c.pax && c.kg > planeMaxCargo) { continue; }
             obj.cargos.VIP.push({from: fr, to: to, ...c});
           }
         }
@@ -419,7 +424,7 @@ const Routing = React.memo((props) => {
       if (type === 'rent') {
         for (const p of props.options.planes[icao]) {
           if (!planesSpecs[p.model]) { continue; }
-          if (model === 'free' || planesSpecs[p.model].maxKg > planesSpecs[model].maxKg) {
+          if (model === 'free' || planesSpecs[p.model].maxCargo > planesSpecs[model].maxCargo) {
             model = p.model;
           }
         }
@@ -427,12 +432,14 @@ const Routing = React.memo((props) => {
       worker.postMessage({
         fromIcao: icao,
         toIcao: type === 'rent' ? (loop ? icao : null) : (toIcao ? toIcao : null),
+        heading: heading === '' ? false : parseInt(heading, 10),
         src: src,
         options: {
           maxKg: planesSpecs[model].maxKg,
           maxPax: planesSpecs[model].maxPax,
+          maxCargo: planesSpecs[model].maxCargo,
           minPaxLoad: planesSpecs[model].maxPax*minLoad/100,
-          minKgLoad: planesSpecs[model].maxKg*minLoad/100,
+          minCargoLoad: planesSpecs[model].maxCargo*minLoad/100,
           range: planesSpecs[model].range,
           gph: planesSpecs[model].GPH,
           speed: planesSpecs[model].speed,
@@ -442,7 +449,7 @@ const Routing = React.memo((props) => {
           resultLimit: resultLimit
         },
         maxHops: maxHops,
-        maxBadLegs: maxBadLegs
+        maxBadLegs: parseInt(maxBadLegs, 10)
       });
     };
     const onmessage = ({data}, worker) => {
@@ -672,6 +679,19 @@ const Routing = React.memo((props) => {
                       }
                     }}
                     value={toIcao ? props.options.icaodata[toIcao] : null}
+                    disabled={heading !== ""}
+                  />
+                  <TextField
+                    label="Heading"
+                    variant="outlined"
+                    placeholder="180"
+                    value={heading}
+                    onChange={(evt) => setHeading(evt.target.value.replace(/[^0-9]/g, ''))}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">°</InputAdornment>,
+                    }}
+                    sx={{mt: 1}}
+                    disabled={toIcao !== null}
                   />
                 </Grid>
               </Grid>
@@ -695,8 +715,9 @@ const Routing = React.memo((props) => {
                   if (!model || !aircrafts[model]) { return; }
                   const p = new Plane(model);
                   setMaxKg(p.maxKg);
+                  setMaxCargo(p.maxCargo);
                   setMaxPax(p.maxPax);
-                  setRange(p.range);
+                  setFuelCapacity(p.fuelCapacity);
                   setSpeed(p.speed);
                   setConsumption(p.GPH);
                   setFuelType(p.fuelType);
@@ -727,9 +748,24 @@ const Routing = React.memo((props) => {
                       />
                     </Grid>
                     <Grid item xs={6}>
+                      <TextField
+                        label="Max cargo"
+                        placeholder="500"
+                        variant="outlined"
+                        required
+                        value={maxCargo}
+                        onChange={(evt) => setMaxCargo(evt.target.value.replace(/[^0-9]/g, ''))}
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
                       <Tooltip title="Maximum weight of fuel AND cargo (passengers + packages) the plane can handle.">
                         <TextField
-                          label="Max weight (fuel + cargo)"
+                          label="Max weight (fuel + load)"
                           variant="outlined"
                           placeholder="2000"
                           required
@@ -741,8 +777,6 @@ const Routing = React.memo((props) => {
                         />
                       </Tooltip>
                     </Grid>
-                  </Grid>
-                  <Grid container spacing={1} style={{marginTop:12}}>
                     <Grid item xs={6}>
                       <TextField
                         label="Cruise speed"
@@ -752,25 +786,26 @@ const Routing = React.memo((props) => {
                         onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
                         required
                         InputProps={{
-                          endAdornment: <InputAdornment position="end">kts</InputAdornment>,
+                          endAdornment: <InputAdornment position="end">Kts</InputAdornment>,
                         }}
                       />
                     </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Max range"
-                        placeholder="1800"
-                        variant="outlined"
-                        value={range}
-                        onChange={(evt) => setRange(evt.target.value.replace(/[^0-9]/g, ''))}
-                        required
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                        }}
-                      />
-                    </Grid>
+                    
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Fuel capacity"
+                        placeholder="500"
+                        variant="outlined"
+                        value={fuelCapacity}
+                        onChange={(evt) => setFuelCapacity(evt.target.value.replace(/[^0-9]/g, ''))}
+                        required
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">Gallons</InputAdornment>,
+                        }}
+                      />
+                    </Grid>
                     <Grid item xs={6}>
                       <Tooltip title="Used to compute an estimated fuel consumption cost.">
                         <TextField
@@ -786,7 +821,9 @@ const Routing = React.memo((props) => {
                         />
                       </Tooltip>
                     </Grid>
-                    <Grid item xs={6}>
+                  </Grid>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={4}>
                       <TextField
                         label="Fuel type"
                         variant="outlined"
@@ -794,14 +831,13 @@ const Routing = React.memo((props) => {
                         onChange={(evt) => setFuelType(parseInt(evt.target.value))}
                         select
                         fullWidth
+                        required
                       >
                         <MenuItem value="0">100LL</MenuItem>
                         <MenuItem value="1">Jet-A</MenuItem>
                       </TextField>
                     </Grid>
-                  </Grid>
-                  <Grid container spacing={1} style={{marginTop:12}}>
-                    <Grid item xs={6}>
+                    <Grid item xs={5}>
                       <Tooltip title="Leave it to 0 if using your own plane.">
                         <TextField
                           label="Rental price"
@@ -811,12 +847,12 @@ const Routing = React.memo((props) => {
                           onChange={(evt) => setRentFee(evt.target.value.replace(/[^0-9]/g, ''))}
                           required
                           InputProps={{
-                            endAdornment: <InputAdornment position="end">$/Hour</InputAdornment>,
+                            endAdornment: <InputAdornment position="end">$/hour</InputAdornment>,
                           }}
                         />
                       </Tooltip>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item xs={3}>
                       <TextField
                         label="Rent type"
                         variant="outlined"
@@ -824,6 +860,7 @@ const Routing = React.memo((props) => {
                         onChange={(evt) => setRentType(evt.target.value)}
                         select
                         fullWidth
+                        required
                       >
                         <MenuItem value="dry">Dry</MenuItem>
                         <MenuItem value="wet">Wet</MenuItem>
@@ -1076,11 +1113,19 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
 
-              <FormControlLabel
-                control={<Switch checked={vipOnly} onChange={(evt) => setVipOnly(evt.target.checked)} />}
-                label="VIP jobs only"
+              <TextField
+                label="VIP jobs"
+                variant="outlined"
+                value={vipOnly}
+                onChange={(evt) => setVipOnly(evt.target.value)}
+                select
+                fullWidth
                 sx={styles.formLabel}
-              />
+              >
+                <MenuItem value="both">Include VIP jobs</MenuItem>
+                <MenuItem value="exclude">Exclude VIP jobs</MenuItem>
+                <MenuItem value="only">VIP jobs only</MenuItem>
+              </TextField>
 
             </Paper>
           }
@@ -1100,7 +1145,7 @@ const Routing = React.memo((props) => {
               disabled={
                 !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
                          || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
-                         || (type === "free" && (!fromIcao || !maxPax || !maxKg || !speed || !consumption || !range || !aircraftSpecsModel))
+                         || (type === "free" && (!fromIcao || !maxPax || !maxCargo || !maxKg || !speed || !consumption || !fuelCapacity || !aircraftSpecsModel))
                          || (type === "rent" && (!availableModels.length))
               }
             >

@@ -588,7 +588,7 @@ function App() {
                           component="span"
                           sx={{ px: 1}}
                         >
-                          >
+                          &gt;
                         </Box>
                       </React.Fragment>
                     }
