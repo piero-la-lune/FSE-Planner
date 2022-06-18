@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.12.0] - 2022-06-18
+
+### Added
+- Support for the new "Maximum Cargo Weight" aircraft parameter in Route Finder
+- You can now set a heading instead of a destination in Route Finder Free Search
+- New sorting option in Route Finder: sort by shortest distance
+- New search option in Route Finder: exclude all VIP jobs from search
+
+### Changed
+- Updated FSE plane list (added Honda HA-420 HondaJet)
+- Updated MSFS data
+
+### Fixed
+- Fixed FSE redirection after adding jobs to My Flight or renting a plane
+- Fixed bug when setting the direction filter to 0
+- Fixed bug when setting "Max number of bad legs" parameter to 0 in Route Finder
+
+
+
+
 ## [1.11.5] - 2022-05-22
 
 ### Fixed
@@ -13,6 +33,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed bug with alternative map
 
 
+
+## [1.11.4] - 2022-05-20
 
 ### Changed
 - Updated FSE plane list (added Cessna 310R and Diamond DA-50RG)

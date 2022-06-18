@@ -98,6 +98,28 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.12.0 (2022-06-18)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Support for the new "Maximum Cargo Weight" aircraft parameter in Route Finder</ListItem>
+              <ListItem>You can now set a heading instead of a destination in Route Finder Free Search</ListItem>
+              <ListItem>New sorting option in Route Finder: sort by shortest distance</ListItem>
+              <ListItem>New search option in Route Finder: exclude all VIP jobs from search</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE plane list (added Honda HA-420 HondaJet)</ListItem>
+              <ListItem>Updated MSFS data</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed FSE redirection after adding jobs to My Flight or renting a plane</ListItem>
+              <ListItem>Fixed bug when setting the direction filter to 0</ListItem>
+              <ListItem>Fixed bug when setting "Max number of bad legs" parameter to 0 in Route Finder</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.11.5 (2022-05-22)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
@@ -105,6 +127,7 @@ function CreditsPopup(props) {
               <ListItem>Fixed bug with alternative map</ListItem>
             </List>
           </Paper>
+
           <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.11.4 (2022-05-20)</Typography>
             <Typography variant="h6">Changed</Typography>
