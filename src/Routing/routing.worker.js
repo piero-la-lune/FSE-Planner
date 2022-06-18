@@ -19,56 +19,56 @@ function maxKgFromDistance(distance, speed, gph, maxKg) {
   return maxKg - fuelKg;
 }
 // cargo: {pax, kg, pay}
-function maximizeTripOnly(i, cargos, maxPax, maxKg, cache) {
+function maximizeTripOnly(i, jobs, maxPax, maxCargo, maxKg, cache) {
   if (i === 0) {
-    // Total pay, list of cargos, remain
-    return [0, 0, 0, [], []];
+    // Total pay, list of jobs, remain
+    return [0, 0, 0, 0, [], []];
   }
-  if (cache[i+'/'+maxPax+'/'+maxKg]) { return cache[i+'/'+maxPax+'/'+maxKg]; }
-  const elm = cargos[i-1];
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(i-1, cargos, maxPax, maxKg, cache);
-  if (maxPax-elm.pax >= 0 && maxKg-elm.kg >= 0)  {
-    let [pay2, pax2, kg2, cargos2, remain2] = maximizeTripOnly(i-1, cargos, maxPax-elm.pax, maxKg-elm.kg, cache);
+  if (cache[i+'/'+maxPax+'/'+maxCargo]) { return cache[i+'/'+maxPax+'/'+maxCargo]; }
+  const elm = jobs[i-1];
+  const [pay1, pax1, cargo1, kg1, jobs1, remain1] = maximizeTripOnly(i-1, jobs, maxPax, maxCargo, maxKg, cache);
+  if ((elm.pax > 0 ? maxPax-elm.pax >= 0 : maxCargo-elm.kg >= 0) && maxKg-elm.kg >= 0) {
+    let [pay2, pax2, cargo2, kg2, jobs2, remain2] = maximizeTripOnly(i-1, jobs, maxPax-elm.pax, elm.pax ? maxCargo : maxCargo-elm.kg, maxKg-elm.kg, cache);
     pay2 += elm.pay;
     if (pay2 > pay1) {
-      return cache[i+'/'+maxPax+'/'+maxKg] = [pay2, pax2+elm.pax, kg2+elm.kg, [...cargos2, elm], remain2];
+      return cache[i+'/'+maxPax+'/'+maxCargo] = [pay2, pax2+elm.pax, elm.pax ? cargo2 : cargo2+elm.kg, kg2+elm.kg, [...jobs2, elm], remain2];
     }
   }
-  return cache[i+'/'+maxPax+'/'+maxKg] = [pay1, pax1, kg1, cargos1, [...remain1, elm]];
+  return cache[i+'/'+maxPax+'/'+maxCargo] = [pay1, pax1, cargo1, kg1, jobs1, [...remain1, elm]];
 }
-function maximizeVIP(cargos, maxPax, maxKg) {
-  if (cargos.length === 0) {
-    return [0, 0, 0, [], []];
+function maximizeVIP(jobs, maxPax, maxCargo, maxKg) {
+  if (jobs.length === 0) {
+    return [0, 0, 0, 0, [], []];
   }
-  const elm = cargos[0];
-  const newCargos = cargos.slice(1);
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeVIP(newCargos, maxPax, maxKg);
-  const [pay2, pax2, kg2, cargos2, remain2] = [elm.pay, elm.pax, elm.kg, [elm], newCargos];
-  if (pay1 > pay2 || pax2 > maxPax || kg2 > maxKg) {
+  const elm = jobs[0];
+  const newJobs = jobs.slice(1);
+  const [pay1, pax1, cargo1, kg1, jobs1, remain1] = maximizeVIP(newJobs, maxPax, maxCargo, maxKg);
+  const [pay2, pax2, cargo2, kg2, jobs2, remain2] = [elm.pay, elm.pax, elm.pax ? 0 : elm.kg, elm.kg, [elm], newJobs];
+  if (pay1 > pay2 || (elm.pax > 0 ? elm.pax > maxPax : elm.kg > maxCargo) || kg2 > maxKg) {
     remain1.push(elm);
-    return [pay1, pax1, kg1, cargos1, remain1];
+    return [pay1, pax1, cargo1, kg1, jobs1, remain1];
   }
-  return [pay2, pax2, kg2, cargos2, remain2];
+  return [pay2, pax2, cargo2, kg2, jobs2, remain2];
 }
-function maximizeCargo(cargos, maxPax, maxKg) {
-  const [pay1, pax1, kg1, cargos1, remain1] = maximizeTripOnly(cargos.TripOnly.length, cargos.TripOnly, maxPax, maxKg, {});
-  const [pay2, pax2, kg2, cargos2, remain2] = maximizeVIP(cargos.VIP, maxPax, maxKg);
+function maximizeCargo(jobs, maxPax, maxCargo, maxKg) {
+  const [pay1, pax1, cargo1, kg1, jobs1, remain1] = maximizeTripOnly(jobs.TripOnly.length, jobs.TripOnly, maxPax, maxCargo, maxKg, {});
+  const [pay2, pax2, cargo2, kg2, jobs2, remain2] = maximizeVIP(jobs.VIP, maxPax, maxCargo, maxKg);
   const remain = {TripOnly: remain1, VIP: remain2};
   if (pay1 >= pay2) {
-    if (cargos2.length > 0) { remain.VIP = remain.VIP.concat(cargos2); }
-    return [pay1, pax1, kg1, {TripOnly: cargos1, VIP: []}, remain];
+    if (jobs2.length > 0) { remain.VIP = remain.VIP.concat(jobs2); }
+    return [pay1, pax1, cargo1, kg1, {TripOnly: jobs1, VIP: []}, remain];
   }
-  if (cargos1.length > 0) { remain.TripOnly = remain.TripOnly.concat(cargos1); }
-  return [pay2, pax2, kg2, {TripOnly: [], VIP: cargos2}, remain];
+  if (jobs1.length > 0) { remain.TripOnly = remain.TripOnly.concat(jobs1); }
+  return [pay2, pax2, cargo2, kg2, {TripOnly: [], VIP: jobs2}, remain];
 }
 
-function bestLegStop(jobs, maxPax, maxKg, exclude) {
+function bestLegStop(jobs, maxPax, maxCargo, maxKg, exclude) {
   let bestRoute = {payNM: 0, icao: null};
   for (const [i, totalDistance, j] of jobs) {
     if (exclude.includes(i)) { continue; }
 
     // Compute best load
-    const bestLoad = maximizeTripOnly(j.cargos.TripOnly.length, j.cargos.TripOnly, maxPax, maxKg, {});
+    const bestLoad = maximizeTripOnly(j.cargos.TripOnly.length, j.cargos.TripOnly, maxPax, maxCargo, maxKg, {});
     const pay = bestLoad[0];
     if (pay <= 0) { continue; }
 
@@ -82,7 +82,7 @@ function bestLegStop(jobs, maxPax, maxKg, exclude) {
 
 // For the given destination and jobs, try to find assignments on the same path
 // to complement the cargo
-function getLegStops(fr, to, src, maxPax, maxKg, maxStops) {
+function getLegStops(fr, to, src, maxPax, maxCargo, maxKg, maxStops) {
   const maxDist = src[fr].j.get(to).distance;
 
   // Keep only legs going to the same direction
@@ -109,12 +109,12 @@ function getLegStops(fr, to, src, maxPax, maxKg, maxStops) {
   }];
   const exclude = [];
   for (var i = 0; i < maxStops; i++) {
-    const bestRoute = bestLegStop(jobsFiltered, maxPax, maxKg, exclude);
+    const bestRoute = bestLegStop(jobsFiltered, maxPax, maxCargo, maxKg, exclude);
 
     // Stop if no leg found
     if (!bestRoute.icao) { break; }
 
-    const [pay, pax, kg, loadCargo] = bestRoute.load;
+    const [pay, pax, cargo, kg, loadCargo] = bestRoute.load;
 
     // Find correct position for new airport
     let pos = i;
@@ -153,6 +153,7 @@ function getLegStops(fr, to, src, maxPax, maxKg, maxStops) {
 
     exclude.push(bestRoute.icao);
     maxPax -= pax;
+    maxCargo -= cargo;
     maxKg -= kg;
   }
 
@@ -161,7 +162,7 @@ function getLegStops(fr, to, src, maxPax, maxKg, maxStops) {
 
 // For the given destination and jobs, try to find assignments on the same path
 // to complement the cargo
-function getLegStopsReverse(fr, to, src, maxPax, maxKg, maxStops) {
+function getLegStopsReverse(fr, to, src, maxPax, maxCargo, maxKg, maxStops) {
   const maxDist = src[fr].j.get(to).distance;
 
   // Keep only legs going to the same direction
@@ -186,12 +187,12 @@ function getLegStopsReverse(fr, to, src, maxPax, maxKg, maxStops) {
   const routes = [];
   const exclude = [];
   for (var i = 0; i < maxStops; i++) {
-    const bestRoute = bestLegStop(jobsFiltered, maxPax, maxKg, exclude);
+    const bestRoute = bestLegStop(jobsFiltered, maxPax, maxCargo, maxKg, exclude);
 
     // Stop if no leg found
     if (!bestRoute.icao) { break; }
 
-    const [pay, pax, kg, loadCargo] = bestRoute.load;
+    const [pay, pax, cargo, kg, loadCargo] = bestRoute.load;
 
     // Find correct position for new airport
     let pos = i;
@@ -234,13 +235,13 @@ function getLegStopsReverse(fr, to, src, maxPax, maxKg, maxStops) {
 
     exclude.push(bestRoute.icao);
     maxPax -= pax;
+    maxCargo -= cargo;
     maxKg -= kg;
   }
 
   return routes;
 }
 
-// options: {maxPax, maxKg}
 function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badLegsCount, closeIcaosCache, progressStep = null) {
   // Stop when reached max iterations
   if (hop === 0) {
@@ -279,12 +280,12 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
 
       // Compute best load
       const maxKg = maxKgFromDistance(j.distance, options.speed, options.gph, options.maxKg);
-      const [pay, pax, kg, loadCargo, remainCargo] = maximizeCargo(j.cargos, options.maxPax, maxKg);
+      const [pay, pax, cargo, kg, loadCargo, remainCargo] = maximizeCargo(j.cargos, options.maxPax, options.maxCargo, maxKg);
       if (pay <= 0) { continue; }
 
       // Ensure leg is interesting enough considering the number of previous bad legs
       let newBadLegsCount = badLegsCount;
-      if (pax < options.minPaxLoad && kg < options.minKgLoad) {
+      if (pax < options.minPaxLoad && cargo < options.minCargoLoad) {
         if (!badLegsCount) { continue; }
         newBadLegsCount -= 1;
       }
@@ -303,10 +304,10 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       // If there is still room, and no VIP, try to find onroute jobs
       // Limitation: if looping, do not search onroute jobs, because the previous taken jobs
       // were not removed from the jobs array.
-      if (pax < options.maxPax && kg < maxKg && loadCargo.VIP.length === 0 && indexInHistory < 0) {
+      if (pax < options.maxPax && cargo < options.maxCargo && kg < maxKg && loadCargo.VIP.length === 0 && indexInHistory < 0) {
         const maxKgStop = maxKgFromDistance(j.distance*1.5, options.speed, options.gph, options.maxKg)
-        legStops = getLegStops(icao, to, src, options.maxPax-pax, maxKgStop-kg, options.maxStops);
-        legStopsReverse = getLegStopsReverse(icao, to, src, options.maxPax-pax, maxKgStop-kg, options.maxStops);
+        legStops = getLegStops(icao, to, src, options.maxPax-pax, options.maxCargo-cargo, maxKgStop-kg, options.maxStops);
+        legStopsReverse = getLegStopsReverse(icao, to, src, options.maxPax-pax, options.maxCargo-cargo, maxKgStop-kg, options.maxStops);
         for (const legStop of legStops) {
           for (var i = 0; i < legStop.cargos.length; i++) {
             legStop.cargos[i] = {TripOnly: [...legStop.cargos[i].TripOnly, ...loadCargo.TripOnly], VIP:[]};
@@ -419,10 +420,11 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
   return res;
 }
 
-function computeRemain(cargos, maxPax, maxKg) {
+function computeRemain(cargos, maxPax, maxCargo, maxKg) {
   if (cargos.VIP.length) { return [0, 0]; }
   return [
     maxPax - cargos.TripOnly.reduce((acc, elm) => acc+elm.pax, 0),
+    maxCargo - cargos.TripOnly.reduce((acc, elm) => acc+(elm.pax ? 0 : elm.kg), 0),
     maxKg - cargos.TripOnly.reduce((acc, elm) => acc+elm.kg, 0)
   ];
 }
@@ -489,7 +491,7 @@ onmessage = function({data}) {
           if (route.cargos[j-1].VIP.length) { continue; }
           const distance = dist(route.icaos[j-1], route.icaos[j], data.src);
           const maxKg = maxKgFromDistance(distance, options.speed, options.gph, options.maxKg);
-          let [remainPax, remainKg] = computeRemain(route.cargos[j-1], options.maxPax, maxKg);
+          let [remainPax, remainCargo, remainKg] = computeRemain(route.cargos[j-1], options.maxPax, options.maxCargo, maxKg);
           if (!remainKg) { continue; }
 
           // Find previous stop having jobs to the same destination
@@ -497,21 +499,23 @@ onmessage = function({data}) {
             if (route.cargos[k].VIP.length) { break; }
             const distance2 = dist(route.icaos[k], route.icaos[k+1], data.src);
             const maxKg2 = maxKgFromDistance(distance2, options.speed, options.gph, options.maxKg);
-            let [remainPax2, remainKg2] = computeRemain(route.cargos[k], options.maxPax, maxKg2);
+            let [remainPax2, remainCargo2, remainKg2] = computeRemain(route.cargos[k], options.maxPax, options.maxCargo, maxKg2);
             remainPax = Math.min(remainPax, remainPax2);
+            remainCargo = Math.min(remainCargo, remainCargo2);
             remainKg = Math.min(remainKg, remainKg2);
             if (data.src[route.icaos[k]].j) {
               const jb = data.src[route.icaos[k]].j.get(route.icaos[j]);
               if (jb) {
 
                 // Find best cargo, if any
-                const [pay, pax, kg, loadCargo] = maximizeTripOnly(jb.cargos.TripOnly.length, jb.cargos.TripOnly, remainPax, remainKg, {});
+                const [pay, pax, cargo, kg, loadCargo] = maximizeTripOnly(jb.cargos.TripOnly.length, jb.cargos.TripOnly, remainPax, remainCargo, remainKg, {});
                 if (pay) {
                   for (var l = k; l < j; l++) {
                     route.cargos[l] = {TripOnly: [...route.cargos[l].TripOnly, ...loadCargo], VIP:[]};
                   }
                   route.pay += pay;
                   remainPax -= pax;
+                  remainCargo -= cargo;
                   remainKg -= kg;
                 }
               }

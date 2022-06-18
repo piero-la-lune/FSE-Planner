@@ -73,59 +73,18 @@ export function wrap(num, center) {
 }
 
 export class Plane {
-  constructor(model, specs = undefined) {
-    if (aircrafts[model]) {
-      const p = aircrafts[model];
-      this.model = model;
-      this.crew = p.Crew;
-      // Total plane seats - 1 seat for pilot - 1 seat if additionnal crew
-      this.maxPax = p.Seats - (p.Crew > 0 ? 2 : 1);
-      this.fuelCapacity = (p.Ext1 + p.LTip + p.LAux + p.LMain + p.Center1
-                         + p.Center2 + p.Center3 + p.RMain + p.RAux
-                         + p.RTip + p.RExt2);
-      this.speed = p.CruiseSpeed;
-      this.GPH = p.GPH;
-      this.fuelType = p.FuelType;
-      this.MTOW = p.MTOW;
-      this.emptyWeight = p.EmptyWeight;
-      // Plane range: maximum length of a single leg
-      this.range = Math.round(this.fuelCapacity / p.GPH * p.CruiseSpeed);
-      // Max total weight - Empty plane weight - Weight of pilot and crew
-      this.maxKg = Math.floor(this.MTOW - this.emptyWeight - 77*(1+this.crew));
-    }
-    else {
-      this.model = model;
-      this.crew = 0;
-      this.maxPax = 0;
-      this.fuelCapacity = 0;
-      this.speed = 0;
-      this.GPH = 0;
-      this.fuelType = 0;
-      this.MTOW = 0;
-      this.emptyWeight = 0;
-      this.range = 0;
-      this.maxKg = 0;
-    }
-    if (specs) {
-      if (specs.maxPax) {
-        this.maxPax = specs.maxPax;
-      }
-      if (specs.speed) {
-        this.speed = specs.speed;
-      }
-      if (specs.GPH) {
-        this.GPH = specs.GPH;
-      }
-      if (specs.fuelType) {
-        this.fuelType = specs.fuelType;
-      }
-      if (specs.range) {
-        this.range = specs.range;
-      }
-      if (specs.maxKg) {
-        this.maxKg = specs.maxKg;
-      }
-    }
+  constructor(model, specs = {}) {
+    const p = aircrafts[model] ?? {};
+    this.model = model;
+    this.maxPax = specs.maxPax ?? p.maxPax ?? 0;
+    this.maxCargo = specs.maxCargo ?? p.maxCargo ?? 0;
+    this.fuelCapacity = specs.fuelCapacity ?? p.fuelCapacity ?? 0;
+    this.speed = specs.speed ?? p.speed ?? 0;
+    this.GPH = specs.GPH ?? p.GPH ?? 0;
+    this.fuelType = specs.fuelType ?? p.fuelType ?? 0;
+    this.maxKg = specs.maxKg ?? p.maxKg ?? 0;
+    // Plane range: maximum length of a single leg
+    this.range = Math.round(this.fuelCapacity / this.GPH * this.speed);
   }
   preciseMaxKg(tank) {
     // Compute fuel weight in kg at given fuel load
