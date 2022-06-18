@@ -144,7 +144,7 @@ const Row = React.memo(function Row(props) {
           <input type="hidden" name="type" value="add" />
           <input type="hidden" name="rentalType" value="dry" />
           <input type="hidden" name="id" value={row.id} />
-          <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
+          <input type="hidden" name="returnpage" value="/myflight.jsp" />
         </form>
         <form
           action="https://server.fseconomy.net/userctl"
@@ -157,7 +157,7 @@ const Row = React.memo(function Row(props) {
           <input type="hidden" name="type" value="add" />
           <input type="hidden" name="rentalType" value="wet" />
           <input type="hidden" name="id" value={row.id} />
-          <input type="hidden" name="returnpage" value="/myflight_v2.jsp" />
+          <input type="hidden" name="returnpage" value="/myflight.jsp" />
         </form>
       </TableCell>
     </TableRow>

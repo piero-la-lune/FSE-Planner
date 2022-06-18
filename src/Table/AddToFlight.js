@@ -129,7 +129,7 @@ function AddToFlight({onSubmit, ids, children, variant='contained', size='medium
       <input type="hidden" name="type" value={group !== null ? 'move' : 'add'} />
       <input type="hidden" name="id" value="[object+RadioNodeList]" />
       <input type="hidden" name="groupid" value={group !== null ? group[1] : ''} />
-      <input type="hidden" name="returnpage" value={group !== null ? '/groupassignments.jsp?groupid='+group[1]: '/myflight_v2.jsp'} />
+      <input type="hidden" name="returnpage" value={group !== null ? '/groupassignments.jsp?groupid='+group[1]: '/myflight.jsp'} />
       {group !== null &&
         <input type="hidden" name="addToGroup" value={group[1]} />
       }
