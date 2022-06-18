@@ -63,6 +63,7 @@ const Routing = React.memo((props) => {
   const [rentType, setRentType] = React.useState('dry');
   const [fromIcao, setFromIcao] = React.useState(null);
   const [toIcao, setToIcao] = React.useState(null);
+  const [heading, setHeading] = React.useState('');
   const [maxHops, setMaxHops] = React.useState(props.options.settings.routeFinder.maxHops);
   const [maxStops, setMaxStops] = React.useState(props.options.settings.routeFinder.maxStops);
   const [idleTime, setIdleTime] = React.useState(props.options.settings.routeFinder.idleTime);
@@ -431,6 +432,7 @@ const Routing = React.memo((props) => {
       worker.postMessage({
         fromIcao: icao,
         toIcao: type === 'rent' ? (loop ? icao : null) : (toIcao ? toIcao : null),
+        heading: heading === '' ? false : parseInt(heading, 10),
         src: src,
         options: {
           maxKg: planesSpecs[model].maxKg,
@@ -447,7 +449,7 @@ const Routing = React.memo((props) => {
           resultLimit: resultLimit
         },
         maxHops: maxHops,
-        maxBadLegs: maxBadLegs
+        maxBadLegs: parseInt(maxBadLegs, 10)
       });
     };
     const onmessage = ({data}, worker) => {
@@ -677,6 +679,19 @@ const Routing = React.memo((props) => {
                       }
                     }}
                     value={toIcao ? props.options.icaodata[toIcao] : null}
+                    disabled={heading !== ""}
+                  />
+                  <TextField
+                    label="Heading"
+                    variant="outlined"
+                    placeholder="180"
+                    value={heading}
+                    onChange={(evt) => setHeading(evt.target.value.replace(/[^0-9]/g, ''))}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">°</InputAdornment>,
+                    }}
+                    sx={{mt: 1}}
+                    disabled={toIcao !== null}
                   />
                 </Grid>
               </Grid>

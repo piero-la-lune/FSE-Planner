@@ -242,7 +242,7 @@ function getLegStopsReverse(fr, to, src, maxPax, maxCargo, maxKg, maxStops) {
   return routes;
 }
 
-function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badLegsCount, closeIcaosCache, progressStep = null) {
+function route(icao, dest, hdg, src, options, hop, legHistory, includeLocalArea, badLegsCount, closeIcaosCache, progressStep = null) {
   // Stop when reached max iterations
   if (hop === 0) {
     return [];
@@ -298,6 +298,14 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
           newBadLegsCount -= 1;
         }
       }
+      else if (hdg !== false) {
+        // If a heading is set, compute the heading from the origin to the end of the route, and only keep the leg if going in the right direction
+        const dir = getRhumbLineBearing(src[options.fromIcao].c, src[to].c);
+        if ((180 - Math.abs(Math.abs(hdg - dir) - 180)) > 20) {
+          if (!badLegsCount) { continue; }
+          newBadLegsCount -= 1;
+        }
+      }
 
       let legStops = [];
       let legStopsReverse = [];
@@ -328,7 +336,7 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       src[icao].j.get(to).cargos = remainCargo;
 
       // Compute routes
-      const newRoutes = route(to, dest, src, options, hop, [...legHistory, icao], true, newBadLegsCount, closeIcaosCache);
+      const newRoutes = route(to, dest, hdg, src, options, hop, [...legHistory, icao], true, newBadLegsCount, closeIcaosCache);
       newRoutes.push({icaos:[to], cargos:[], pay: 0, distance: 0});
 
       // Restore cargos
@@ -385,7 +393,7 @@ function route(icao, dest, src, options, hop, legHistory, includeLocalArea, badL
       if (src[icao].j && src[icao].j.get(i)) { continue; }
 
       // Compute routes
-      const newRoutes = route(i, dest, src, options, hop, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
+      const newRoutes = route(i, dest, hdg, src, options, hop, [...legHistory, icao], false, badLegsCount-1, closeIcaosCache);
 
       // Append routes to result
       for (const newRoute of newRoutes) {
@@ -443,11 +451,13 @@ onmessage = function({data}) {
 
   const options = {
     loop: data.fromIcao === data.toIcao,
+    fromIcao: data.fromIcao,
     ...data.options
   }
   let allResults = route(
     data.fromIcao,
     data.toIcao,
+    data.heading,
     data.src,
     options,
     data.maxHops,
@@ -542,6 +552,15 @@ onmessage = function({data}) {
         }
       }
     }
+  }
+  // If heading is set, discard routes that do not go in the right direction, or with too many detours
+  else if (data.heading !== false) {
+    allResults = allResults.filter(elm => {
+      const to = elm.icaos[elm.icaos.length-1];
+      const d = dist(data.fromIcao, to, data.src);
+      const dir = getRhumbLineBearing(data.src[data.fromIcao].c, data.src[to].c);
+      return (180 - Math.abs(Math.abs(data.heading - dir) - 180)) <= 20 && elm.distance < d * 1.3;
+    });
   }
 
   // Filter routes longer than maxHops
