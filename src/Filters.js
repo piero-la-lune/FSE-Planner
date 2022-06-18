@@ -94,7 +94,8 @@ function Filters({setFilters, ...props}) {
   const setNb = React.useCallback((prop, value) => {
     setFilters(prev => {
       const f = {...prev};
-      f[prop] = parseInt(value, 10) || '';
+      const nb = parseInt(value, 10);
+      f[prop] =  isNaN(nb) ? '' : nb;
       return f;
     });
   }, [setFilters]);
