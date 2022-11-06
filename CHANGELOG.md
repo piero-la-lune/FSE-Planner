@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.13.0] - 2022-11-06
+
+### Added
+- Automatic import from FSE with Read Access Key when creating FBOs custom layers
+- An aircraft bonus can now be manually set when using Route Finder in Free Search mode (#144)
+
+### Changed
+- Updated FSE plane list
+- Updated MSFS data
+
+### Fixed
+- Fixed bug with job custom area when changing the map center (#149)
+- Fixed wording in Route Finder results (#145)
+
+
+
 ## [1.12.0] - 2022-06-18
 
 ### Added

@@ -98,6 +98,25 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.13.0 (2022-11-06)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Automatic import from FSE with Read Access Key when creating FBOs custom layers</ListItem>
+              <ListItem>An aircraft bonus can now be manually set when using Route Finder in Free Search mode (<IssueLink id={144} />)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE plane list</ListItem>
+              <ListItem>Updated MSFS data</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed bug with job custom area when changing the map center (<IssueLink id={149} />)</ListItem>
+              <ListItem>Fixed wording in Route Finder results (<IssueLink id={145} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.12.0 (2022-06-18)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>

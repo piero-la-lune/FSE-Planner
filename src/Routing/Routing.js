@@ -61,6 +61,8 @@ const Routing = React.memo((props) => {
   const [fuelType, setFuelType] = React.useState(1);
   const [rentFee, setRentFee] = React.useState(0);
   const [rentType, setRentType] = React.useState('dry');
+  const [planeHome, setPlaneHome] = React.useState('');
+  const [planeBonus, setPlaneBonus] = React.useState('');
   const [fromIcao, setFromIcao] = React.useState(null);
   const [toIcao, setToIcao] = React.useState(null);
   const [heading, setHeading] = React.useState('');
@@ -111,6 +113,7 @@ const Routing = React.memo((props) => {
 
   const prepResults = (allResults, planesSpecs) => {
     const approachSpeedRatio = 0.4;
+    const customPlaneBonus = planeHome ? parseInt(planeBonus, 10) : 0;
     for (var i = 0; i < allResults.length; i++) {
       const plane = planesSpecs[allResults[i].model];
       const totalDistance =
@@ -225,6 +228,18 @@ const Routing = React.memo((props) => {
       else {
         rentalType = rentType;
         rentalCost = rentFee * time;
+        if (customPlaneBonus) {
+          // Compute bonus
+          const startIcao = allResults[i].icaos[0];
+          const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
+          bonus = -Math.round(
+            (
+                convertDistance(getDistance(props.options.icaodata[endIcao], props.options.icaodata[planeHome]), 'sm')
+              -
+                convertDistance(getDistance(props.options.icaodata[startIcao], props.options.icaodata[planeHome]), 'sm')
+            )
+            * customPlaneBonus / 100);
+        }
       }
       // Subtract rental cost and bonus to total pay
       if (fees.includes('Rental')) {
@@ -790,7 +805,7 @@ const Routing = React.memo((props) => {
                         }}
                       />
                     </Grid>
-                    
+
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>
                     <Grid item xs={6}>
@@ -865,6 +880,35 @@ const Routing = React.memo((props) => {
                         <MenuItem value="dry">Dry</MenuItem>
                         <MenuItem value="wet">Wet</MenuItem>
                       </TextField>
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={1} style={{marginTop:12}}>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Bonus"
+                        placeholder="0"
+                        variant="outlined"
+                        value={planeBonus}
+                        onChange={(evt) => setPlaneBonus(evt.target.value.replace(/[^0-9]/g, ''))}
+                        InputProps={{
+                          endAdornment: <InputAdornment position="end">$/</InputAdornment>,
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <IcaoSearch
+                        options={icaodataArr}
+                        label="Aircraft home"
+                        onChange={(evt, value) => {
+                          if (value) {
+                            setPlaneHome(value.icao);
+                          }
+                          else {
+                            setPlaneHome(null);
+                          }
+                        }}
+                        value={planeHome ? props.options.icaodata[planeHome] : null}
+                      />
                     </Grid>
                   </Grid>
                 </React.Fragment>

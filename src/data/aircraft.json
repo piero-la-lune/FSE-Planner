@@ -345,7 +345,7 @@
     "maxPax": 9,
     "maxCargo": 1842,
     "fuelCapacity": 282,
-    "speed": 170,
+    "speed": 175,
     "GPH": 45,
     "fuelType": 0,
     "maxKg": 1842
@@ -859,7 +859,7 @@
     "maxCargo": 1974,
     "fuelCapacity": 136,
     "speed": 145,
-    "GPH": 66,
+    "GPH": 45,
     "fuelType": 0,
     "maxKg": 1974
   },
@@ -1245,7 +1245,7 @@
     "maxPax": 25,
     "maxCargo": 11270,
     "fuelCapacity": 2910,
-    "speed": 190,
+    "speed": 205,
     "GPH": 203,
     "fuelType": 0,
     "maxKg": 11270

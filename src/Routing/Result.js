@@ -61,7 +61,7 @@ function textTotalCargo(cargos, kgPax = true) {
   if (kg) {
     text.push(kg + ' kg');
   }
-  return text.join(' and ');
+  return text.join(' • ');
 }
 
 
@@ -257,11 +257,16 @@ function Result({focus, setFocus, options, ...props}) {
                 <TimelineContent sx={{ flex: 10 }}>
                   { i === 0 &&
                     <React.Fragment>
-                      { focus.reg &&
-                        <React.Fragment>
-                          <Typography variant="body2">Rent {focus.reg} {focus.rentalType} ({focus.plane.model})</Typography>
-                          <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
-                        </React.Fragment>
+                      { focus.reg ?
+                          <React.Fragment>
+                            <Typography variant="body2">Rent {focus.reg} {focus.rentalType} ({focus.plane.model})</Typography>
+                            <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
+                          </React.Fragment>
+                        :
+                          <React.Fragment>
+                            <Typography variant="body2">Rent {focus.plane.model} ({focus.rentalType})</Typography>
+                            <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
+                          </React.Fragment>
                       }
                       <Typography variant="body2" paragraph>Fuel usage : {focus.fuel} gallons</Typography>
                     </React.Fragment>

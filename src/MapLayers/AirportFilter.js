@@ -13,6 +13,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import BusinessIcon from '@mui/icons-material/Business';
 import RoomIcon from '@mui/icons-material/Room';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Slider from '@mui/material/Slider';
@@ -22,6 +23,10 @@ import Switch from '@mui/material/Switch';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 
+import Storage from '../Storage.js';
+import { usePapaParse } from 'react-papaparse';
+
+const storage = new Storage();
 
 const surfaceOptions = [
   [1, 'Asphalt'],
@@ -339,6 +344,9 @@ function AirportFilter(props) {
   const [gpsConnectionsVal, setGpsConnectionsVal] = React.useState(layer.data.connections.map(elm => elm.join(',')).join("\n"));
   const [gpsPoints, setGpsPoints] = React.useState(layer.data.points);
   const [gpsConnections, setGpsConnections] = React.useState(layer.data.connections);
+  const [key, setKey] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const { readString } = usePapaParse();
 
   React.useEffect(() => {
     if (type !== null && step === 0 && type !== 'custom' && type !== 'gps') {
@@ -531,6 +539,67 @@ function AirportFilter(props) {
         }
         { step === 0 && custom === 3 &&
           <div>
+            <Typography variant="body1">
+              Either enter a group/user Read Access Key to automatically import all FBOs belonging to this group/user, or manually enter the ICAOs in the text fields below.
+            </Typography>
+            <Box sx={{mt: 3, mb: 3, display: 'flex', justifyContent: 'center'}}>
+              <TextField
+                label="Read Access Key (user or group)"
+                variant="outlined"
+                size="small"
+                placeholder="key"
+                value={key}
+                onChange={(evt) => {
+                  setKey(evt.target.value);
+                }}
+                InputLabelProps={{ shrink: true }}
+              />
+              <Button
+                onClick={() => {
+                  setLoading(true);
+                  const url = 'data?userkey='+storage.get('key', '')+'&format=csv&query=Facilities&search=key&readaccesskey='+key;
+                  // Fetch facilities
+                  fetch(process.env.REACT_APP_PROXY+url)
+                  .then(function(response) {
+                    if (!response.ok) {
+                      throw new Error('An error occurred, please check the key and/or try again later');
+                    }
+                    return response.text();
+                  })
+                  .then(function(csv) {
+                    // Parse CSV
+                    const parse = readString(csv, {header: true, skipEmptyLines: 'greedy'});
+                    if (parse.errors.length > 0) {
+                      const found = csv.match(/<Error>(.*)<\/Error>/i);
+                      throw new Error(found === null ? 'An error occurred, please check the key and/or try again later' : found[1]);
+                    }
+                    const icaos = [];
+                    const conn = new Set();
+                    for (const obj of parse.data) {
+                      icaos.push(obj.Icao);
+                      const destinations = obj.Destinations.split(', ');
+                      for (const dest of destinations) {
+                        conn.add(obj.Icao + ' ' + dest);
+                        conn.add(dest + ' ' + obj.Icao);
+                      }
+                    }
+                    setCustomIcaosVal(icaos.join("\n"));
+                    setCustomConnectionsVal([...conn].join("\n"));
+                    setLoading(false);
+                  })
+                  .catch(function(error) {
+                    alert(error);
+                    setLoading(false);
+                  });
+                }}
+                color="primary"
+                endIcon={<ExpandCircleDownIcon />}
+                sx={{ ml: 1 }}
+                disabled={!key || loading}
+              >
+                Auto fill
+              </Button>
+            </Box>
             <Grid container spacing={3}>
               <Grid item xs={6}>
                 <Typography variant="h6">FSE Airports</Typography>
