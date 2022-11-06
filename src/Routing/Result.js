@@ -61,7 +61,7 @@ function textTotalCargo(cargos, kgPax = true) {
   if (kg) {
     text.push(kg + ' kg');
   }
-  return text.join(' and ');
+  return text.join(' • ');
 }
 
 
