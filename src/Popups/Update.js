@@ -27,7 +27,6 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 
 import { usePapaParse } from 'react-papaparse';
-import { isPointInPolygon } from "geolib";
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import he from 'he';
@@ -35,7 +34,7 @@ import he from 'he';
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
 import log from '../util/logger.js';
-import { hideAirport } from "../util/utility.js";
+import { hideAirport, wrap } from "../util/utility.js";
 
 import aircrafts from "../data/aircraft.json";
 
@@ -82,21 +81,15 @@ function getAreas(icaodata, icaos) {
 
 // Get the list of all airports within the selected countries and custom area
 function getIcaoList(countries, bounds, layers, icaodata, icaos, settings) {
-  let points = null;
-  // If custom area, compute polygon points
+  let center = null;
+  // If custom area, compute the area center to later wrap lng coordinates
   if (countries.includes('Custom area')) {
-    const [n, e, s, w] = [bounds.getNorth(), bounds.getEast(), bounds.getSouth(), bounds.getWest()];
-    points = [
-      { latitude: n, longitude: w },
-      { latitude: n, longitude: e },
-      { latitude: s, longitude: e },
-      { latitude: s, longitude: w }
-    ];
+    center = bounds.getCenter();
   }
   let i = [];
   for (const icao of icaos) {
     // If custom area, check if icao is inside the polygon
-    if (points && isPointInPolygon({ latitude: icaodata[icao].lat, longitude: icaodata[icao].lon}, points)) {
+    if (center && bounds.contains([icaodata[icao].lat, icaodata[icao].lon+wrap(icaodata[icao].lon, center.lng)])) {
       i.push(icao);
     }
     else {
@@ -392,6 +385,23 @@ function UpdatePopup(props) {
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
+  // Update custom area when map center is updated
+  React.useEffect(() => {
+    const b = storage.get('jobsCustom', {});
+    if (b && b._southWest) {
+      while ((b._southWest.lng + b._northEast.lng)/2 < props.settings.display.map.center-180) {
+        b._southWest.lng += 360;
+        b._northEast.lng += 360;
+      }
+      while ((b._southWest.lng + b._northEast.lng)/2 > props.settings.display.map.center+180) {
+        b._southWest.lng -= 360;
+        b._northEast.lng -= 360;
+      }
+      storage.set('jobsCustom', b);
+      setJobsCustom(L.latLngBounds(b._southWest, b._northEast));
+    }
+  }, [props.settings.display.map.center]);
+
   // Update available custom layers when opening the popup
   React.useEffect(() => {
     if (!props.open) { return; }
@@ -492,6 +502,11 @@ function UpdatePopup(props) {
     setLoading('panel2');
     // Compute ICAO list
     const [icaos, icaosList] = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings);
+    if (icaos.length === 0) {
+      alert('No airport in selected job area');
+      setLoading(false);
+      return false;
+    }
     const dir = props.settings.update.direction === 'to' ? 'jobsto' : 'jobsfrom';
     updateJobsRequest([...icaosList], [], dir, (list) => {
       const jobs = cleanJobs(list, props.icaodata, props.settings.update, props.settings.update.direction === 'both' ? icaos : null);

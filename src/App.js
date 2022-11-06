@@ -281,6 +281,7 @@ function App() {
   }), [jobs, planes, flight, settings, icaodata, filters]);
 
   React.useEffect(() => {
+    // Update icao coordiates to fit in new map center
     const obj = _clone(icaodataSrc);
     icaos.forEach((icao) => {
       const nb = wrap(obj[icao].lon, settings.display.map.center);
