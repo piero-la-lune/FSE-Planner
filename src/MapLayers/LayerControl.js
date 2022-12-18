@@ -998,75 +998,80 @@ function LayerControl(props) {
         layer={layer}
         icaos={props.icaos}
       />
-      {hover || openFilter ?
-        <Box
-          onContextMenu={evt => { evt.preventDefault() }}
+      <Box
+        onContextMenu={evt => { evt.preventDefault() }}
+        sx={{
+          WebkitUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          display: hover || openFilter ? null : 'none'
+        }}
+      >
+        <IconButton
+          onClick={() => setHover(false)}
+          size="large"
           sx={{
-            WebkitUserSelect: 'none',
-            WebkitTouchCallout: 'none'
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: 'grey[500]',
           }}
         >
-          <IconButton
-            onClick={() => setHover(false)}
-            size="large"
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              color: 'grey[500]',
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-          <Typography variant="h6" gutterBottom>Basemap</Typography>
-          <BasemapBtn src={imgs[0]} selected={basemap === 0} onClick={() => setBasemapId(0)} label="Default" />
-          <BasemapBtn src={imgs[1]} selected={basemap === 1} onClick={() => setBasemapId(1)} label="Alternative" />
-          <Typography variant="h6" gutterBottom style={{marginTop: 16}}>
-            Layers
-          </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'left',
-              gap: '20px 0'
-            }}
-          >
-            {layersRef.current.map((elm, i) =>
-              <Layer
-                label={elm.label}
-                visible={elm.visible}
-                key={i}
-                onChange={checked => show(i, checked)}
-                img={elm.img}
-                color={elm.color}
-                loading={loading === i}
-                handleRemove={i > 4 ? () => { removeLayer(i); } : null}
-                handleEdit={i > 4 && (!elm.shared || elm.layerInfo.shareEditID) ? () => { editLayer(i); } : null}
-                onContextMenu={evt => openContextMenu(evt, i)}
-                shared={elm.shared}
-              />
-            )}
-          </Box>
-          <Box
-            sx={{
-              textAlign: 'center',
-              marginTop: 2
-            }}
-          >
-            <Button
-              color="primary"
-              startIcon={<AddIcon />}
-              size="small"
-              onClick={() => setOpenFilter(true)}
-            >
-              New layer
-            </Button>
-          </Box>
+          <CloseIcon />
+        </IconButton>
+        <Typography variant="h6" gutterBottom>Basemap</Typography>
+        <BasemapBtn src={imgs[0]} selected={basemap === 0} onClick={() => setBasemapId(0)} label="Default" />
+        <BasemapBtn src={imgs[1]} selected={basemap === 1} onClick={() => setBasemapId(1)} label="Alternative" />
+        <Typography variant="h6" gutterBottom style={{marginTop: 16}}>
+          Layers
+        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'left',
+            gap: '20px 0'
+          }}
+        >
+          {layersRef.current.map((elm, i) =>
+            <Layer
+              label={elm.label}
+              visible={elm.visible}
+              key={i}
+              onChange={checked => show(i, checked)}
+              img={elm.img}
+              color={elm.color}
+              loading={loading === i}
+              handleRemove={i > 4 ? () => { removeLayer(i); } : null}
+              handleEdit={i > 4 && (!elm.shared || elm.layerInfo.shareEditID) ? () => { editLayer(i); } : null}
+              onContextMenu={evt => openContextMenu(evt, i)}
+              shared={elm.shared}
+            />
+          )}
         </Box>
-      :
-        <IconButton size="large"><LayersIcon /></IconButton>
-      }
+        <Box
+          sx={{
+            textAlign: 'center',
+            marginTop: 2
+          }}
+        >
+          <Button
+            color="primary"
+            startIcon={<AddIcon />}
+            size="small"
+            onClick={() => setOpenFilter(true)}
+          >
+            New layer
+          </Button>
+        </Box>
+      </Box>
+      <IconButton
+        size="large"
+        sx={{
+          display: !hover && !openFilter ? null : 'none'
+        }}
+      >
+        <LayersIcon />
+      </IconButton>
       {contextMenu &&
         <Popover
           open={true}
