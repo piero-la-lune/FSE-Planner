@@ -828,9 +828,15 @@ function LayerControl(props) {
               if (response.ok) {
                 response.json().then(arr => {
                   if (arr.info) {
+                    const editPerm = layer.layerInfo.shareEditID;
                     // Update layer
                     const ll = layerFactory(arr.info, layer.id);
                     layersRef.current[i] = ll;
+                    // If user has the layer editId, needs to set it back because
+                    // it is not returned by the API call
+                    if (editPerm) {
+                      layersRef.current[i].layerInfo.shareEditID = editPerm;
+                    }
                     show(i, true);
                   }
                 });
