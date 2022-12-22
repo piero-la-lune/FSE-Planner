@@ -20,10 +20,13 @@ import DialogContentText from '@mui/material/DialogContentText';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import LockIcon from '@mui/icons-material/Lock';
+import PublicIcon from '@mui/icons-material/Public';
 import Tooltip from '@mui/material/Tooltip';
 import Alert from '@mui/material/Alert';
 import ShareIcon from '@mui/icons-material/Share';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 
 import { getBounds } from "geolib";
 import { default as _clone } from 'lodash/cloneDeep';
@@ -34,7 +37,7 @@ import JobsLayer from "./Jobs.js";
 import RouteLayer from "./Route.js";
 import AirportsLayer from "./Airports.js";
 import GPSLayer from "./GPS.js";
-import AirportFilter from "./AirportFilter.js";
+import CustomLayerPopup from "./CustomLayers/CustomLayerPopup.js";
 import { simName, hideAirport } from "../util/utility.js";
 import Storage from "../Storage.js";
 import uid from "../util/uid.js";
@@ -294,6 +297,7 @@ function LayerControl(props) {
   const [shareID, setShareID] = React.useState(null);
   const [shareLabel, setShareLabel] = React.useState('');
   const [shareEditID, setShareEditID] = React.useState(null);
+  const [sharePublic, setSharePublic] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
   const [confirm, setConfirm] = React.useState({});
   const { setBasemap } = props;
@@ -350,7 +354,7 @@ function LayerControl(props) {
 
   const updateLocalStorage = React.useCallback(() => {
     const ls = layersRef.current.map(l => l.layerInfo ?
-      {visible: l.visible, info: l.layerInfo, id: l.id} :
+      {visible: l.visible, info: l.layerInfo, id: l.id, sharePublic: l.sharePublic} :
       {visible: l.visible}
     );
     storage.set('layers', ls);
@@ -629,6 +633,7 @@ function LayerControl(props) {
           const ll = layerFactory(l.info, l.id);
           layersRef.current.push(ll);
         }
+        layersRef.current[i].sharePublic = l.sharePublic;
         if (l.visible) {
           layersRef.current[i].visible = true;
         }
@@ -675,6 +680,9 @@ function LayerControl(props) {
                   if (shareEditID) {
                     layersRef.current[i].layerInfo.shareEditID = shareEditID;
                   }
+                  if (arr.sharePublic) {
+                    layersRef.current[i].sharePublic = true;
+                  }
                   show(i, true);
                   centerMapOnLayer(i);
                 }
@@ -714,11 +722,11 @@ function LayerControl(props) {
         orderRef.current = orderRef.current.map(elm => elm > i ? elm-1 : elm);
         updateLocalStorage();
         forceUpdate();
-        setConfirm({});
+        setConfirm(prev => ({...prev, yes: null}));
         setHover(false);
       },
       no: () => {
-        setConfirm({});
+        setConfirm(prev => ({...prev, yes: null}));
         setHover(false);
       }
     });
@@ -783,7 +791,7 @@ function LayerControl(props) {
         actions.push({
           name: "Share",
           onClick: () => {
-            setShare(true);
+            setShare(i);
             setShareLabel(layer.label);
             fetch(process.env.REACT_APP_API_URL+'/layer', {
               method: 'post',
@@ -810,11 +818,12 @@ function LayerControl(props) {
       }
       else {
         actions.push({
-          name: "Shared: get link",
+          name: "Shared: options & links",
           onClick: () => {
-            setShare(true);
+            setShare(i);
             setShareLabel(layer.label);
             setShareID(layer.layerInfo.shareID);
+            setSharePublic(layer.sharePublic);
             if (layer.layerInfo.shareEditID) {
               setShareEditID(layer.layerInfo.shareEditID);
             }
@@ -828,6 +837,10 @@ function LayerControl(props) {
               if (response.ok) {
                 response.json().then(arr => {
                   if (arr.info) {
+                    // Remove layer if displayed
+                    if (layersRef.current[i].layer) {
+                      layersRef.current[i].layer.remove();
+                    }
                     const editPerm = layer.layerInfo.shareEditID;
                     // Update layer
                     const ll = layerFactory(arr.info, layer.id);
@@ -837,6 +850,7 @@ function LayerControl(props) {
                     if (editPerm) {
                       layersRef.current[i].layerInfo.shareEditID = editPerm;
                     }
+                    layersRef.current[i].sharePublic = arr.sharePublic === "x";
                     show(i, true);
                   }
                 });
@@ -889,8 +903,39 @@ function LayerControl(props) {
     setShare(false);
     setShareID(null);
     setShareEditID(null);
+    setSharePublic(false);
     setHover(false);
   }, []);
+
+  // When a layer is made public
+  const makePublic = React.useCallback((i) => {
+    setConfirm({
+      title: "Make public?",
+      msg: <span>Are you sure you want to make this layer public?<br /><br />This layer will be publicly listed: anyone will be able to access it, without requiring a link.<br /><br /> <b>This cannot be undone.</b></span>,
+      yes: () => {
+        setConfirm(prev => ({...prev, yes: null}));
+        setSharePublic(true);
+        fetch(process.env.REACT_APP_API_URL+'/layer/'+shareID+'/public', {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({editId: shareEditID})
+        }).then(response => {
+          if (!response.ok) {
+            alert('Unable to update this shared layer. Check your internet connection or try again later.')
+          }
+          else {
+            layersRef.current[share].sharePublic = true;
+            updateLocalStorage();
+          }
+        });
+      },
+      no: () => {
+        setConfirm(prev => ({...prev, yes: null}));
+      }
+    });
+  }, [updateLocalStorage, share, shareEditID, shareID]);
 
   const handleEditLayer = (ll, id) => {
     if (layersRef.current[id].layer) {
@@ -911,6 +956,7 @@ function LayerControl(props) {
       ll.shared = true;
       ll.layerInfo.shareID = layersRef.current[id].layerInfo.shareID;
       ll.layerInfo.shareEditID = layersRef.current[id].layerInfo.shareEditID;
+      ll.sharePublic = layersRef.current[id].sharePublic;
     }
     layersRef.current[id] = ll;
   }
@@ -964,7 +1010,7 @@ function LayerControl(props) {
       onClick={() => { if (!hover) { setHover(true); }}}
       data-tour="Step8"
     >
-      <AirportFilter
+      <CustomLayerPopup
         open={openFilter}
         handleSave={(l) => {
           // Close popup and reset to default layer
@@ -978,6 +1024,10 @@ function LayerControl(props) {
             layersRef.current.push(ll);
             id = layersRef.current.length - 1;
             orderRef.current.push(id);
+            if (l.shareID) {
+              layersRef.current[id].sharePublic = true;
+            }
+            centerMapOnLayer(id);
           }
           // Edit layer
           else {
@@ -1051,7 +1101,7 @@ function LayerControl(props) {
         <Box
           sx={{
             textAlign: 'center',
-            marginTop: 2
+            mt: 2
           }}
         >
           <Button
@@ -1059,8 +1109,9 @@ function LayerControl(props) {
             startIcon={<AddIcon />}
             size="small"
             onClick={() => setOpenFilter(true)}
+            variant="outlined"
           >
-            New layer
+            Add layer
           </Button>
         </Box>
       </Box>
@@ -1101,9 +1152,45 @@ function LayerControl(props) {
           }
         </Popover>
       }
-      <Dialog open={share}>
-        <DialogTitle>Share "{shareLabel}"</DialogTitle>
-        <DialogContent>
+      <Dialog open={share !== false}>
+        <DialogTitle sx={{ pr: 8 }}>
+          Share "{shareLabel}"
+          <IconButton
+            onClick={handleCloseShare}
+            size="large"
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: 'grey[500]',
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ mb: 3, textAlign: "center" }}>
+            { sharePublic === true ?
+                <Box>
+                  <Chip label="Public" color="success" variant="outlined" icon={<PublicIcon />} />
+                  <Typography variant="body2" sx={{ mt: 1 }}>This layer is publicly listed: anyone can search and access this layer</Typography>
+                </Box>
+              :
+                <Box>
+                  <Chip label="Private" color="error" variant="outlined" icon={<LockIcon />} />
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Only people with a link can access this layer
+                    { shareEditID &&
+                      <Tooltip title="This layer will be publicly listed: anyone will be able to access it, without requiring a link">
+                        <Button sx={{ ml: 1 }} onClick={makePublic} size="small" variant="contained">
+                          Make public
+                        </Button>
+                      </Tooltip>
+                    }
+                  </Typography>
+                </Box>
+            }
+          </Box>
           <Typography variant="h6">Read-only link</Typography>
           <Typography variant="body2" style={{margin: '12px 0 24px 0'}}>People with this link will be able to view this custom layer, but not edit it.</Typography>
           <TextField
@@ -1135,7 +1222,7 @@ function LayerControl(props) {
           />
           {
             shareEditID &&
-            <div>
+            <Box>
               <Typography variant="h6" style={{marginTop: 32}}>Edit link</Typography>
               <Alert severity="warning">You should keep a copy of this link on your computer, you will not be able to recover the link if a data reset happens in your current Internet browser.</Alert>
               <Typography variant="body2" style={{margin: '12px 0 24px 0'}}>People with this link will be able to edit this custom layer.</Typography>
@@ -1165,7 +1252,7 @@ function LayerControl(props) {
                     </InputAdornment>
                 }}
               />
-            </div>
+            </Box>
           }
         </DialogContent>
         <DialogActions>
