@@ -712,7 +712,15 @@ function LayerControl(props) {
   const removeLayer = React.useCallback((i) => {
     setConfirm({
       title: "Delete layer?",
-      msg: 'Are you sure you want to delete this layer?',
+      msg: <span>
+          Are you sure you want to delete this layer?
+          {layersRef.current[i].shared === true && layersRef.current[i].layerInfo.shareEditID !== null && layersRef.current[i].sharePublic === false &&
+            <span><br /><br /><b>Because this layer is shared, any user with the link can still view it!</b><br /><b>But if you proceed, you can never again edit the layer.</b></span>
+          }
+          {layersRef.current[i].shared === true && layersRef.current[i].layerInfo.shareEditID !== null && layersRef.current[i].sharePublic === true &&
+            <span><br /><br /><b>Because this layer is public, any user can still view it!</b><br /><b>But if you proceed, you can never again edit the layer.</b></span>
+          }
+        </span>,
       yes: () => {
         if (layersRef.current[i].layer) {
           layersRef.current[i].layer.remove();
