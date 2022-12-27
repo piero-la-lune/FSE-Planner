@@ -98,6 +98,27 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.14.0 (2022-12-27)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Community layers: make public your layer so that other users can easily search for it and view it (no more need for a share link)</ListItem>
+              <ListItem>Layers options: more colors and added description field</ListItem>
+              <ListItem>New "Clear all filters" button to reset all filters at once (<IssueLink id={152} />)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Layer creation popup look & feel</ListItem>
+              <ListItem>Clearer warning message when deleting a shared layer</ListItem>
+              <ListItem>Updated FSE plane list</ListItem>
+              <ListItem>Updated MSFS data</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed bug that could prevent future edit capability on custom layers</ListItem>
+            </List>
+          </Paper>
+          
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.13.0 (2022-11-06)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>

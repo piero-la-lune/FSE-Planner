@@ -107,6 +107,15 @@
     "fuelType": 1,
     "maxKg": 1654
   },
+  "Airbus Helicopters H145 (HPG)": {
+    "maxPax": 9,
+    "maxCargo": 1654,
+    "fuelCapacity": 239,
+    "speed": 132,
+    "GPH": 55,
+    "fuelType": 1,
+    "maxKg": 1654
+  },
   "Aircreation 582SL": {
     "maxPax": 1,
     "maxCargo": 100,
@@ -1451,7 +1460,7 @@
   "DeHavilland DHC-2 Turbo Beaver": {
     "maxPax": 8,
     "maxCargo": 1382,
-    "fuelCapacity": 183,
+    "fuelCapacity": 240,
     "speed": 140,
     "GPH": 50,
     "fuelType": 1,
@@ -2176,6 +2185,15 @@
     "GPH": 20,
     "fuelType": 0,
     "maxKg": 467
+  },
+  "Lancair Evolution": {
+    "maxPax": 3,
+    "maxCargo": 785,
+    "fuelCapacity": 168,
+    "speed": 290,
+    "GPH": 40,
+    "fuelType": 1,
+    "maxKg": 785
   },
   "Lancair IV-P": {
     "maxPax": 3,
@@ -3076,6 +3094,15 @@
     "GPH": 62,
     "fuelType": 1,
     "maxKg": 2175
+  },
+  "SIAI-Marchetti S.205 18/R": {
+    "maxPax": 3,
+    "maxCargo": 483,
+    "fuelCapacity": 54,
+    "speed": 143,
+    "GPH": 11,
+    "fuelType": 0,
+    "maxKg": 483
   },
   "SIAI-Marchetti SF260": {
     "maxPax": 2,

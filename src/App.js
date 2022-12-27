@@ -118,6 +118,23 @@ const defaultSettings = {
   }
 };
 
+const defaultFilters = {
+  type: 'Trip-Only',
+  cargo: ['passengers'],
+  fromIcao: null,
+  toIcao: null,
+  minPax: '',
+  minKg: '',
+  maxPax: '',
+  maxKg: '',
+  minDist: '',
+  maxDist: '',
+  minJobPay: '',
+  minLegPay: '',
+  percentPay: '',
+  direction: ''
+};
+
 const icaos = Object.keys(icaodataSrc);
 
 
@@ -218,22 +235,7 @@ const storage = new Storage();
 function App() {
 
   const [filtersBar, setFiltersBar] = React.useState(false)
-  const [filters, setFilters] = React.useState({
-    type: 'Trip-Only',
-    cargo: ['passengers'],
-    fromIcao: null,
-    toIcao: null,
-    minPax: '',
-    minKg: '',
-    maxPax: '',
-    maxKg: '',
-    minDist: '',
-    maxDist: '',
-    minJobPay: '',
-    minLegPay: '',
-    percentPay: '',
-    direction: ''
-  });
+  const [filters, setFilters] = React.useState(defaultFilters);
   const [table, setTable] = React.useState(false);
   const [updatePopup, setUpdatePopup] = React.useState(false);
   const [settingsPopup, setSettingsPopup] = React.useState(false);
@@ -678,6 +680,7 @@ function App() {
             icaodata={icaodata}
             actions={actions}
             setSettingsPopup={setSettingsPopup}
+            clear={() => setFilters(defaultFilters)}
           />
         }
       </AppBar>
