@@ -247,7 +247,12 @@ function CustomLayerPopup(props) {
   // When loading user FBOs from a read access key
   const loadUserFBOs = () => {
     setLoading(true);
-    const url = 'data?userkey='+storage.get('key', '')+'&format=csv&query=Facilities&search=key&readaccesskey='+key;
+    const userkey = storage.get('key', '');
+    if (!userkey) {
+      alert('You need to first enter your Read Access Key in the "Load Data" screen');
+      setLoading(false);
+    }
+    const url = 'data?userkey='+userkey+'&format=csv&query=Facilities&search=key&readaccesskey='+key;
     // Fetch facilities
     fetch(process.env.REACT_APP_PROXY+url)
     .then(function(response) {

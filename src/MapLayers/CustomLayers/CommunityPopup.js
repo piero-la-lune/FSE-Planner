@@ -37,7 +37,12 @@ const CommunityAccordion = React.memo(({e, expanded, handleExpand, handleImport}
       </AccordionSummary>
       <AccordionDetails>
         <Typography variant="body2"><b>Type:</b> {layerTypes[e.info.type]}</Typography>
-        <Typography variant="body2" sx={{ mt: 2}}><b>Size:</b> {e.info.type === 'gps' ? e.info.data.points.length + ' points' : e.info.data.icaos.length + ' airports'}</Typography>
+        { e.info.type === 'gps' &&
+          <Typography variant="body2" sx={{ mt: 2}}><b>Size:</b> {e.info.data.points.length} points</Typography>
+        }
+        { e.info.type === 'custom' &&
+          <Typography variant="body2" sx={{ mt: 2}}><b>Size:</b> {e.info.data.icaos.length} airports</Typography>
+        }
         <Typography variant="body2" sx={{ mt: 2}}><b>Description:</b></Typography>
         <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>{e.info.display.desc}</Typography>
         <Box sx={{ mt: 2, textAlign: 'right' }}>
