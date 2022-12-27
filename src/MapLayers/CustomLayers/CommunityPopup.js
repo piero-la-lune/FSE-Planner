@@ -31,12 +31,13 @@ const CommunityAccordion = React.memo(({e, expanded, handleExpand, handleImport}
       TransitionProps={{ unmountOnExit: true }}
       key={e.id}
     >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ "& .MuiAccordionSummary-content": { flexDirection: 'column' }}}>
         <Typography>{e.info.display.name}</Typography>
+        <Typography variant="body2" sx={{ color: '#aaa', textTransform: 'uppercase', fontSize: '0.7em' }}>{e.info.display.location}</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Typography variant="body2"><b>Type:</b> {layerTypes[e.info.type]}</Typography>
-        <Typography variant="body2" sx={{ mt: 2}}><b>Size:</b> {e.info.type === 'gps' ? e.info.data.points.length + ' points' : e.info.data.connections.length + ' airports'}</Typography>
+        <Typography variant="body2" sx={{ mt: 2}}><b>Size:</b> {e.info.type === 'gps' ? e.info.data.points.length + ' points' : e.info.data.icaos.length + ' airports'}</Typography>
         <Typography variant="body2" sx={{ mt: 2}}><b>Description:</b></Typography>
         <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>{e.info.display.desc}</Typography>
         <Box sx={{ mt: 2, textAlign: 'right' }}>
@@ -69,7 +70,7 @@ function Community(props) {
       if (response.ok) {
         response.json().then(arr => {
           setMaxCommunity(50);
-          const a = arr.map(e => { return {...e, search: e.info.display.name.toLowerCase()} });
+          const a = arr.map(e => { return {...e, search: e.info.display.name.toLowerCase()+" "+(e.info.location || "").toLowerCase()} });
           setCommunity(a);
           setFilteredCommunity(a);
         });
