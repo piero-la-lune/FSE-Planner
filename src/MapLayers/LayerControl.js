@@ -714,10 +714,10 @@ function LayerControl(props) {
       title: "Delete layer?",
       msg: <span>
           Are you sure you want to delete this layer?
-          {layersRef.current[i].shared === true && layersRef.current[i].layerInfo.shareEditID !== null && layersRef.current[i].sharePublic === false &&
+          {layersRef.current[i].shared === true && layersRef.current[i].layerInfo.shareEditID !== undefined && !layersRef.current[i].sharePublic &&
             <span><br /><br /><b>Because this layer is shared, any user with the link can still view it!</b><br /><b>But if you proceed, you can never again edit the layer.</b></span>
           }
-          {layersRef.current[i].shared === true && layersRef.current[i].layerInfo.shareEditID !== null && layersRef.current[i].sharePublic === true &&
+          {layersRef.current[i].shared === true && layersRef.current[i].layerInfo.shareEditID !== undefined && layersRef.current[i].sharePublic === true &&
             <span><br /><br /><b>Because this layer is public, any user can still view it!</b><br /><b>But if you proceed, you can never again edit the layer.</b></span>
           }
         </span>,
