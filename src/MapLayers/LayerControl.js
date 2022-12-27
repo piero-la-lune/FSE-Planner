@@ -983,13 +983,15 @@ function LayerControl(props) {
     }
     props.actions.current.addToCustomLayer = (id, icao) => {
       layersRef.current[id].layerInfo.data.icaos.push(icao);
-      const ll = layerFactory(layersRef.current[id].layerInfo, layersRef.current[id].id);
+      const linfo = layersRef.current[id].layerInfo;
+      const ll = layerFactory({type: linfo.type, data: linfo.data, display: linfo.display, filters: linfo.filters}, layersRef.current[id].id);
       handleEditLayer(ll, id);
       resetLayer(id);
     };
     props.actions.current.removeFromCustomLayer = (id, icao) => {
       layersRef.current[id].layerInfo.data.icaos = layersRef.current[id].layerInfo.data.icaos.filter(elm => elm !== icao);
-      const ll = layerFactory(layersRef.current[id].layerInfo, layersRef.current[id].id);
+      const linfo = layersRef.current[id].layerInfo;
+      const ll = layerFactory({type: linfo.type, data: linfo.data, display: linfo.display, filters: linfo.filters}, layersRef.current[id].id);
       handleEditLayer(ll, id);
       resetLayer(id);
     };
