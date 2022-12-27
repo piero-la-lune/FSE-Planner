@@ -15,6 +15,7 @@ import ExploreIcon from '@mui/icons-material/Explore';
 import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import BusinessIcon from '@mui/icons-material/Business';
+import ClearIcon from '@mui/icons-material/Clear';
 
 import { default as _debounce } from 'lodash/debounce';
 
@@ -76,7 +77,7 @@ const TooltipToggleButton = ({ children, title, ...props }) => (
   </MyTooltip>
 );
 
-function Filters({setFilters, ...props}) {
+function Filters({setFilters, clear, ...props}) {
   const [fromIcaoInput, setFromIcaoInput] = React.useState(props.filters.fromIcao || '');
   const [toIcaoInput, setToIcaoInput] = React.useState(props.filters.toIcao || '');
   const [directionInput, setDirectionInput] = React.useState(props.filters.direction);
@@ -160,6 +161,45 @@ function Filters({setFilters, ...props}) {
   React.useEffect(() => {
     setToIcaoInput(props.filters.toIcao || '');
   }, [props.filters.toIcao]);
+
+  // When filters are changed somewgare else, update inputs
+  React.useEffect(() => {
+    setDirectionInput(props.filters.direction);
+  }, [props.filters.direction]);
+  React.useEffect(() => {
+    setMinPaxInput(props.filters.minPax);
+  }, [props.filters.minPax]);
+  React.useEffect(() => {
+    setMinKgInput(props.filters.minKg);
+  }, [props.filters.minKg]);
+  React.useEffect(() => {
+    setMaxPaxInput(props.filters.maxPax);
+  }, [props.filters.maxPax]);
+  React.useEffect(() => {
+    setMaxKgInput(props.filters.maxKg);
+  }, [props.filters.maxKg]);
+  React.useEffect(() => {
+    setMinDistInput(props.filters.minDist);
+  }, [props.filters.minDist]);
+  React.useEffect(() => {
+    setMaxDistInput(props.filters.maxDist);
+  }, [props.filters.maxDist]);
+  React.useEffect(() => {
+    setMinJobPayInput(props.filters.minJobPay);
+  }, [props.filters.minJobPay]);
+  React.useEffect(() => {
+    setMinLegPayInput(props.filters.minLegPay);
+  }, [props.filters.minLegPay]);
+  React.useEffect(() => {
+    setPercentPayInput(props.filters.percentPay);
+  }, [props.filters.percentPay]);
+
+  // Clear filters
+  const clearFilters = React.useCallback(() => {
+    setFromIcaoInput('');
+    setToIcaoInput('');
+    clear();
+  }, [clear]);
 
   return (
     <Box
@@ -337,6 +377,14 @@ function Filters({setFilters, ...props}) {
             sx={styles.tgBtn}
           >
             <BusinessIcon />
+          </IconButton>
+        </MyTooltip>
+        <MyTooltip title='Clear all filters'>
+          <IconButton
+            onClick={clearFilters}
+            sx={styles.tgBtn}
+          >
+            <ClearIcon />
           </IconButton>
         </MyTooltip>
       </Box>
