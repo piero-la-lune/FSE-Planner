@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.14.0] - 2022-12-27
+
+### Added
+- Community layers: make public your layer so that other users can easily search for it and view it (no more need for a share link)
+- Layers options: more colors and added description field
+- New "Clear all filters" button to reset all filters at once (#152)
+
+### Changed
+- Layer creation popup look & feel
+- Clearer warning message when deleting a shared layer
+- Updated FSE plane list
+- Updated MSFS data
+
+### Fixed
+- Fixed bug that could prevent future edit capability on custom layers
+
+
+
 ## [1.13.0] - 2022-11-06
 
 ### Added
