@@ -3,9 +3,9 @@ import Popper from '@mui/material/Popper';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
-import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import Autocomplete from '@mui/material/Autocomplete';
 
-const filter = createFilterOptions({limit: 5});
+import { matchSorter } from 'match-sorter';
 
 const PopperMy = function (props) {
   return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
@@ -72,14 +72,9 @@ function IcaoSearch({options, label, required = false, inputProps = {}, ...props
         </li>
       }
       filterOptions={(options, params) => {
-        // Search for ICAO
-        let filtered = filter(options, { inputValue: inputValue, getOptionLabel: (a) => a.icao });
-        // If not enough results, search for city name
-        if (filtered.length < 5) {
-          const add = filter(options, { inputValue: inputValue, getOptionLabel: (a) => a.name });
-          filtered = filtered.concat(add.slice(0, 5-filtered.length));
-        }
-        return filtered;
+        return matchSorter(options, inputValue, {
+          keys: [{threshold: matchSorter.rankings.STARTS_WITH, key: 'icao'}, 'name', 'city'],
+        }).slice(0, 5);
       }}
       renderInput={(params) =>
         <TextField

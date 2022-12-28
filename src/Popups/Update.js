@@ -30,6 +30,7 @@ import { usePapaParse } from 'react-papaparse';
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import he from 'he';
+import { matchSorter } from 'match-sorter';
 
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
@@ -299,7 +300,7 @@ const styles = {
 };
 
 const filter = createFilterOptions();
-const filter10 = createFilterOptions({limit: 10});
+const advancedFilter = (options, { inputValue }) => matchSorter(options, inputValue).slice(0, 20);
 
 
 
@@ -947,7 +948,7 @@ function UpdatePopup(props) {
                   setPlaneUser(value);
                   setOwnedPlanesRequests(value.length);
                 }}
-                filterOptions={(options, params) => filter10(options, params)}
+                filterOptions={(options, params) => advancedFilter(options, params)}
                 getOptionLabel={option => he.decode(option)}
                 value={planeUser}
                 sx={{ mt: 2 }}

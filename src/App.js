@@ -6,7 +6,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Button from '@mui/material/Button';
 import InputBase from '@mui/material/InputBase';
 import Typography from '@mui/material/Typography';
-import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import Autocomplete from '@mui/material/Autocomplete';
 import IconButton from '@mui/material/IconButton';
 import Popper from '@mui/material/Popper';
 import UpdateIcon from '@mui/icons-material/Update';
@@ -21,6 +21,7 @@ import { default as _clone } from 'lodash/cloneDeep';
 import { default as _mergeWith } from 'lodash/mergeWith';
 import { default as _isArray } from 'lodash/isArray';
 import { useOrientation, useWindowSize } from 'react-use';
+import { matchSorter } from 'match-sorter';
 
 import FSEMap from './Map.js';
 import Routing from './Routing/Routing.js';
@@ -138,7 +139,6 @@ const defaultFilters = {
 const icaos = Object.keys(icaodataSrc);
 
 
-const filter = createFilterOptions({limit: 5});
 const PopperMy = function (props) {
   return (<Popper {...props} style={{ width: 400 }} placement='bottom-start' />)
 }
@@ -415,13 +415,9 @@ function App() {
       filtered = searchHistory.map(icao => icaodataSrc[icao]);
     }
     else {
-      // Search for ICAO
-      filtered = filter(icaodataSrcArr, { inputValue: input, getOptionLabel: (a) => a.icao });
-      // If not enough results, search for city name
-      if (filtered.length < 5) {
-        const add = filter(icaodataSrcArr, { inputValue: input, getOptionLabel: (a) => a.name });
-        filtered = filtered.concat(add.slice(0, 5-filtered.length));
-      }
+      filtered = matchSorter(icaodataSrcArr, input, {
+        keys: [{threshold: matchSorter.rankings.STARTS_WITH, key: 'icao'}, 'name', 'city'],
+      }).slice(0, 5);
     }
     if (inputs.length === 2) {
       filtered = filtered.map(elm => { return {...elm, from: inputs[0]} });
