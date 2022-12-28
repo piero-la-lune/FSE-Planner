@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.14.1] - 2022-12-28
+
+### Changed
+- Better autocomplete (ICAO search, FSE group/username search)
+
+### Fixed
+- Fixed bug that prevented some usernames to appear in the "Owned & leased plane" autocomplete field
+
+
+
 ## [1.14.0] - 2022-12-27
 
 ### Added
