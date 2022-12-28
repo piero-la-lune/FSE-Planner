@@ -97,6 +97,18 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
+        <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.14.1 (2022-12-28)</Typography>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Better autocomplete (ICAO search, FSE group/username search)</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed bug that prevented some usernames to appear in the "Owned & leased plane" autocomplete field</ListItem>
+            </List>
+          </Paper>
+          
           <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.14.0 (2022-12-27)</Typography>
             <Typography variant="h6">Added</Typography>
