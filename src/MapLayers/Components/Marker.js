@@ -240,12 +240,16 @@ function Popup(props) {
                 itemsAfterCollapse={0}
                 sx={{
                   '& .MuiBreadcrumbs-separator': {
-                    mx: 0.5
+                    display: 'none'
+                  },
+                  '& .MuiBreadcrumbs-ol': {
+                    columnGap: '10px'
                   }
                 }}
                 component='span'
+                onClick={e => { e.stopPropagation(); return false; }}
               >
-                {icaodata[icao][siminfo].slice(1).map(elm => <span key={elm}>{elm}</span>)}
+                {icaodata[icao][siminfo].slice(1).sort().map(elm => <span key={elm}>{elm}</span>)}
               </Breadcrumbs>
             </React.Fragment>
         }
