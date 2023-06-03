@@ -93,6 +93,7 @@ const defaultSettings = {
     surface: [1, 2, 3, 4, 5, 6, 7, 8],
     runway: [0, 30000],
     onlySim: false,
+    onlySimAlternative: false,
     onlyILS: false,
     excludeMilitary: false
   },

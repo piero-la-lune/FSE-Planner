@@ -88,6 +88,7 @@ function SettingSwitch({xs, setting, s, setS, label, ...props}) {
               setS(obj);
             }}
             color="primary"
+            {...props}
           />
         }
         label={label}
@@ -327,6 +328,7 @@ function SettingsPopup(props) {
               <SettingSlider3 s={s} setS={setS} label="Airport longest runway (in feet)" setting="airport.runway" xs={12} />
               <SettingSelect s={s} setS={setS} label="Airport runway surface" setting="airport.surface" options={surfaceOptions} multiple={true} xs={12} />
               <SettingSwitch s={s} setS={setS} label="Only display and use simulator compatible airports" setting="airport.onlySim" xs={12} />
+              <SettingSwitch s={s} setS={setS} label="Include non-compatible airports that have at least one alternative in your simulator" setting="airport.onlySimAlternative" xs={12} disabled={!s.airport.onlySim} />
               <SettingSwitch s={s} setS={setS} label="Only display and use airports with an ILS approach (MSFS)" setting="airport.onlyILS" xs={12} />
               <SettingSwitch s={s} setS={setS} label="Exclude military airbases" setting="airport.excludeMilitary" xs={12} />
             </Grid>

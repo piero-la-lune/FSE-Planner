@@ -100,6 +100,7 @@ function CustomLayerPopup(props) {
   const [length, setLength] = React.useState(layer.filters.runway);
   const [surface, setSurface] = React.useState(layer.filters.surface);
   const [onlySim, setOnlySim] = React.useState(layer.filters.onlySim);
+  const [onlySimAlternative, setOnlySimAlternative] = React.useState(layer.filters.onlySimAlternative);
   const [onlyBM, setOnlyBM] = React.useState(layer.filters.onlyBM);
   const [onlyILS, setOnlyILS] = React.useState(layer.filters.onlyILS);
   const [excludeMilitary, setExcludeMilitary] = React.useState(layer.filters.excludeMilitary);
@@ -138,6 +139,7 @@ function CustomLayerPopup(props) {
       setLength(props.layer.filters.runway);
       setSurface(props.layer.filters.surface);
       setOnlySim(props.layer.filters.onlySim);
+      setOnlySimAlternative(props.layer.filters.onlySimAlternative);
       setOnlyBM(props.layer.filters.onlyBM);
       setOnlyILS(props.layer.filters.onlyILS);
       setExcludeMilitary(props.layer.filters.excludeMilitary);
@@ -233,6 +235,7 @@ function CustomLayerPopup(props) {
             surface: surface,
             runway: length,
             onlySim: onlySim,
+            onlySimAlternative: onlySimAlternative,
             onlyBM: onlyBM,
             onlyILS: onlyILS,
             excludeMilitary: excludeMilitary,
@@ -526,6 +529,19 @@ EGLL LFPO
                   />
                 }
                 label="Only display simulator compatible airports"
+              />
+            </Box>
+            <Box sx={styles.divSwitch}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={onlySimAlternative}
+                    onChange={(evt, value) => { setOnlySimAlternative(value); }}
+                    color="primary"
+                    disabled={!onlySim}
+                  />
+                }
+                label="Include non-compatible airports that have at least one alternative in your simulator"
               />
             </Box>
             <Box sx={styles.divSwitch}>

@@ -266,6 +266,7 @@ const defaultLayer = {
     surface: [1, 2, 3, 4, 5, 7],
     runway: [0, 30000],
     onlySim: false,
+    onlySimAlternative: false,
     onlyBM: false,
     onlyILS: false,
     excludeMilitary: false,
