@@ -72,6 +72,14 @@ const sizes = [
   ['25', 'Very large']
 ];
 
+const weights = [
+  ['1', 'Very thin'],
+  ['2', 'Thin'],
+  ['3', 'Medium'],
+  ['5', 'Thick'],
+  ['10', 'Very thick']
+]
+
 
 function AirportIcon ({size, color}) {
   return <svg width={size} height={size} viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill={color}/><path d="M4.343,14.243 L14.642,3.944 L16.056,5.358 L5.757,15.657 L4.343,14.243 Z" fill="#fff"/></svg>
@@ -87,6 +95,7 @@ function CustomLayerPopup(props) {
   const [desc, setDesc] = React.useState(layer.display.desc);
   const [color, setColor] = React.useState(layer.display.color);
   const [iconSize, setIconSize] = React.useState(layer.display.size);
+  const [weight, setWeight] = React.useState(layer.display.weight ?? parseInt(weights[3][0]));
   const [size, setSize] = React.useState(layer.filters.size);
   const [length, setLength] = React.useState(layer.filters.runway);
   const [surface, setSurface] = React.useState(layer.filters.surface);
@@ -124,6 +133,7 @@ function CustomLayerPopup(props) {
       setDesc(props.layer.display.desc);
       setColor(props.layer.display.color);
       setIconSize(props.layer.display.size);
+      setWeight(props.layer.display.weight ?? parseInt(weights[3][0]));
       setSize(props.layer.filters.size);
       setLength(props.layer.filters.runway);
       setSurface(props.layer.filters.surface);
@@ -232,6 +242,7 @@ function CustomLayerPopup(props) {
             name: name,
             color: color,
             size: iconSize,
+            weight: weight,
             desc: desc
           },
           data: {
@@ -644,6 +655,35 @@ EGLL LFPO
                     <Box sx={{ display: 'flex' }}>
                       <Box sx={{ mr: 1, display: 'flex', alignItems: 'center', maxHeight: 20, overflow: 'visible' }}>
                         <AirportIcon size={value} color={color} />
+                      </Box>
+                      {label}
+                    </Box>
+                  </MenuItem>
+                ) }
+              </TextField>
+              <TextField
+                label="Line thickness"
+                variant="outlined"
+                fullWidth
+                value={weight}
+                select
+                sx={{ ml: 2 }}
+                onChange={(evt) => {
+                  setWeight(parseInt(evt.target.value));
+                }}
+              >
+                { weights.map(([value, label]) =>
+                  <MenuItem
+                    key={value}
+                    value={value}
+                  >
+                    <Box sx={{ display: 'flex' }}>
+                      <Box sx={{ mr: 1, display: 'flex', alignItems: 'center', maxHeight: 20, overflow: 'visible' }}>
+                        <Box sx={{
+                          background: color,
+                          height: value+'px',
+                          width: 30
+                        }} />
                       </Box>
                       {label}
                     </Box>

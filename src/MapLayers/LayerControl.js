@@ -274,7 +274,8 @@ const defaultLayer = {
   display: {
     name: 'My custom layer',
     color: '#d4ac0d',
-    size: 20
+    size: 20,
+    weight: 5
   },
   data: {
     icaos: [],
@@ -438,9 +439,9 @@ function LayerControl(props) {
           layersRef.current[i].layer = GPSLayer({
             points: layerRef.points,
             fseicaodata: props.options.icaodata,
-            color: layerRef.color,
-            size: layerRef.size,
-            weight: s.display.legs.weights.flight,
+            color: layerRef.color ? layerRef.color : s.display.markers.colors.fse,
+            size: layerRef.size ? layerRef.size : s.display.markers.sizes.fse,
+            weight: layerRef.weight ? layerRef.weight : s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             actions: props.actions,
             connections: layerRef.connections,
@@ -492,7 +493,7 @@ function LayerControl(props) {
             planes: props.options.planes,
             color: layerRef.color ? layerRef.color : s.display.markers.colors.fse,
             size: layerRef.size ? layerRef.size : s.display.markers.sizes.fse,
-            weight: s.display.legs.weights.flight,
+            weight: layerRef.weight ? layerRef.weight : s.display.legs.weights.flight,
             highlight: s.display.legs.colors.highlight,
             colorPlanes: s.display.markers.colors.rentable,
             airportFilter: layerRef.filter ? layerRef.filter : s.airport,
@@ -600,6 +601,7 @@ function LayerControl(props) {
       points: l.data.points,
       color: l.display.color,
       size: l.display.size,
+      weight: l.display.weight,
       filter: l.filters,
       id: id,
       layerInfo: l,
