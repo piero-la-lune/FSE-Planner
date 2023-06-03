@@ -18,7 +18,7 @@ import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
-import { airportSurface, simName } from "../../util/utility.js"
+import { airportSurface, simName, wrap } from "../../util/utility.js"
 
 
 const styles = {
@@ -119,6 +119,8 @@ function Popup(props) {
       models[plane.model].push(plane);
     }
   }
+
+  const lon = (icaodata[icao].lon+wrap(icaodata[icao].lon, 0)).toFixed(4);
 
   return (
     <React.Fragment>
@@ -224,7 +226,7 @@ function Popup(props) {
         </Typography>
       </Box>
       <Box sx={styles.popupPart}>
-        <Typography variant="body2" sx={styles.popupLabel}>Position: {Math.abs(icaodata[icao].lat)}{icaodata[icao].lat >= 0 ? 'N' : 'S'} {Math.abs(icaodata[icao].lon)}{icaodata[icao].lon >= 0 ? 'E' : 'W'}, {icaodata[icao].elev} feet</Typography>
+        <Typography variant="body2" sx={styles.popupLabel}>Position: {Math.abs(icaodata[icao].lat)}{icaodata[icao].lat >= 0 ? 'N' : 'S'} {Math.abs(lon)}{lon >= 0 ? 'E' : 'W'}, {icaodata[icao].elev} feet</Typography>
         <Typography variant="body2" sx={styles.popupLabel}>Runway: {icaodata[icao].runway} feet of {airportSurface(icaodata[icao].surface)}</Typography>
         { props.forsale &&
           <Typography variant="body2" sx={styles.popupLabel}>For sale: ${props.forsale.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Typography>
