@@ -215,6 +215,15 @@ function SettingsPopup(props) {
     ['strict', 'Strict: only load jobs from the exact airports where a plane is available'],
     ['around', 'Area: load jobs from an area around airports where a plane is available']
   ];
+  const jobsTypeOptions = [
+    ['Trip-Only', 'Trip Only'],
+    ['VIP', 'VIP'],
+    ['All-In', 'All In']
+  ];
+  const jobsCargoOptions = [
+    ['passengers', 'Passengers'],
+    ['kg', 'Cargo']
+  ];
 
   const handleClose = () => {
     // Cancel change
@@ -281,6 +290,11 @@ function SettingsPopup(props) {
             <FilterAltIcon />&nbsp;<Typography>Filters settings</Typography>
           </AccordionSummary>
           <AccordionDetails>
+            <Typography variant="body1" sx={{ mb: 2 }}>Default filters (when loading FSE Planner):</Typography>
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+              <SettingSelect s={s} setS={setS} label="Job category" setting='filters.type' options={jobsTypeOptions} xs={6} />
+              <SettingSelect s={s} setS={setS} label="Job type" setting='filters.cargo' options={jobsCargoOptions} multiple={true} xs={6} />
+            </Grid>
             <Grid container spacing={3}>
               <Grid item container xs={9} sx={{ alignContent: 'flex-start '}}>
                 <Typography variant="body1" sx={{ mb: 1 }}>From ICAO settings:</Typography>

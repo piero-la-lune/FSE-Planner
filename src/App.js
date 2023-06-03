@@ -117,25 +117,25 @@ const defaultSettings = {
     jobsPlanesMax: 10,
     express: true,
     expiration: ''
+  },
+  filters: {
+    type: 'Trip-Only',
+    cargo: ['passengers'],
+    fromIcao: null,
+    toIcao: null,
+    minPax: '',
+    minKg: '',
+    maxPax: '',
+    maxKg: '',
+    minDist: '',
+    maxDist: '',
+    minJobPay: '',
+    minLegPay: '',
+    percentPay: '',
+    direction: ''
   }
 };
 
-const defaultFilters = {
-  type: 'Trip-Only',
-  cargo: ['passengers'],
-  fromIcao: null,
-  toIcao: null,
-  minPax: '',
-  minKg: '',
-  maxPax: '',
-  maxKg: '',
-  minDist: '',
-  maxDist: '',
-  minJobPay: '',
-  minLegPay: '',
-  percentPay: '',
-  direction: ''
-};
 
 const icaos = Object.keys(icaodataSrc);
 
@@ -235,8 +235,19 @@ const storage = new Storage();
 
 function App() {
 
+  const [settings, setSettings] = React.useState(() => {
+    const obj = {};
+    // Cannot use _defaultsDeep, because it messes up with array
+    [defaultSettings, storage.get('settings', {})].forEach(item => {
+      _mergeWith(obj, item, (objectValue, sourceValue) => {
+        return _isArray(sourceValue) ? sourceValue : undefined;
+      });
+    });
+    return obj;
+  });
+
   const [filtersBar, setFiltersBar] = React.useState(false)
-  const [filters, setFilters] = React.useState(defaultFilters);
+  const [filters, setFilters] = React.useState(settings.filters);
   const [table, setTable] = React.useState(false);
   const [updatePopup, setUpdatePopup] = React.useState(false);
   const [settingsPopup, setSettingsPopup] = React.useState(false);
@@ -249,16 +260,6 @@ function App() {
   });
   const [flight, setFlight] = React.useState(() => {
     return transformJobs(storage.get('flight', {}));
-  });
-  const [settings, setSettings] = React.useState(() => {
-    const obj = {};
-    // Cannot use _defaultsDeep, because it messes up with array
-    [defaultSettings, storage.get('settings', {})].forEach(item => {
-      _mergeWith(obj, item, (objectValue, sourceValue) => {
-        return _isArray(sourceValue) ? sourceValue : undefined;
-      });
-    });
-    return obj;
   });
   const [search, setSearch] = React.useState(null);
   const [searchDest, setSearchDest] = React.useState(null);
@@ -677,7 +678,7 @@ function App() {
             icaodata={icaodata}
             actions={actions}
             setSettingsPopup={setSettingsPopup}
-            clear={() => setFilters(defaultFilters)}
+            clear={() => setFilters(settings.filters)}
           />
         }
       </AppBar>
