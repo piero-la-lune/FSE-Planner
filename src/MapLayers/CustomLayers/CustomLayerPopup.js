@@ -17,7 +17,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
-import { HexColorPicker } from "react-colorful";
+import { HexColorPicker, HexColorInput } from "react-colorful";
 
 import Storage from '../../Storage.js';
 import CommunityPopup from './CommunityPopup.js';
@@ -293,6 +293,12 @@ function CustomLayerPopup(props) {
     props.handleSave(e.info);
   }
 
+  // Stop event propagation when clicking the color picker
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+    return false;
+  }
+
   return (
     <Dialog open={open} fullWidth={true} maxWidth="md">
       <DialogTitle>
@@ -565,13 +571,41 @@ EGLL LFPO
                 label="Icon color"
                 variant="outlined"
                 select
-                sx={{ width: 200, minWidth: 200 }}
+                sx={{ width: 234, minWidth: 234 }}
                 SelectProps={{
                   renderValue: value => <Box sx={{ backgroundColor: color, color: color }}>{color}</Box>,
                   displayEmpty: true,
                   MenuProps: {
                     sx: {
-                      '& .MuiPaper-root': { background: 'none', boxShadow: 'none' }
+                      '& .MuiPaper-root': {
+                        border: '1px solid #ccc',
+                        padding: 2,
+                        boxSizing: 'border-box'
+                      },
+                      '& .MuiList-root': {
+                        padding: 0
+                      },
+                      '& input': {
+                        font: 'inherit',
+                        letterSpacing: 'inherit',
+                        color: 'inherit',
+                        border: '1px solid',
+                        borderColor: 'rgba(0, 0, 0, 0.23)',
+                        borderRadius: '4px',
+                        paddingX: 2,
+                        paddingY: 1,
+                        marginRight: 1,
+                        flex: 1,
+                        minWidth: 0,
+                      },
+                      '& input:hover': {
+                        borderColor: 'rgba(0, 0, 0, 0.87)'
+                      },
+                      '& input:focus': {
+                        outline: '2px solid',
+                        outlineColor: (theme) => theme.palette.primary.main,
+                        borderColor: '#fff'
+                      }
                     }
                   }
                 }}
@@ -580,6 +614,16 @@ EGLL LFPO
                 }}
               >
                 <HexColorPicker color={color} onChange={setColor} />
+                <Box
+                  onClick={stopPropagation}
+                  sx={{
+                    marginTop: 2,
+                    display: 'flex'
+                  }}
+                >
+                  <HexColorInput color={color} onChange={setColor} onClick={stopPropagation} />
+                  <Button variant="contained" sx={{flex: '0 1 auto'}}>Ok</Button>
+                </Box>
               </TextField>
               <TextField
                 label="Icon size"
