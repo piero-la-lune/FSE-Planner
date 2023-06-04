@@ -611,19 +611,21 @@ function LayerControl(props) {
     };
   }
 
-  const centerMapOnLayer = React.useCallback((i) => {
-    const layer = layersRef.current[i];
-    let bounds = [[-30, -100], [50, 100]]
-    if (layer.src === 'custom') {
-      const points = layer.icaos.map(elm => props.options.icaodata[elm]);
-      const b = getBounds(points);
-      bounds = [[b.minLat, b.minLng], [b.maxLat, b.maxLng]];
-    }
-    else if (layer.src === 'gps') {
-      const points = layer.points.map(elm => { return {latitude: elm[0], longitude: elm[1]} });
-      const b = getBounds(points);
-      bounds = [[b.minLat, b.minLng], [b.maxLat, b.maxLng]];
-    }
+  const centerMapOnLayer = React.useCallback(ids => {
+    if (!Array.isArray(ids)) { ids = [ids]; }
+    let points = [];
+    let bounds = [[-30, -100], [50, 100]];
+    ids.forEach(id => {
+      const layer = layersRef.current[id];
+      if (layer.src === 'custom') {
+        points = [...points, ...layer.icaos.map(elm => props.options.icaodata[elm])];
+      }
+      else if (layer.src === 'gps') {
+        points = [...points, ...layer.points.map(elm => { return {latitude: elm[0], longitude: elm[1]} })];
+      }
+    });
+    const b = getBounds(points);
+    bounds = [[b.minLat, b.minLng], [b.maxLat, b.maxLng]];
     props.map.fitBounds(bounds, {animate:false});
   }, [props.map, props.options.icaodata])
 
@@ -647,29 +649,39 @@ function LayerControl(props) {
       // Is layer query param set ?
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get('layer');
+      let ids = urlParams.get('layers');
+      if (ids) { ids = ids.split(','); }
+      else if (id) { ids = [id]; }
+      let found = [];
+      let foundIds = [];
       // If layer query param is set
-      if (id) {
-        let found = false;
+      if (ids) {
         // Hide all other layers
         orderRef.current.forEach(i => {
           layersRef.current[i].visible = false;
           // If layer is already loaded, do not add another copy
           if (layersRef.current[i].layerInfo
               && layersRef.current[i].layerInfo.shareID
-              && layersRef.current[i].layerInfo.shareID === id) {
-            // If edit key is passed too, save it
+              && ids.includes(layersRef.current[i].layerInfo.shareID)) {
+            // If edit key is passed too, save it (only when 1 layer is loaded)
             const shareEditID = urlParams.get('edit');
-            if (shareEditID) {
+            if (id && shareEditID) {
               layersRef.current[i].layerInfo.shareEditID = shareEditID;
             }
             show(i, true);
-            centerMapOnLayer(i);
-            found = true;
+            found.push(layersRef.current[i].layerInfo.shareID);
+            foundIds.push(i);
           }
         });
         // If layer is not already loaded, load it
-        if (!found) {
-          fetch(process.env.REACT_APP_API_URL+'/layer/'+id).then(response => {
+        const remain = ids.filter(e => !found.includes(e));
+        const loadLayer = remain => {
+          if (remain.length === 0) {
+            // Timeout hack to center AFTER map is centered on jobs
+            return setTimeout(() => centerMapOnLayer(foundIds), 10);
+          }
+          const idRemain = remain.pop();
+          fetch(process.env.REACT_APP_API_URL+'/layer/'+idRemain).then(response => {
             if (response.ok) {
               response.json().then(arr => {
                 if (arr.info) {
@@ -678,21 +690,23 @@ function LayerControl(props) {
                   layersRef.current.push(ll);
                   const i = layersRef.current.length - 1;
                   orderRef.current.push(i);
-                  // If edit key is passed too, save it
+                  // If edit key is passed too, save it (only when 1 layer is loaded)
                   const shareEditID = urlParams.get('edit');
-                  if (shareEditID) {
+                  if (shareEditID && id) {
                     layersRef.current[i].layerInfo.shareEditID = shareEditID;
                   }
                   if (arr.sharePublic) {
                     layersRef.current[i].sharePublic = true;
                   }
                   show(i, true);
-                  centerMapOnLayer(i);
+                  foundIds.push(i);
+                  loadLayer(remain);
                 }
               });
             }
           });
         }
+        loadLayer(remain);
       }
       else {
         //
