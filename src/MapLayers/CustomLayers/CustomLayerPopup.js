@@ -17,7 +17,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
-import { HexColorPicker } from "react-colorful";
+import { HexColorPicker, HexColorInput } from "react-colorful";
 
 import Storage from '../../Storage.js';
 import CommunityPopup from './CommunityPopup.js';
@@ -72,6 +72,14 @@ const sizes = [
   ['25', 'Very large']
 ];
 
+const weights = [
+  ['1', 'Very thin'],
+  ['2', 'Thin'],
+  ['3', 'Medium'],
+  ['5', 'Thick'],
+  ['10', 'Very thick']
+]
+
 
 function AirportIcon ({size, color}) {
   return <svg width={size} height={size} viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill={color}/><path d="M4.343,14.243 L14.642,3.944 L16.056,5.358 L5.757,15.657 L4.343,14.243 Z" fill="#fff"/></svg>
@@ -87,10 +95,12 @@ function CustomLayerPopup(props) {
   const [desc, setDesc] = React.useState(layer.display.desc);
   const [color, setColor] = React.useState(layer.display.color);
   const [iconSize, setIconSize] = React.useState(layer.display.size);
+  const [weight, setWeight] = React.useState(layer.display.weight ?? parseInt(weights[3][0]));
   const [size, setSize] = React.useState(layer.filters.size);
   const [length, setLength] = React.useState(layer.filters.runway);
   const [surface, setSurface] = React.useState(layer.filters.surface);
   const [onlySim, setOnlySim] = React.useState(layer.filters.onlySim);
+  const [onlySimAlternative, setOnlySimAlternative] = React.useState(layer.filters.onlySimAlternative);
   const [onlyBM, setOnlyBM] = React.useState(layer.filters.onlyBM);
   const [onlyILS, setOnlyILS] = React.useState(layer.filters.onlyILS);
   const [excludeMilitary, setExcludeMilitary] = React.useState(layer.filters.excludeMilitary);
@@ -124,10 +134,12 @@ function CustomLayerPopup(props) {
       setDesc(props.layer.display.desc);
       setColor(props.layer.display.color);
       setIconSize(props.layer.display.size);
+      setWeight(props.layer.display.weight ?? parseInt(weights[3][0]));
       setSize(props.layer.filters.size);
       setLength(props.layer.filters.runway);
       setSurface(props.layer.filters.surface);
       setOnlySim(props.layer.filters.onlySim);
+      setOnlySimAlternative(props.layer.filters.onlySimAlternative);
       setOnlyBM(props.layer.filters.onlyBM);
       setOnlyILS(props.layer.filters.onlyILS);
       setExcludeMilitary(props.layer.filters.excludeMilitary);
@@ -223,6 +235,7 @@ function CustomLayerPopup(props) {
             surface: surface,
             runway: length,
             onlySim: onlySim,
+            onlySimAlternative: onlySimAlternative,
             onlyBM: onlyBM,
             onlyILS: onlyILS,
             excludeMilitary: excludeMilitary,
@@ -232,6 +245,7 @@ function CustomLayerPopup(props) {
             name: name,
             color: color,
             size: iconSize,
+            weight: weight,
             desc: desc
           },
           data: {
@@ -291,6 +305,12 @@ function CustomLayerPopup(props) {
   // When importing a community layer
   const handleImport = (e) => {
     props.handleSave(e.info);
+  }
+
+  // Stop event propagation when clicking the color picker
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+    return false;
   }
 
   return (
@@ -515,6 +535,19 @@ EGLL LFPO
               <FormControlLabel
                 control={
                   <Switch
+                    checked={onlySimAlternative}
+                    onChange={(evt, value) => { setOnlySimAlternative(value); }}
+                    color="primary"
+                    disabled={!onlySim}
+                  />
+                }
+                label="Include non-compatible airports that have at least one alternative in your simulator"
+              />
+            </Box>
+            <Box sx={styles.divSwitch}>
+              <FormControlLabel
+                control={
+                  <Switch
                     checked={onlyBM}
                     onChange={(evt, value) => { setOnlyBM(value); }}
                     color="primary"
@@ -565,13 +598,41 @@ EGLL LFPO
                 label="Icon color"
                 variant="outlined"
                 select
-                sx={{ width: 200, minWidth: 200 }}
+                sx={{ width: 234, minWidth: 234 }}
                 SelectProps={{
                   renderValue: value => <Box sx={{ backgroundColor: color, color: color }}>{color}</Box>,
                   displayEmpty: true,
                   MenuProps: {
                     sx: {
-                      '& .MuiPaper-root': { background: 'none', boxShadow: 'none' }
+                      '& .MuiPaper-root': {
+                        border: '1px solid #ccc',
+                        padding: 2,
+                        boxSizing: 'border-box'
+                      },
+                      '& .MuiList-root': {
+                        padding: 0
+                      },
+                      '& input': {
+                        font: 'inherit',
+                        letterSpacing: 'inherit',
+                        color: 'inherit',
+                        border: '1px solid',
+                        borderColor: 'rgba(0, 0, 0, 0.23)',
+                        borderRadius: '4px',
+                        paddingX: 2,
+                        paddingY: 1,
+                        marginRight: 1,
+                        flex: 1,
+                        minWidth: 0,
+                      },
+                      '& input:hover': {
+                        borderColor: 'rgba(0, 0, 0, 0.87)'
+                      },
+                      '& input:focus': {
+                        outline: '2px solid',
+                        outlineColor: (theme) => theme.palette.primary.main,
+                        borderColor: '#fff'
+                      }
                     }
                   }
                 }}
@@ -580,6 +641,16 @@ EGLL LFPO
                 }}
               >
                 <HexColorPicker color={color} onChange={setColor} />
+                <Box
+                  onClick={stopPropagation}
+                  sx={{
+                    marginTop: 2,
+                    display: 'flex'
+                  }}
+                >
+                  <HexColorInput color={color} onChange={setColor} onClick={stopPropagation} />
+                  <Button variant="contained" sx={{flex: '0 1 auto'}}>Ok</Button>
+                </Box>
               </TextField>
               <TextField
                 label="Icon size"
@@ -600,6 +671,35 @@ EGLL LFPO
                     <Box sx={{ display: 'flex' }}>
                       <Box sx={{ mr: 1, display: 'flex', alignItems: 'center', maxHeight: 20, overflow: 'visible' }}>
                         <AirportIcon size={value} color={color} />
+                      </Box>
+                      {label}
+                    </Box>
+                  </MenuItem>
+                ) }
+              </TextField>
+              <TextField
+                label="Line thickness"
+                variant="outlined"
+                fullWidth
+                value={weight}
+                select
+                sx={{ ml: 2 }}
+                onChange={(evt) => {
+                  setWeight(parseInt(evt.target.value));
+                }}
+              >
+                { weights.map(([value, label]) =>
+                  <MenuItem
+                    key={value}
+                    value={value}
+                  >
+                    <Box sx={{ display: 'flex' }}>
+                      <Box sx={{ mr: 1, display: 'flex', alignItems: 'center', maxHeight: 20, overflow: 'visible' }}>
+                        <Box sx={{
+                          background: color,
+                          height: value+'px',
+                          width: 30
+                        }} />
                       </Box>
                       {label}
                     </Box>

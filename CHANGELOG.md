@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.15.0] - 2023-06-04
+
+### Added
+- Customization of line thickness for custom layers
+- Custom layer colors can now be entered with an hexadecimal color code (#157)
+- Share multiple layers with one unique URL (new `layers` URL query parameter). To share `ID1` and `ID2` layers at once (ids can be retrieved in the layer sharing URL), use this URL: `https://fse-planner.piero-la-lune.fr/?layers=ID1,ID2` (ids must be comma separated)
+- New settings to save default job type filters (Trip/VIP/All In, Passengers/Cargo)
+- New settings to allow non-compatible airports that have at least one alternative airport in the simulator to be included (when the option "Only display and use simulator compatible airports" is On) (#159)
+
+### Changed
+- Updated MSFS data
+- Updated FSE aircraft list
+- Updated project dependencies
+
+### Fixed
+- Fixed rounding bug in airport coordinates (#162)
+- Fixed "More" alternative airports button (#160)
+
+
+
 ## [1.14.1] - 2022-12-28
 
 ### Changed

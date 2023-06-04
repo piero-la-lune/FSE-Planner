@@ -21,7 +21,15 @@ export function hideAirport(icao, s, sim) {
           (
               s.onlySim
             &&
-              icaodata[icao][sim][0] === null
+              (
+                  icaodata[icao][sim][0] === null
+                &&
+                  (
+                      !s.onlySimAlternative
+                    ||
+                      icaodata[icao][sim].length < 2
+                  )
+              )
           )
         ||
           (
