@@ -10,7 +10,8 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Link from '@mui/material/Link';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
+import LI from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -36,6 +37,23 @@ const styles = {
 
 function IssueLink({id}) {
   return <Link href={"https://github.com/piero-la-lune/FSE-Planner/issues/"+id} target="_blank" sx={{display:'contents'}}>#{id}</Link>
+}
+function Code({children}) {
+  return (
+    <Box
+      sx={{
+        display: 'inline',
+        '& code': {
+          background: '#eee'
+        }
+      }}
+    >
+      <code>{children}</code>
+    </Box>
+  );
+}
+function ListItem({children}) {
+  return <LI><ListItemText>{children}</ListItemText></LI>
 }
 
 
@@ -97,7 +115,30 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
-        <Paper sx={styles.content}>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.15.0 (2023-06-04)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Customization of line thickness for custom layers</ListItem>
+              <ListItem>Custom layer colors can now be entered with an hexadecimal color code (<IssueLink id={157} />)</ListItem>
+              <ListItem>Share multiple layers with one unique URL (new <Code>layers</Code> URL query parameter). To share <Code>ID1</Code> and <Code>ID2</Code> layers at once (ids can be retrieved in the layer sharing URL), use this URL: <Code>https://fse-planner.piero-la-lune.fr/?layers=ID1,ID2</Code> (ids must be comma separated)</ListItem>
+              <ListItem>New settings to save default job type filters (Trip/VIP/All In, Passengers/Cargo)</ListItem>
+              <ListItem>New settings to allow non-compatible airports that have at least one alternative airport in the simulator to be included (when the option "Only display and use simulator compatible airports" is On) (<IssueLink id={159} />)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated MSFS data</ListItem>
+              <ListItem>Updated FSE aircraft list</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed rounding bug in airport coordinates (<IssueLink id={162} />)</ListItem>
+              <ListItem>Fixed "More" alternative airports button (<IssueLink id={160} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.14.1 (2022-12-28)</Typography>
             <Typography variant="h6">Changed</Typography>
             <List dense>
@@ -108,7 +149,7 @@ function CreditsPopup(props) {
               <ListItem>Fixed bug that prevented some usernames to appear in the "Owned & leased plane" autocomplete field</ListItem>
             </List>
           </Paper>
-          
+
           <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.14.0 (2022-12-27)</Typography>
             <Typography variant="h6">Added</Typography>
@@ -129,7 +170,7 @@ function CreditsPopup(props) {
               <ListItem>Fixed bug that could prevent future edit capability on custom layers</ListItem>
             </List>
           </Paper>
-          
+
           <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.13.0 (2022-11-06)</Typography>
             <Typography variant="h6">Added</Typography>
