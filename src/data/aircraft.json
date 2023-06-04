@@ -63,31 +63,31 @@
     "maxKg": 1846
   },
   "Airbus A320": {
-    "maxPax": 148,
+    "maxPax": 149,
     "maxCargo": 30279,
     "fuelCapacity": 7840,
     "speed": 454,
     "GPH": 800,
     "fuelType": 1,
-    "maxKg": 30279
+    "maxKg": 31203
   },
   "Airbus A320 (MSFS)": {
-    "maxPax": 148,
+    "maxPax": 149,
     "maxCargo": 36994,
     "fuelCapacity": 7000,
     "speed": 450,
     "GPH": 800,
     "fuelType": 1,
-    "maxKg": 36994
+    "maxKg": 37918
   },
   "Airbus A321": {
-    "maxPax": 183,
+    "maxPax": 184,
     "maxCargo": 43947,
     "fuelCapacity": 7790,
     "speed": 477,
     "GPH": 900,
     "fuelType": 1,
-    "maxKg": 43947
+    "maxKg": 44871
   },
   "Airbus H135 HPG": {
     "maxPax": 7,
@@ -227,7 +227,7 @@
   "ATR 72-500": {
     "maxPax": 68,
     "maxCargo": 8511,
-    "fuelCapacity": 1320,
+    "fuelCapacity": 1682,
     "speed": 250,
     "GPH": 200,
     "fuelType": 1,
@@ -412,6 +412,15 @@
     "GPH": 15,
     "fuelType": 0,
     "maxKg": 540
+  },
+  "Beechcraft Bonanza A36 Waiz RTW": {
+    "maxPax": 0,
+    "maxCargo": 457,
+    "fuelCapacity": 170,
+    "speed": 160,
+    "GPH": 12,
+    "fuelType": 0,
+    "maxKg": 557
   },
   "Beechcraft Bonanza F33": {
     "maxPax": 5,
@@ -702,31 +711,31 @@
     "maxKg": 28196
   },
   "Boeing 727-100/200": {
-    "maxPax": 133,
+    "maxPax": 134,
     "maxCargo": 30325,
     "fuelCapacity": 8186,
     "speed": 495,
     "GPH": 1000,
     "fuelType": 1,
-    "maxKg": 30325
+    "maxKg": 31249
   },
   "Boeing 737-800": {
-    "maxPax": 160,
+    "maxPax": 161,
     "maxCargo": 28389,
     "fuelCapacity": 6875,
     "speed": 435,
     "GPH": 700,
     "fuelType": 1,
-    "maxKg": 28389
+    "maxKg": 29313
   },
   "Boeing 747-400": {
-    "maxPax": 415,
+    "maxPax": 416,
     "maxCargo": 216598,
     "fuelCapacity": 57164,
     "speed": 504,
     "GPH": 3000,
     "fuelType": 1,
-    "maxKg": 216598
+    "maxKg": 218061
   },
   "Boeing B-17G": {
     "maxPax": 9,
@@ -931,7 +940,7 @@
     "maxCargo": 355,
     "fuelCapacity": 54,
     "speed": 100,
-    "GPH": 8,
+    "GPH": 7,
     "fuelType": 0,
     "maxKg": 355
   },
@@ -1304,6 +1313,15 @@
     "fuelType": 0,
     "maxKg": 5905
   },
+  "Curtiss JN-4 Jenny": {
+    "maxPax": 1,
+    "maxCargo": 164,
+    "fuelCapacity": 20,
+    "speed": 65,
+    "GPH": 7,
+    "fuelType": 0,
+    "maxKg": 164
+  },
   "Curtiss P-40C (A2A)": {
     "maxPax": 1,
     "maxCargo": 200,
@@ -1497,8 +1515,8 @@
     "maxPax": 30,
     "maxCargo": 4430,
     "fuelCapacity": 830,
-    "speed": 158,
-    "GPH": 175,
+    "speed": 155,
+    "GPH": 165,
     "fuelType": 0,
     "maxKg": 4430
   },
@@ -1540,7 +1558,7 @@
   },
   "Diamond DA20 Katana": {
     "maxPax": 1,
-    "maxCargo": 158,
+    "maxCargo": 358,
     "fuelCapacity": 20,
     "speed": 95,
     "GPH": 5,
@@ -1925,6 +1943,15 @@
     "fuelType": 1,
     "maxKg": 8360
   },
+  "Fokker F.VIIb/3m": {
+    "maxPax": 8,
+    "maxCargo": 2046,
+    "fuelCapacity": 704,
+    "speed": 90,
+    "GPH": 41,
+    "fuelType": 0,
+    "maxKg": 2046
+  },
   "Fokker F27-500 Friendship": {
     "maxPax": 55,
     "maxCargo": 7704,
@@ -2176,6 +2203,15 @@
     "GPH": 117,
     "fuelType": 1,
     "maxKg": 4507
+  },
+  "Kitfox Series 5 STi": {
+    "maxPax": 1,
+    "maxCargo": 100,
+    "fuelCapacity": 26,
+    "speed": 92,
+    "GPH": 5,
+    "fuelType": 0,
+    "maxKg": 203
   },
   "Lake Renegade": {
     "maxPax": 5,
@@ -2722,7 +2758,7 @@
     "maxCargo": 482,
     "fuelCapacity": 74,
     "speed": 140,
-    "GPH": 12,
+    "GPH": 10,
     "fuelType": 0,
     "maxKg": 482
   },
@@ -2740,7 +2776,7 @@
     "maxCargo": 507,
     "fuelCapacity": 78,
     "speed": 150,
-    "GPH": 12,
+    "GPH": 11,
     "fuelType": 0,
     "maxKg": 507
   },
@@ -2870,6 +2906,15 @@
     "fuelType": 0,
     "maxKg": 695
   },
+  "Progressive Aerodyne SeaRey RTW": {
+    "maxPax": 1,
+    "maxCargo": 316,
+    "fuelCapacity": 108,
+    "speed": 84,
+    "GPH": 4,
+    "fuelType": 0,
+    "maxKg": 316
+  },
   "PZL Wilga": {
     "maxPax": 3,
     "maxCargo": 333,
@@ -2986,6 +3031,15 @@
     "GPH": 14,
     "fuelType": 0,
     "maxKg": 378
+  },
+  "Robinson R44 Raven II": {
+    "maxPax": 3,
+    "maxCargo": 374,
+    "fuelCapacity": 47,
+    "speed": 100,
+    "GPH": 13,
+    "fuelType": 0,
+    "maxKg": 374
   },
   "Robinson R66 Turbine": {
     "maxPax": 4,
@@ -3212,6 +3266,15 @@
     "fuelType": 1,
     "maxKg": 1177
   },
+  "Spare Spare": {
+    "maxPax": -1,
+    "maxCargo": 0,
+    "fuelCapacity": 26,
+    "speed": 0,
+    "GPH": 0,
+    "fuelType": 0,
+    "maxKg": -77
+  },
   "Spartan 7W Executive": {
     "maxPax": 4,
     "maxCargo": 676,
@@ -3301,6 +3364,15 @@
     "GPH": 500,
     "fuelType": 1,
     "maxKg": 15335
+  },
+  "Van's RV-10": {
+    "maxPax": 3,
+    "maxCargo": 401,
+    "fuelCapacity": 60,
+    "speed": 160,
+    "GPH": 14,
+    "fuelType": 0,
+    "maxKg": 401
   },
   "Vans RV-7/7A": {
     "maxPax": 1,
