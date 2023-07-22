@@ -409,7 +409,7 @@
     "maxCargo": 540,
     "fuelCapacity": 80,
     "speed": 160,
-    "GPH": 15,
+    "GPH": 12,
     "fuelType": 0,
     "maxKg": 540
   },
@@ -2938,7 +2938,7 @@
     "maxCargo": 1501,
     "fuelCapacity": 320,
     "speed": 180,
-    "GPH": 50,
+    "GPH": 45,
     "fuelType": 1,
     "maxKg": 1501
   },
