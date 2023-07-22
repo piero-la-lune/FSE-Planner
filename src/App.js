@@ -105,6 +105,7 @@ const defaultSettings = {
     maxEmptyLeg: 20,
     idleTime: 2,
     fees: ['Ground', 'Booking', 'Rental', 'Fuel'],
+    jobsType: ['pax-sys', 'pax-trip', 'pax-vip', 'cargo-sys', 'cargo-vip'],
     overheadLength: 0,
     approachLength: 10,
     memory: 'normal',
