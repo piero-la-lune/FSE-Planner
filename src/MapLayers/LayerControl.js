@@ -624,9 +624,11 @@ function LayerControl(props) {
         points = [...points, ...layer.points.map(elm => { return {latitude: elm[0], longitude: elm[1]} })];
       }
     });
-    const b = getBounds(points);
-    bounds = [[b.minLat, b.minLng], [b.maxLat, b.maxLng]];
-    props.map.fitBounds(bounds, {animate:false});
+    if (points.length > 1) {
+      const b = getBounds(points);
+      bounds = [[b.minLat, b.minLng], [b.maxLat, b.maxLng]];
+      props.map.fitBounds(bounds, {animate:false});
+    }
   }, [props.map, props.options.icaodata])
 
   // Show default layers and preload images
