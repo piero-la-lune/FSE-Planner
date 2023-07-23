@@ -79,6 +79,9 @@ export function wrap(num, center) {
   if (num >= center+180) { return -360; }
   return 0;
 }
+export function wrapNb(num, center) {
+  return num+wrap(num,center);
+}
 
 export class Plane {
   constructor(model, specs = {}) {

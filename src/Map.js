@@ -15,7 +15,7 @@ import "@maplibre/maplibre-gl-leaflet";
 import "@geoman-io/leaflet-geoman-free";
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 
-import { cleanLegs } from "./util/utility.js";
+import { cleanLegs, wrapNb } from "./util/utility.js";
 import Canvas from "./MapLayers/Components/Canvas.js";
 import Marker from "./MapLayers/Components/Marker.js";
 import Job from "./MapLayers/Components/Job.js";
@@ -70,12 +70,16 @@ const FSEMap = React.memo(function FSEMap(props) {
         mouseX: evt.originalEvent.clientX,
         mouseY: evt.originalEvent.clientY,
         title: (lat >= 0 ? lat+'N ' : (-lat)+'S ') + (lon >= 0 ? lon+'E': (-lon)+'W'),
-        actions: [{
-          name: 'Mesure distance from this point',
-          onClick: () => {
-            startDistanceMeasure.current(evt.latlng);
-          }
-        }]
+        actions: [
+          {
+            name: 'Measure distance from this point',
+            onClick: () => startDistanceMeasure.current(evt.latlng)
+          },
+          {
+            name: 'Location on Google Map (satellite)',
+            onClick: () => window.open(`http://maps.google.com/maps?t=k&q=loc:${evt.latlng.lat}+${wrapNb(evt.latlng.lng, 0)}`, '_blank')
+          },
+        ]
       });
     });
     // When measuring line is finished: enable editing

@@ -18,7 +18,7 @@ import L from "leaflet";
 
 import { AirportSVG } from "./Icons.js";
 import AirportIcon from "./AirportIcon.js";
-import { airportSurface, simName, wrap } from "../../util/utility.js"
+import { airportSurface, simName, wrapNb } from "../../util/utility.js"
 
 
 const styles = {
@@ -120,7 +120,7 @@ function Popup(props) {
     }
   }
 
-  const lon = (icaodata[icao].lon+wrap(icaodata[icao].lon, 0)).toFixed(4);
+  const lon = wrapNb(icaodata[icao].lon, 0).toFixed(4);
 
   return (
     <React.Fragment>
@@ -377,7 +377,7 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
           });
         }
         actions.push({
-          name: 'Mesure distance from this point',
+          name: 'Measure distance from this point',
           onClick: () => props.actions.current.measureDistance(evt.latlng)
         });
         // Custom layers action
@@ -404,6 +404,10 @@ function Marker({position, size, color, sim, allJobs, ...props}) {
         // Chart links
         actions.push({
           divider: true
+        });
+        actions.push({
+          name: 'Location on Google Map (satellite)',
+          onClick: () => window.open(`http://maps.google.com/maps?t=k&q=loc:${evt.latlng.lat}+${wrapNb(evt.latlng.lng,0)}`, '_blank')
         });
         actions.push({
           name: 'Charts on ChartFox',

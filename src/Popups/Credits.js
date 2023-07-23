@@ -116,6 +116,27 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.16.0 (2023-07-23)</Typography>
+            <Alert sx={{m:1}} severity="info">In memory of Heather: fly the <Link href="https://fse-planner.piero-la-lune.fr/?layer=572ec8a1-8ba1-44b3-b765-acad164f1ddf" target="_blank">Red Ball Express network</Link>!</Alert>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Context menu (right click on map): open location in Google Maps satellite view</ListItem>
+              <ListItem>Job direction parameter directly in the Load Date popup</ListItem>
+              <ListItem>More control on assignment types in Route Finder (passengers/cargo, black/green/VIP)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated MSFS data</ListItem>
+              <ListItem>Updated FSE aircraft list</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed bug when creating new custom layer with For Sale or Unbuilt Lots (no markers were shown on the map)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.15.0 (2023-06-04)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>

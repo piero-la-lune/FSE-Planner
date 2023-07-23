@@ -73,7 +73,7 @@ const Routing = React.memo((props) => {
   const [overheadLength, setOverheadLength] = React.useState(props.options.settings.routeFinder.overheadLength);
   const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
   const [memory, setMemory] = React.useState(props.options.settings.routeFinder.memory);
-  const [vipOnly, setVipOnly] = React.useState('both');
+  const [jobsType, setJobsType] = React.useState(props.options.settings.routeFinder.jobsType);
   const [loop, setLoop] = React.useState(false);
   const [type, setType] = React.useState('rent');
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
@@ -361,6 +361,12 @@ const Routing = React.memo((props) => {
     }
     const total = icaos.length;
 
+    const paxSys = jobsType.includes("pax-sys");
+    const paxTrip = jobsType.includes("pax-trip");
+    const paxVIP = jobsType.includes("pax-vip");
+    const cargoSys = jobsType.includes("cargo-sys");
+    const cargoVIP = jobsType.includes("cargo-vip");
+
     // Compute jobs matching airplane specs
     for (const k of [...new Set([...Object.keys(props.options.jobs), ...Object.keys(props.options.flight)])]) {
       const [fr, to] = k.split('-');
@@ -375,17 +381,21 @@ const Routing = React.memo((props) => {
         direction: props.options.jobs[k] ? props.options.jobs[k].direction : props.options.flight[k].direction,
       }
       const append = (v, obj) => {
-        if (v['Trip-Only'] && vipOnly !== 'only') {
+        if (v['Trip-Only']) {
           for (const c of v['Trip-Only']) {
-            if (c.pax && c.pax > planeMaxPax) { continue; }
-            if (!c.pax && c.kg > planeMaxCargo) { continue; }
+            if (c.pax && (
+                  c.pax > planeMaxPax
+              ||  (!c.PT && !paxSys)
+              ||  (c.PT && !paxTrip)
+            )) { continue; }
+            if (!c.pax && (c.kg > planeMaxCargo || !cargoSys)) { continue; }
             obj.cargos.TripOnly.push({from: fr, to: to, ...c});
           }
         }
-        if (v['VIP'] && vipOnly !== 'exclude') {
+        if (v['VIP']) {
           for (const c of v['VIP']) {
-            if (c.pax && c.pax > planeMaxPax) { continue; }
-            if (!c.pax && c.kg > planeMaxCargo) { continue; }
+            if (c.pax && (c.pax > planeMaxPax || !paxVIP)) { continue; }
+            if (!c.pax && (c.kg > planeMaxCargo || !cargoVIP)) { continue; }
             obj.cargos.VIP.push({from: fr, to: to, ...c});
           }
         }
@@ -1158,17 +1168,67 @@ const Routing = React.memo((props) => {
               </Grid>
 
               <TextField
-                label="VIP jobs"
+                label="Jobs type"
                 variant="outlined"
-                value={vipOnly}
-                onChange={(evt) => setVipOnly(evt.target.value)}
+                value={jobsType}
+                onChange={(evt) => setJobsType(evt.target.value)}
                 select
                 fullWidth
+                SelectProps={{
+                  multiple: true,
+                  renderValue: (selected) => {
+                    if (selected.length === 5) { return 'All' }
+                    const arr = [];
+                    if (selected.includes("pax-sys")) {
+                      if (selected.includes("cargo-sys")) {
+                        arr.push('Black');
+                      }
+                      else {
+                        arr.push('Black pax');
+                      }
+                    }
+                    else if (selected.includes("cargo-sys")) {
+                      arr.push('Black cargo');
+                    }
+                    if (selected.includes("pax-trip")) {
+                      arr.push('Green');
+                    }
+                    if (selected.includes("pax-vip")) {
+                      if (selected.includes("cargo-vip")) {
+                        arr.push('VIP');
+                      }
+                      else {
+                        arr.push('VIP pax');
+                      }
+                    }
+                    else if (selected.includes("cargo-vip")) {
+                      arr.push('VIP cargo');
+                    }
+                    return arr.join(', ');
+                  }
+                }}
                 sx={styles.formLabel}
               >
-                <MenuItem value="both">Include VIP jobs</MenuItem>
-                <MenuItem value="exclude">Exclude VIP jobs</MenuItem>
-                <MenuItem value="only">VIP jobs only</MenuItem>
+                <MenuItem value="pax-sys">
+                  <Checkbox checked={jobsType.indexOf("pax-sys") > -1} />
+                  <ListItemText primary="Black jobs - Passengers" />
+                </MenuItem>
+                <MenuItem value="cargo-sys">
+                  <Checkbox checked={jobsType.indexOf("cargo-sys") > -1} />
+                  <ListItemText primary="Black jobs - Cargo" />
+                </MenuItem>
+                <MenuItem value="pax-trip">
+                  <Checkbox checked={jobsType.indexOf("pax-trip") > -1} />
+                  <ListItemText primary="Green jobs" />
+                </MenuItem>
+                <MenuItem value="pax-vip">
+                  <Checkbox checked={jobsType.indexOf("pax-vip") > -1} />
+                  <ListItemText primary="VIP jobs - Passengers" />
+                </MenuItem>
+                <MenuItem value="cargo-vip">
+                  <Checkbox checked={jobsType.indexOf("cargo-vip") > -1} />
+                  <ListItemText primary="VIP jobs - Cargo" />
+                </MenuItem>
               </TextField>
 
             </Paper>
