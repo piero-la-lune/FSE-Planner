@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.16.0] - 2023-07-23
+
+### Added
+- Context menu (right click on map): open location in Google Maps satellite view
+- Job direction parameter directly in the Load Date popup
+- More control on assignment types in Route Finder (passengers/cargo, black/green/VIP)
+
+### Changed
+- Updated MSFS data
+- Updated FSE aircraft list
+- Updated project dependencies
+
+### Fixed
+- Fixed bug when creating new custom layer with For Sale or Unbuilt Lots (no markers were shown on the map)
+
+
+
 ## [1.15.0] - 2023-06-04
 
 ### Added
