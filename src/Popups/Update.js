@@ -11,6 +11,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import MenuItem from '@mui/material/MenuItem';
 import CircularProgress from '@mui/material/CircularProgress';
 import AspectRatioIcon from '@mui/icons-material/AspectRatio';
 import AirplanemodeActiveIcon from '@mui/icons-material/AirplanemodeActive';
@@ -368,6 +369,7 @@ function UpdatePopup(props) {
   });
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
   const [jobsRequests, setJobsRequests] = React.useState(() => getIcaoList(jobsAreas, jobsCustom, [], props.icaodata, props.icaos, props.settings)[1].length);
+  const [jobDirection, setJobDirection] = React.useState(props.settings.update.direction);
   const [planeModel, setPlaneModel] = React.useState(storage.get('planeModel', []));
   const [planeUser, setPlaneUser] = React.useState(storage.get('planeUser', []));
   const [planesTime, setPlanesTime] = React.useState(storage.get('planesTime'));
@@ -425,9 +427,9 @@ function UpdatePopup(props) {
   // Update the number of request for loading jobs each time one input changes
   React.useEffect(() => {
     let nb = getIcaoList(jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings)[1].length;
-    if (props.settings.update.direction === 'from&to') { nb *= 2; }
+    if (jobDirection === 'from&to') { nb *= 2; }
     setJobsRequests(nb);
-  }, [jobsAreas, jobsCustom, jobsLayers, props.icaodata, props.icaos, props.settings]);
+  }, [jobsAreas, jobsCustom, jobsLayers, jobDirection, props.icaodata, props.icaos, props.settings]);
 
   // Close popup
   const handleClose = () => {
@@ -508,10 +510,10 @@ function UpdatePopup(props) {
       setLoading(false);
       return false;
     }
-    const dir = props.settings.update.direction === 'to' ? 'jobsto' : 'jobsfrom';
+    const dir = jobDirection === 'to' ? 'jobsto' : 'jobsfrom';
     updateJobsRequest([...icaosList], [], dir, (list) => {
-      const jobs = cleanJobs(list, props.icaodata, props.settings.update, props.settings.update.direction === 'both' ? icaos : null);
-      if (props.settings.update.direction === 'from&to') {
+      const jobs = cleanJobs(list, props.icaodata, props.settings.update, jobDirection === 'both' ? icaos : null);
+      if (jobDirection === 'from&to') {
         updateJobsRequest(icaosList, [], 'jobsto', (list) => {
           const jobs2 = cleanJobs(list, props.icaodata, props.settings.update, null);
           for (const key of Object.keys(jobs2)) {
@@ -898,6 +900,20 @@ function UpdatePopup(props) {
               />
               { jobsRequests >= 2 && jobsRequests < 10 && <Alert severity="warning" sx={{ mt: 1 }}>Selected area is very large, it will require {jobsRequests} requests (10 max).</Alert> }
               { jobsRequests >= 10 && <Alert severity="error" sx={{ mt: 1 }}>Selected area is too big.</Alert> }
+              <TextField
+                label="Job direction for the selected area/layer"
+                variant="outlined"
+                value={jobDirection}
+                onChange={(evt) => setJobDirection(evt.target.value)}
+                select
+                fullWidth
+                margin="normal"
+              >
+                <MenuItem value="from">Jobs FROM the selected area/layer</MenuItem>
+                <MenuItem value="to">Jobs TO the selected area/layer</MenuItem>
+                <MenuItem value="from&to">Jobs FROM and TO the selected area/layer</MenuItem>
+                <MenuItem value="both">Jobs INSIDE the selected area/layer</MenuItem>
+              </TextField>
             </AccordionDetails>
           </Accordion>
 
