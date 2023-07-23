@@ -121,7 +121,7 @@ function CreditsPopup(props) {
             <Typography variant="h6">Added</Typography>
             <List dense>
               <ListItem>Context menu (right click on map): open location in Google Maps satellite view</ListItem>
-              <ListItem>Job direction parameter directly in the Load Date popup</ListItem>
+              <ListItem>Job direction parameter directly in the Load Data popup</ListItem>
               <ListItem>More control on assignment types in Route Finder (passengers/cargo, black/green/VIP)</ListItem>
             </List>
             <Typography variant="h6">Changed</Typography>

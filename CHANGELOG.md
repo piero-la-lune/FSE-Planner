@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Context menu (right click on map): open location in Google Maps satellite view
-- Job direction parameter directly in the Load Date popup
+- Job direction parameter directly in the Load Data popup
 - More control on assignment types in Route Finder (passengers/cargo, black/green/VIP)
 
 ### Changed
