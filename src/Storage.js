@@ -35,7 +35,7 @@ class Storage {
               layer.id = uid();
             }
           }
-          this.set('layers', layers);  
+          this.set('layers', layers);
         }
       }
       if (semver.lt(oldVersion, '1.10.1')) {
@@ -91,6 +91,18 @@ class Storage {
         layersOrder = layersOrder.map(elm => elm > 5 ? elm-1 : elm);
         this.set('layers', layers);
         this.set('layersOrder', layersOrder);
+      }
+      if (semver.lt(oldVersion, '1.17.0-alpha.0')) {
+        const b = this.get('jobsCustom', {});
+        if (b && b._southWest) {
+          const latlngs = [
+            {lat: b._southWest.lat, lng: b._northEast.lng},
+            {lat: b._northEast.lat, lng: b._northEast.lng},
+            {lat: b._northEast.lat, lng: b._southWest.lng},
+            {lat: b._southWest.lat, lng: b._southWest.lng}
+          ];
+          this.set('jobsCustom', latlngs);
+        }
       }
       localStorage.setItem('version', version);
     }

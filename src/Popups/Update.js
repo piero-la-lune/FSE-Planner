@@ -32,11 +32,12 @@ import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import he from 'he';
 import { matchSorter } from 'match-sorter';
+import pointInPolygon from 'point-in-polygon';
 
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
 import log from '../util/logger.js';
-import { hideAirport, wrap } from "../util/utility.js";
+import { hideAirport, wrapNb } from "../util/utility.js";
 
 import aircrafts from "../data/aircraft.json";
 
@@ -82,16 +83,19 @@ function getAreas(icaodata, icaos) {
 }
 
 // Get the list of all airports within the selected countries and custom area
-function getIcaoList(countries, bounds, layers, icaodata, icaos, settings) {
+function getIcaoList(countries, latlngs, layers, icaodata, icaos, settings) {
   let center = null;
+  let polygon = null;
   // If custom area, compute the area center to later wrap lng coordinates
   if (countries.includes('Custom area')) {
-    center = bounds.getCenter();
+    const p = L.polygon(latlngs);
+    center = p.getBounds().getCenter();
+    polygon = p.getLatLngs()[0].map(elm => [elm.lat, elm.lng]);
   }
   let i = [];
   for (const icao of icaos) {
     // If custom area, check if icao is inside the polygon
-    if (center && bounds.contains([icaodata[icao].lat, icaodata[icao].lon+wrap(icaodata[icao].lon, center.lng)])) {
+    if (center && pointInPolygon([icaodata[icao].lat, wrapNb(icaodata[icao].lon, center.lng)], polygon)) {
       i.push(icao);
     }
     else {
@@ -363,8 +367,8 @@ function UpdatePopup(props) {
   const [key, setKey] = React.useState(storage.get('key', ''));
   const [jobsAreas, setJobsAreas] = React.useState(storage.get('jobsAreas', []));
   const [jobsCustom, setJobsCustom] = React.useState(() => {
-    const b = storage.get('jobsCustom', {});
-    if (b && b._southWest) { return L.latLngBounds(b._southWest, b._northEast); }
+    const latlngs = storage.get('jobsCustom', []);
+    if (latlngs.length > 2) { return latlngs; }
     return null;
   });
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
@@ -390,19 +394,31 @@ function UpdatePopup(props) {
 
   // Update custom area when map center is updated
   React.useEffect(() => {
-    const b = storage.get('jobsCustom', {});
-    if (b && b._southWest) {
-      while ((b._southWest.lng + b._northEast.lng)/2 < props.settings.display.map.center-180) {
-        b._southWest.lng += 360;
-        b._northEast.lng += 360;
+    const wrapZone = latlngs => {
+      if (!latlngs || latlngs.length < 3) { return latlngs; }
+      const polygon = L.polygon(latlngs);
+      let center = polygon.getBounds().getCenter();
+      let diff = 0;
+      while (center.lng < props.settings.display.map.center-180) {
+        diff += 360;
+        center.lng += 360;
       }
-      while ((b._southWest.lng + b._northEast.lng)/2 > props.settings.display.map.center+180) {
-        b._southWest.lng -= 360;
-        b._northEast.lng -= 360;
+      while (center.lng > props.settings.display.map.center+180) {
+        diff -= 360;
+        center.lng -= 360;
       }
-      storage.set('jobsCustom', b);
-      setJobsCustom(L.latLngBounds(b._southWest, b._northEast));
+      for (var i = 0; i < latlngs.length; i++) {
+        latlngs[i].lng += diff;
+      }
+      return latlngs;
     }
+    // Update stored custom area
+    const sJobsCustom = storage.get('jobsCustom', []);
+    if (sJobsCustom.length >= 3) {
+      storage.set('jobsCustom', wrapZone(sJobsCustom));
+    }
+    // Update current custom area (can be different of stored)
+    setJobsCustom(jc => wrapZone(jc));
   }, [props.settings.display.map.center]);
 
   // Update available custom layers when opening the popup
@@ -873,12 +889,12 @@ function UpdatePopup(props) {
               <CustomAreaPopup
                 open={openCustom}
                 handleClose={() => setOpenCustom(false)}
-                setArea={(bounds) => {
+                setArea={(latlngs) => {
                   const a = [...jobsAreas, 'Custom area'];
-                  setJobsCustom(bounds);
+                  setJobsCustom(latlngs);
                   setJobsAreas(a);
                 }}
-                bounds={jobsCustom}
+                latlngs={jobsCustom}
                 settings={props.settings}
               />
               <Autocomplete
