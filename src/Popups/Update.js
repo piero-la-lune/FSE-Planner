@@ -264,7 +264,7 @@ function cleanJobs(list, icaodata, settings, icaos = null) {
     }
     const leg = jobs[frIcao][toIcao][2];
     const u = unit === 'kg' ? 'k' : 'p';
-    const t = job.PtAssignment === 'true' ? 'p' : (job.Type === 'Trip-Only' ? 't' : (job.Type === 'VIP' ? 'v' : 'a'));
+    const t = ['true', 'True'].includes(job.PtAssignment) ? 'p' : (job.Type === 'Trip-Only' ? 't' : (job.Type === 'VIP' ? 'v' : 'a'));
     if (!leg.hasOwnProperty(u+t)) {
       leg[u+t] = [];
     }
