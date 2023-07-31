@@ -81,7 +81,9 @@ function Plus(props) {
         borderRadius: 10,
         lineHeight: "18px",
         textAlign: "center"
-      }}>
+      }}
+      component="span"
+    >
        +
     </Box>
   );
