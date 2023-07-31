@@ -194,9 +194,13 @@ function cleanPlanes(list, username, rentable = true) {
     if (obj.RentedBy !== 'Not rented.' && obj.RentedBy !== username) { continue; }
     // If searching for rentable planes, discard planes without
     // dry and web rental price (except planes owned by FSE, because
-    // those are reserved for All-In jobs)
+    // those are reserved for All-In jobs, and planes owned by the user)
+    let allin = undefined;
     if (rentable && !parseInt(obj.RentalDry) && !parseInt(obj.RentalWet)) {
-      if (obj.Owner !== 'Bank of FSE') { continue; }
+      if (obj.Owner === 'Bank of FSE') {
+        allin = true; // Plane only used for allin flights
+      }
+      else if (obj.Owner !== username) { continue; }
     }
     // Planes with fee owned are discarded
     if (parseInt(obj.FeeOwed)) { continue; }
@@ -213,7 +217,8 @@ function cleanPlanes(list, username, rentable = true) {
       home: obj.Home,
       wet: parseInt(obj.RentalWet),
       dry: parseInt(obj.RentalDry),
-      bonus: parseInt(obj.Bonus)
+      bonus: parseInt(obj.Bonus),
+      allin: allin
     });
   }
   return planes;
@@ -632,7 +637,11 @@ function UpdatePopup(props) {
           if (!planes[model]) { planes[model] = {}; }
           for (const icao of Object.keys(p2[model])) {
             if (!planes[model][icao]) { planes[model][icao] = []; }
-            planes[model][icao] = planes[model][icao].concat(p2[model][icao]);
+            const ids = planes[model][icao].map(elm => elm.id);
+            p2[model][icao].forEach(elm => {
+              // Do not add twice the same plane (same id)
+              if (!ids.includes(elm.id)) { planes[model][icao].push(elm); }
+            });
           }
         }
         // Update planes
