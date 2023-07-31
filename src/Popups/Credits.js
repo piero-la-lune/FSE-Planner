@@ -116,6 +116,24 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.17.0 (2023-07-31)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>New filter for custom layers: you can now filter by geographical area (useful to save preset regions as custom layers for loading jobs)</ListItem>
+              <ListItem>Search for GPS coordinates in search bar (example: 48.8583N 2.2944E). URL can be shared with pinned location</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Geographical area selection can now be any polygon (not longer restricted to rectangle)</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fixed bug that prevented booking fees to be calculated with personal or group assignments</ListItem>
+              <ListItem>Fixed bug that allowed All-In reserved airplanes to be considered as rentable by the Route Finder (<IssueLink id={172} />)</ListItem>
+            </List>
+          </Paper>
+
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.16.0 (2023-07-23)</Typography>
             <Alert sx={{m:1}} severity="info">In memory of Heather: fly the <Link href="https://fse-planner.piero-la-lune.fr/?layer=572ec8a1-8ba1-44b3-b765-acad164f1ddf" target="_blank">Red Ball Express network</Link>!</Alert>
             <Typography variant="h6">Added</Typography>
