@@ -1076,6 +1076,7 @@ function LayerControl(props) {
         }}
         layer={layer}
         icaos={props.icaos}
+        settings={s}
       />
       <Box
         onContextMenu={evt => { evt.preventDefault() }}

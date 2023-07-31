@@ -21,7 +21,7 @@ function Map({mapCenter, latlngs, setLatlngs}) {
 
   // Initialize map and center on bounds
   React.useEffect(() => {
-    const newlatlngs = latlngs || [{lat:51.310, lon:8.496}, {lat:42.200, lon:8.496}, {lat:42.200, lon:-5.065}, {lat:51.310, lon:-5.065}];
+    const newlatlngs = latlngs || [{lat:51.310, lng:8.496}, {lat:42.200, lng:8.496}, {lat:42.200, lng:-5.065}, {lat:51.310, lng:-5.065}];
     setLatlngs(newlatlngs);
     if (!mapRef.current) {
       // Create map

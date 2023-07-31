@@ -1,6 +1,7 @@
 import icaodata from "../data/icaodata.json";
 import aircrafts from "../data/aircraft.json";
 
+import pointInPolygon from 'point-in-polygon';
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 
 export function hideAirport(icao, s, sim) {
@@ -48,6 +49,16 @@ export function hideAirport(icao, s, sim) {
               s.excludeMilitary
             &&
               icaodata[icao].type === 'military'
+          )
+        ||
+          (
+              s.area
+            &&
+              !pointInPolygon([icaodata[icao].lat, icaodata[icao].lon], s.area)
+            &&
+              !pointInPolygon([icaodata[icao].lat, icaodata[icao].lon-360], s.area)
+            &&
+              !pointInPolygon([icaodata[icao].lat, icaodata[icao].lon+360], s.area)
           )
       )
   );

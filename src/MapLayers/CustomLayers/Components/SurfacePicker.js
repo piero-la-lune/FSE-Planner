@@ -16,7 +16,7 @@ const surfaceOptions = [
 
 function SurfacePicker(props) {
   return (
-    <Box sx={{marginTop: 3}}>
+    <Box sx={{marginBottom: 3}}>
       <TextField
         label="Airport surface"
         variant="outlined"
