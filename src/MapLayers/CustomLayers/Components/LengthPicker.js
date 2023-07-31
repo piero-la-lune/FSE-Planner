@@ -7,7 +7,7 @@ function LengthPicker(props) {
   const computeVal = val => val > 15000 ? 15000 : val;
   const inverseVal = val => val === 15000 ? 30000 : val;
   return (
-    <Box sx={{marginTop: 3}}>
+    <Box sx={{marginBottom: 3}}>
       <Typography variant="body2">Airport longest runway (in feet):</Typography>
       <Box sx={{margin: '0 20px'}}>
         <Slider

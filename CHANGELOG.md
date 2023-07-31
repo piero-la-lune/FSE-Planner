@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.17.0] - 2023-07-31
+
+### Added
+- New filter for custom layers: you can now filter by geographical area (useful to save preset regions as custom layers for loading jobs)
+- Search for GPS coordinates in search bar (example: 48.8583N 2.2944E). URL can be shared with pinned location
+
+### Changed
+- Geographical area selection can now be any polygon (not longer restricted to rectangle)
+
+### Fixed
+- Fixed bug that prevented booking fees to be calculated with personal or group assignments
+- Fixed bug that allowed All-In reserved airplanes to be considered as rentable by the Route Finder (#172)
+
+
+
 ## [1.16.0] - 2023-07-23
 
 ### Added

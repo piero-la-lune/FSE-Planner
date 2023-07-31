@@ -3,8 +3,10 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import DialogContentText from '@mui/material/DialogContentText';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 import CloseIcon from '@mui/icons-material/Close';
 import L from "leaflet";
 
@@ -12,43 +14,50 @@ import "@geoman-io/leaflet-geoman-free";
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 L.PM.setOptIn(true);
 
-function Map({mapCenter, bounds, setBounds}) {
+function Map({mapCenter, latlngs, setLatlngs}) {
 
   const mapRef = React.useRef(null);
   const rectangleRef = React.useRef(null);
 
   // Initialize map and center on bounds
   React.useEffect(() => {
-    const newBounds = bounds || L.latLngBounds([[51.310, 8.496], [42.200, -5.065]]);
-    setBounds(newBounds);
+    const newlatlngs = latlngs || [{lat:51.310, lng:8.496}, {lat:42.200, lng:8.496}, {lat:42.200, lng:-5.065}, {lat:51.310, lng:-5.065}];
+    setLatlngs(newlatlngs);
     if (!mapRef.current) {
       // Create map
       mapRef.current = L.map('customArea', {
         minZoom: 3,
-        bounds: newBounds,
-        boundsOptions: { animate:false },
+        bounds: L.polygon(newlatlngs).getBounds(),
+        boundsOptions: { animate: false },
         attributionControl: false,
         pmIgnore: false
       });
-      mapRef.current.fitBounds(newBounds);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current);
       // Create draggable and resizable rectangle
-      rectangleRef.current = L.rectangle(newBounds, { pmIgnore: false });
+      rectangleRef.current = L.polygon(newlatlngs, { pmIgnore: false });
       rectangleRef.current.addTo(mapRef.current);
-      rectangleRef.current.pm.enableLayerDrag();
-      rectangleRef.current.pm.enable({ hideMiddleMarkers: true, preventMarkerRemoval: true });
-      rectangleRef.current.on('pm:markerdragend', () => setBounds(rectangleRef.current.getBounds()));
-      rectangleRef.current.on('pm:dragend', () => setBounds(rectangleRef.current.getBounds()));
+      // Does not work right away. Why?
+      setTimeout(() => {
+        rectangleRef.current.pm.enableLayerDrag();
+        rectangleRef.current.pm.enable({
+          allowSelfIntersection: false,
+          removeVertexValidation: (layer) => rectangleRef.current.getLatLngs()[0].length > 3
+        });
+      }, 300);
+      //rectangleRef.current.pm.enable({ hideMiddleMarkers: true, preventMarkerRemoval: true });
+      rectangleRef.current.on('pm:markerdragend', () => setLatlngs(rectangleRef.current.getLatLngs()[0]));
+      rectangleRef.current.on('pm:dragend', () => setLatlngs(rectangleRef.current.getLatLngs()[0]));
       rectangleRef.current.on('pm:drag', () => {
         rectangleRef.current.pm._initMarkers();
         rectangleRef.current.pm.applyOptions();
       });
+      mapRef.current.fitBounds(rectangleRef.current.getBounds());
     }
     else {
-      mapRef.current.fitBounds(newBounds);
-      rectangleRef.current.setBounds(newBounds);
+      rectangleRef.current.setLatLngs(newlatlngs);
+      mapRef.current.fitBounds(rectangleRef.current.getBounds());
     }
-  }, [bounds, setBounds]);
+  }, [latlngs, setLatlngs]);
 
   // Update max bounds
   React.useEffect(() => {
@@ -59,10 +68,31 @@ function Map({mapCenter, bounds, setBounds}) {
 }
 
 
+function Plus(props) {
+  return (
+    <Box
+      sx={{
+        display: 'inline-block',
+        color: "white",
+        fontWeight: "bold",
+        background: "green",
+        width: 18,
+        height: 18,
+        borderRadius: 10,
+        lineHeight: "18px",
+        textAlign: "center"
+      }}
+      component="span"
+    >
+       +
+    </Box>
+  );
+}
+
 
 function CustomAreaPopup(props) {
 
-  const [bounds, setBounds] = React.useState(null);
+  const [latlngs, setLatlngs] = React.useState(null);
 
   return (
     <Dialog
@@ -91,18 +121,21 @@ function CustomAreaPopup(props) {
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent sx={{ display: 'flex' }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
+        <DialogContentText sx={{ mb: 1 }}>
+          New vertice: drag a <Plus /> icon. Remove vertice: rigth-click the vertice.
+        </DialogContentText>
         <Map
           mapCenter={props.settings.display.map.center}
-          bounds={props.bounds}
-          setBounds={setBounds}
+          latlngs={props.latlngs}
+          setLatlngs={setLatlngs}
         />
       </DialogContent>
       <DialogActions>
         <Button onClick={props.handleClose} color="primary">
           Cancel
         </Button>
-        <Button onClick={() => {props.setArea(bounds); props.handleClose();}} color="primary" variant="contained">
+        <Button onClick={() => {props.setArea(latlngs); props.handleClose();}} color="primary" variant="contained">
           Add selected area
         </Button>
       </DialogActions>

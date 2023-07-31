@@ -3,6 +3,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Box from '@mui/material/Box';
 
 function SizePicker(props) {
   const [min, setMin] = React.useState(0);
@@ -95,7 +96,7 @@ function SizePicker(props) {
   }, [size]);
 
   return (
-    <div>
+    <Box sx={{marginBottom: 3}}>
       <Typography variant="body2">Airport size (combined length of all runways in meters):</Typography>
       <div>
         <ToggleButtonGroup value={value} onChange={handleChange} >
@@ -140,7 +141,7 @@ function SizePicker(props) {
           }}
         />
       </div>
-    </div>
+    </Box>
   );
 }
 

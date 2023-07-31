@@ -86,6 +86,7 @@ const Routing = React.memo((props) => {
   const [aircraftModels, setAircraftModels] = React.useState([]);
   const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
   const [editSpecs, setEditSpecs] = React.useState(false);
+  const [planes, setPlanes] = React.useState({});
 
   const icaodataArr = React.useMemo(() => Object.values(props.options.icaodata), [props.options.icaodata]);
 
@@ -100,13 +101,22 @@ const Routing = React.memo((props) => {
 
   // Update list of available aircraft models
   React.useEffect(() => {
-    // Build a list of all available aircraft models
     const set = new Set();
+    const obj = {};
     for (const icao of Object.keys(props.options.planes)) {
+      const arr = [];
       for (const p of props.options.planes[icao]) {
-        set.add(p.model);
+        // Discard planes exclusively used for All-In assignments
+        if (!p.allin) {
+          arr.push(p);
+          set.add(p.model);
+        }
+      }
+      if (arr.length) {
+        obj[icao] = arr;
       }
     }
+    setPlanes(obj);
     setAvailableModels([...set].sort());
     setAircraftModels((oldAircraftModels) => oldAircraftModels.filter(elm => set.has(elm)));
   }, [props.options.planes]);
@@ -186,7 +196,7 @@ const Routing = React.memo((props) => {
         let lowestCost = null;
         const startIcao = allResults[i].icaos[0];
         const endIcao = allResults[i].icaos[allResults[i].icaos.length-1];
-        for (const p of props.options.planes[allResults[i].icaos[0]]) {
+        for (const p of planes[allResults[i].icaos[0]]) {
           if (p.model !== plane.model) { continue; }
           let cost = null;
           let t = null;
@@ -318,7 +328,7 @@ const Routing = React.memo((props) => {
     if (type === "rent") {
       planeMaxCargo = 0;
       planeMaxPax = 0;
-      // Go through every available planes, to build an objetc
+      // Go through every available planes, to build an object
       // with the specifications of all plane models available
       for (const model of aircraftModels.length ? aircraftModels : availableModels) {
         planesSpecs[model] = new Plane(model);
@@ -341,9 +351,9 @@ const Routing = React.memo((props) => {
     // List of start points
     const icaos = [];
     if (type === "rent") {
-      for (const icao of Object.keys(props.options.planes)) {
+      for (const icao of Object.keys(planes)) {
         if (hideAirport(icao, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
-        for (const p of props.options.planes[icao]) {
+        for (const p of planes[icao]) {
           if (!aircraftModels.length || aircraftModels.includes(p.model)) {
             icaos.push(icao);
             addIcao(icao);
@@ -447,7 +457,7 @@ const Routing = React.memo((props) => {
       let model = 'free';
       // If renting a plane, consider the plane with the largest capacity in Kg available
       if (type === 'rent') {
-        for (const p of props.options.planes[icao]) {
+        for (const p of planes[icao]) {
           if (!planesSpecs[p.model]) { continue; }
           if (model === 'free' || planesSpecs[p.model].maxCargo > planesSpecs[model].maxCargo) {
             model = p.model;

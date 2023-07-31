@@ -21,6 +21,7 @@ import { HexColorPicker, HexColorInput } from "react-colorful";
 
 import Storage from '../../Storage.js';
 import CommunityPopup from './CommunityPopup.js';
+import AreaPicker from './Components/AreaPicker.js';
 import SizePicker from './Components/SizePicker.js';
 import LengthPicker from './Components/LengthPicker.js';
 import SurfacePicker from './Components/SurfacePicker.js';
@@ -105,6 +106,7 @@ function CustomLayerPopup(props) {
   const [onlyILS, setOnlyILS] = React.useState(layer.filters.onlyILS);
   const [excludeMilitary, setExcludeMilitary] = React.useState(layer.filters.excludeMilitary);
   const [price, setPrice] = React.useState(layer.filters.price);
+  const [area, setArea] = React.useState(undefined);
   const [step, setStep] = React.useState(0);
   const [customIcaosVal, setCustomIcaosVal] = React.useState(layer.data.icaos.join("\n"));
   const [customConnectionsVal, setCustomConnectionsVal] = React.useState(layer.data.connections.map(elm => elm.join(' ')).join("\n"));
@@ -144,6 +146,7 @@ function CustomLayerPopup(props) {
       setOnlyILS(props.layer.filters.onlyILS);
       setExcludeMilitary(props.layer.filters.excludeMilitary);
       setPrice(props.layer.filters.price);
+      setArea(props.layer.filters.area);
       setCustomIcaos(props.layer.data.icaos);
       setCustomIcaosVal(props.layer.data.icaos.join("\n"));
       setCustomConnections(props.layer.data.connections);
@@ -239,7 +242,8 @@ function CustomLayerPopup(props) {
             onlyBM: onlyBM,
             onlyILS: onlyILS,
             excludeMilitary: excludeMilitary,
-            price: price
+            price: price,
+            area: area
           },
           display: {
             name: name,
@@ -515,6 +519,7 @@ EGLL LFPO
         }
         { step === 2 &&
           <Box>
+            <AreaPicker area={area} setArea={setArea} settings={props.settings} />
             { type === 'forsale' && <PricePicker price={price} setPrice={setPrice} />}
             <SizePicker size={size} setSize={setSize} />
             <LengthPicker length={length} setLength={setLength} />

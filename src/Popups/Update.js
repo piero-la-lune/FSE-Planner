@@ -32,11 +32,12 @@ import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import he from 'he';
 import { matchSorter } from 'match-sorter';
+import pointInPolygon from 'point-in-polygon';
 
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
 import log from '../util/logger.js';
-import { hideAirport, wrap } from "../util/utility.js";
+import { hideAirport, wrapNb } from "../util/utility.js";
 
 import aircrafts from "../data/aircraft.json";
 
@@ -82,16 +83,19 @@ function getAreas(icaodata, icaos) {
 }
 
 // Get the list of all airports within the selected countries and custom area
-function getIcaoList(countries, bounds, layers, icaodata, icaos, settings) {
+function getIcaoList(countries, latlngs, layers, icaodata, icaos, settings) {
   let center = null;
+  let polygon = null;
   // If custom area, compute the area center to later wrap lng coordinates
   if (countries.includes('Custom area')) {
-    center = bounds.getCenter();
+    const p = L.polygon(latlngs);
+    center = p.getBounds().getCenter();
+    polygon = p.getLatLngs()[0].map(elm => [elm.lat, elm.lng]);
   }
   let i = [];
   for (const icao of icaos) {
     // If custom area, check if icao is inside the polygon
-    if (center && bounds.contains([icaodata[icao].lat, icaodata[icao].lon+wrap(icaodata[icao].lon, center.lng)])) {
+    if (center && pointInPolygon([icaodata[icao].lat, wrapNb(icaodata[icao].lon, center.lng)], polygon)) {
       i.push(icao);
     }
     else {
@@ -190,9 +194,13 @@ function cleanPlanes(list, username, rentable = true) {
     if (obj.RentedBy !== 'Not rented.' && obj.RentedBy !== username) { continue; }
     // If searching for rentable planes, discard planes without
     // dry and web rental price (except planes owned by FSE, because
-    // those are reserved for All-In jobs)
+    // those are reserved for All-In jobs, and planes owned by the user)
+    let allin = undefined;
     if (rentable && !parseInt(obj.RentalDry) && !parseInt(obj.RentalWet)) {
-      if (obj.Owner !== 'Bank of FSE') { continue; }
+      if (obj.Owner === 'Bank of FSE') {
+        allin = true; // Plane only used for allin flights
+      }
+      else if (obj.Owner !== username) { continue; }
     }
     // Planes with fee owned are discarded
     if (parseInt(obj.FeeOwed)) { continue; }
@@ -209,7 +217,8 @@ function cleanPlanes(list, username, rentable = true) {
       home: obj.Home,
       wet: parseInt(obj.RentalWet),
       dry: parseInt(obj.RentalDry),
-      bonus: parseInt(obj.Bonus)
+      bonus: parseInt(obj.Bonus),
+      allin: allin
     });
   }
   return planes;
@@ -260,7 +269,7 @@ function cleanJobs(list, icaodata, settings, icaos = null) {
     }
     const leg = jobs[frIcao][toIcao][2];
     const u = unit === 'kg' ? 'k' : 'p';
-    const t = job.PtAssignment === 'true' ? 'p' : (job.Type === 'Trip-Only' ? 't' : (job.Type === 'VIP' ? 'v' : 'a'));
+    const t = ['true', 'True'].includes(job.PtAssignment) ? 'p' : (job.Type === 'Trip-Only' ? 't' : (job.Type === 'VIP' ? 'v' : 'a'));
     if (!leg.hasOwnProperty(u+t)) {
       leg[u+t] = [];
     }
@@ -363,8 +372,8 @@ function UpdatePopup(props) {
   const [key, setKey] = React.useState(storage.get('key', ''));
   const [jobsAreas, setJobsAreas] = React.useState(storage.get('jobsAreas', []));
   const [jobsCustom, setJobsCustom] = React.useState(() => {
-    const b = storage.get('jobsCustom', {});
-    if (b && b._southWest) { return L.latLngBounds(b._southWest, b._northEast); }
+    const latlngs = storage.get('jobsCustom', []);
+    if (latlngs.length > 2) { return latlngs; }
     return null;
   });
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
@@ -390,19 +399,31 @@ function UpdatePopup(props) {
 
   // Update custom area when map center is updated
   React.useEffect(() => {
-    const b = storage.get('jobsCustom', {});
-    if (b && b._southWest) {
-      while ((b._southWest.lng + b._northEast.lng)/2 < props.settings.display.map.center-180) {
-        b._southWest.lng += 360;
-        b._northEast.lng += 360;
+    const wrapZone = latlngs => {
+      if (!latlngs || latlngs.length < 3) { return latlngs; }
+      const polygon = L.polygon(latlngs);
+      let center = polygon.getBounds().getCenter();
+      let diff = 0;
+      while (center.lng < props.settings.display.map.center-180) {
+        diff += 360;
+        center.lng += 360;
       }
-      while ((b._southWest.lng + b._northEast.lng)/2 > props.settings.display.map.center+180) {
-        b._southWest.lng -= 360;
-        b._northEast.lng -= 360;
+      while (center.lng > props.settings.display.map.center+180) {
+        diff -= 360;
+        center.lng -= 360;
       }
-      storage.set('jobsCustom', b);
-      setJobsCustom(L.latLngBounds(b._southWest, b._northEast));
+      for (var i = 0; i < latlngs.length; i++) {
+        latlngs[i].lng += diff;
+      }
+      return latlngs;
     }
+    // Update stored custom area
+    const sJobsCustom = storage.get('jobsCustom', []);
+    if (sJobsCustom.length >= 3) {
+      storage.set('jobsCustom', wrapZone(sJobsCustom));
+    }
+    // Update current custom area (can be different of stored)
+    setJobsCustom(jc => wrapZone(jc));
   }, [props.settings.display.map.center]);
 
   // Update available custom layers when opening the popup
@@ -616,7 +637,11 @@ function UpdatePopup(props) {
           if (!planes[model]) { planes[model] = {}; }
           for (const icao of Object.keys(p2[model])) {
             if (!planes[model][icao]) { planes[model][icao] = []; }
-            planes[model][icao] = planes[model][icao].concat(p2[model][icao]);
+            const ids = planes[model][icao].map(elm => elm.id);
+            p2[model][icao].forEach(elm => {
+              // Do not add twice the same plane (same id)
+              if (!ids.includes(elm.id)) { planes[model][icao].push(elm); }
+            });
           }
         }
         // Update planes
@@ -873,12 +898,12 @@ function UpdatePopup(props) {
               <CustomAreaPopup
                 open={openCustom}
                 handleClose={() => setOpenCustom(false)}
-                setArea={(bounds) => {
+                setArea={(latlngs) => {
                   const a = [...jobsAreas, 'Custom area'];
-                  setJobsCustom(bounds);
+                  setJobsCustom(latlngs);
                   setJobsAreas(a);
                 }}
-                bounds={jobsCustom}
+                latlngs={jobsCustom}
                 settings={props.settings}
               />
               <Autocomplete
