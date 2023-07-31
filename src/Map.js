@@ -15,7 +15,7 @@ import "@maplibre/maplibre-gl-leaflet";
 import "@geoman-io/leaflet-geoman-free";
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 
-import { cleanLegs, wrapNb } from "./util/utility.js";
+import { cleanLegs, wrapNb, formatGPSCoord } from "./util/utility.js";
 import Canvas from "./MapLayers/Components/Canvas.js";
 import Marker from "./MapLayers/Components/Marker.js";
 import Job from "./MapLayers/Components/Job.js";
@@ -233,6 +233,46 @@ const FSEMap = React.memo(function FSEMap(props) {
   }, [
     props.search,
     props.searchDest,
+    props.options,
+    s,
+    props.actions,
+    props.hidden
+  ]);
+
+  // Display search GPS marker
+  const searchGpsRef = React.useRef(null);
+  const prevSearchGpsRef = React.useRef(null);
+  React.useEffect(() => {
+    // Do not update is map is closed
+    if (props.hidden) { return; }
+
+    // If marker already exists remove it
+    if (searchGpsRef.current) {
+      searchGpsRef.current.remove();
+      searchGpsRef.current = null;
+    }
+
+    // Only draw marker if searchGps is not empty
+    if (props.searchGps) {
+      searchGpsRef.current = Marker({
+        position: [props.searchGps.lat, props.searchGps.lng],
+        size: s.display.markers.sizes.selected,
+        color: s.display.markers.colors.selected,
+        icao: formatGPSCoord(props.searchGps.lat, props.searchGps.lng),
+        icaodata: props.options.icaodata,
+        sim: 'gps',
+        actions: props.actions
+      })
+        .addTo(mapRef.current);
+      // Only open popup if search lat/lng has changed
+      if (prevSearchGpsRef.current !== props.searchGps) {
+        setTimeout(() => { searchGpsRef.current && searchGpsRef.current.openPopup() }, 10);
+      }
+    }
+
+    prevSearchGpsRef.current = props.searchGps;
+  }, [
+    props.searchGps,
     props.options,
     s,
     props.actions,

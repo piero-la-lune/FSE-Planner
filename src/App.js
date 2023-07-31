@@ -33,7 +33,7 @@ import Tour from './Tour.js';
 import Storage from './Storage.js';
 import Filters from './Filters';
 import log from './util/logger.js';
-import {wrap} from './util/utility.js';
+import { wrap, formatGPSCoord, toLatLngs } from './util/utility.js';
 
 import icaodataSrc from "./data/icaodata.json";
 const icaodataSrcArr = Object.values(icaodataSrc);
@@ -266,6 +266,7 @@ function App() {
   const [searchDest, setSearchDest] = React.useState(null);
   const [searchInput, setSearchInput] = React.useState('');
   const [searchHistory, setSearchHistory] = React.useState(storage.get('searchHistory', []));
+  const [searchGps, setSearchGps] = React.useState(null);
   const [icaodata, setIcaodata] = React.useState(icaodataSrc);
   const [isTourOpen, setIsTourOpen] = React.useState(storage.get('tutorial') === null);
   const [routeFinder, setRouteFinder] = React.useState(false);
@@ -303,13 +304,6 @@ function App() {
       storage.set('tutorial', process.env.REACT_APP_VERSION);
     }
 
-    // Set search if query string in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const icao = urlParams.get('icao');
-    if (icao) {
-      setSearch(icao);
-    }
-
     // Register error logging
     window.onerror = (message, file, line, column, errorObject) => {
       // We do not use ErrorBoundary component for logging, because it does
@@ -321,7 +315,15 @@ function App() {
         obj: errorObject,
       });
     }
+  }, []);
 
+  React.useEffect(() => {
+    // Set search if query string in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const icao = urlParams.get('icao');
+    if (icao) {
+      setSearch(icao);
+    }
   }, []);
 
   // Create goTo function, to allow panning to given ICAO
@@ -333,6 +335,7 @@ function App() {
         searchDestRef.current = {...icaodataSrc[icao], from: from};
         setSearchDest(icao);
         setSearch(from);
+        setSearchGps(null);
         setSearchOptions([searchDestRef.current]);
         setSearchHistory(prevList => {
           const list = [...(new Set([icao, from, ...prevList]))].slice(0, 5);
@@ -344,6 +347,7 @@ function App() {
       else {
         setSearch(prevIcao => prevIcao === icao ? null : icao);
         setSearchDest(null);
+        setSearchGps(null);
         setSearchOptions([icaodataSrc[icao]]);
         goToRef.current = icao;
         setSearchHistory(prevList => {
@@ -366,6 +370,15 @@ function App() {
       setSearch(icao);
     }
   }, [search]);
+  const goToGps = React.useCallback((lat, lng) => {
+    const coord = formatGPSCoord(lat, lng);
+    const option = {lat: lat, lng: lng, gps: true};
+    setSearch(null);
+    setSearchDest(null);
+    setSearchGps(option);
+    setSearchOptions([option]);
+    window.history.replaceState({gps:coord}, '', '?gps='+coord);
+  }, []);
 
   // Invalidate map size when routing toogled
   React.useEffect(() => {
@@ -422,9 +435,19 @@ function App() {
         keys: [{threshold: matchSorter.rankings.STARTS_WITH, key: 'icao'}, 'name', 'city'],
       }).slice(0, 5);
     }
+    // If destination is set, change options to add departing icao
     if (inputs.length === 2) {
       filtered = filtered.map(elm => { return {...elm, from: inputs[0]} });
     }
+    // If not many ICAOs match, search for GPS coordinates instead
+    if (filtered.length < 5) {
+      const o = toLatLngs(searchInput);
+      if (o !== null) {
+        filtered.push({lat: o.lat, lng: o.lng, gps: true});
+      }
+    }
+    // Need to add an extra option, when current search input does not match the current search
+    // (otherwise MUI complains, because no option match the current search / searchDst)
     if (search) {
       if (searchDest) {
         const exist = filtered.reduce((acc, elm) => acc || (elm.icao === searchDest && elm.from === search), false);
@@ -435,8 +458,29 @@ function App() {
         if (!exist) { filtered.push(icaodataSrc[search]) }
       }
     }
+    if (searchGps) {
+      const exist = filtered.reduce((acc, elm) => acc || (elm.lat === searchGps.lat && elm.lng === searchGps.lng), false);
+      if (!exist) { filtered.push(searchGps) }
+    }
     setSearchOptions(filtered);
-  }, [searchInput, searchHistory, search, searchDest]);
+  }, [searchInput, searchHistory, search, searchDest, searchGps]);
+
+  // Set searchGps if query string in URL.
+  // Needs to be positionned after previous UseEffect, otherwise searchOptions
+  // is overwritten
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const gps = urlParams.get('gps');
+    if (gps) {
+      const o = toLatLngs(gps);
+      if (o !== null) {
+        const option = {lat: o.lat, lng: o.lng, gps: true};
+        setSearchOptions(arr => [...arr, option]);
+        setSearchGps(option);
+      }
+    }
+  }, []);
+
 
   return (
     <Box
@@ -564,7 +608,7 @@ function App() {
           >
             <Autocomplete
               options={searchOptions}
-              getOptionLabel={(a) => a.icao ? (a.from ? a.from + ' > ' + a.icao : a.icao) : ''}
+              getOptionLabel={(a) => a.icao ? (a.from ? a.from + ' > ' + a.icao : a.icao) : a.gps ? formatGPSCoord(a.lat, a.lng) : ''}
               renderOption={(props, a) =>
                 <li {...props}>
                   <Box
@@ -575,8 +619,27 @@ function App() {
                       overflow: 'hidden'
                     }}
                   >
-                    {a.from &&
+                    {a.icao &&
                       <React.Fragment>
+                        {a.from &&
+                          <React.Fragment>
+                            <Box
+                              component="b"
+                              sx={{
+                                minWidth: '40px',
+                                textAlign: 'center'
+                              }}
+                            >
+                              {a.from}
+                            </Box>
+                            <Box
+                              component="span"
+                              sx={{ px: 1}}
+                            >
+                              &gt;
+                            </Box>
+                          </React.Fragment>
+                        }
                         <Box
                           component="b"
                           sx={{
@@ -584,56 +647,49 @@ function App() {
                             textAlign: 'center'
                           }}
                         >
-                          {a.from}
+                          {a.icao}
                         </Box>
                         <Box
                           component="span"
-                          sx={{ px: 1}}
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            marginLeft: 2,
+                            overflow: 'hidden',
+                          }}
                         >
-                          &gt;
+                          <Box
+                            component="span"
+                            sx={{
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {a.name}
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                              color: '#aaa'
+                            }}
+                          >
+                            {a.city}, {a.state ? a.state+', ' : ''}{a.country}
+                          </Typography>
                         </Box>
                       </React.Fragment>
                     }
-                    <Box
-                      component="b"
-                      sx={{
-                        minWidth: '40px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {a.icao}
-                    </Box>
-                    <Box
-                      component="span"
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        marginLeft: 2,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <Box
-                        component="span"
-                        sx={{
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {a.name}
-                      </Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap',
-                          color: '#aaa'
-                        }}
-                      >
-                        {a.city}, {a.state ? a.state+', ' : ''}{a.country}
-                      </Typography>
-                    </Box>
+                    {a.gps &&
+                      <React.Fragment>
+                        <Box>GPS coordinates:&nbsp;</Box>
+                        <Box component="b">
+                          {formatGPSCoord(a.lat, a.lng)}
+                        </Box>
+                      </React.Fragment>
+                    }
                   </Box>
                 </li>
               }
@@ -650,6 +706,7 @@ function App() {
                         onClick={() => {
                           setSearchDest(null);
                           setSearch(null);
+                          setSearchGps(null);
                           setSearchInput('');
                           window.history.replaceState(null, '', '?');
                         }}
@@ -661,10 +718,18 @@ function App() {
                   }
                 />
               }
-              isOptionEqualToValue={(option, value) => option.icao === value.icao && option.from === value.from}
+              isOptionEqualToValue={(option, value) => {
+                if (option.icao) { return (option.icao === value.icao && option.from === value.from); }
+                else { return (option.lat === value.lat && option.lng === value.lng); }
+              }}
               PopperComponent={PopperMy}
-              onChange={(evt, value) => value && goTo(value.icao, value.from)}
-              value={search ? (searchDest ? searchDestRef.current : icaodataSrc[search]) : null}
+              onChange={(evt, value) => {
+                if (value) {
+                  if (value.icao) { goTo(value.icao, value.from); }
+                  if (value.gps) { goToGps(value.lat, value.lng); }
+                }
+              }}
+              value={search ? (searchDest ? searchDestRef.current : icaodataSrc[search]) : searchGps ? searchGps : null}
               inputValue={searchInput}
               onInputChange={(evt, value) => setSearchInput(value)}
               autoHighlight={true}
@@ -703,6 +768,7 @@ function App() {
           options={options}
           search={search}
           searchDest={searchDest}
+          searchGps={searchGps}
           icaos={icaos}
           route={route}
           mapRef={mapRef}
