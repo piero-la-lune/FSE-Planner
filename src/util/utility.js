@@ -241,3 +241,21 @@ export function maximizeTripOnly(i, cargos, maxPax, maxKg) {
   }
   return [pay1, pax1, kg1, cargos1, [...remain1, elm]];
 }
+
+// Check if string is a GPS coordinates. If so, extract latitude and longitude
+export function toLatLngs(str) {
+  const match = str.match(/^((-|\+)?\d+(\.\d+)?)([nNsS]|,|\s),?\s*((-|\+)?\d+(\.\d+)?)([eEwW])?$/);
+  if (match !== null) {
+    let lat = parseFloat(match[1]);
+    if (match[4] === 'S' || match[4] === 's') { lat = -lat; }
+    let lng = parseFloat(match[5]);
+    if (match[8] === 'W' || match[8] === 'w') { lng = -lng; }
+    return {lat: lat, lng: lng};
+  }
+  return null;
+}
+
+// Transform a latitute and longitude into a text GPS coordinates
+export function formatGPSCoord(lat, lng) {
+  return Math.abs(lat)+(lat >= 0 ? 'N' : 'S')+' '+Math.abs(lng)+(lng >= 0 ? 'E' : 'W');
+}

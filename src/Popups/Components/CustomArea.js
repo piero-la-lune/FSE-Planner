@@ -6,7 +6,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContentText from '@mui/material/DialogContentText';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CloseIcon from '@mui/icons-material/Close';
 import L from "leaflet";
