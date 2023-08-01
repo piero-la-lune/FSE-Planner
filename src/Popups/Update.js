@@ -373,7 +373,7 @@ function UpdatePopup(props) {
   const [jobsAreas, setJobsAreas] = React.useState(storage.get('jobsAreas', []));
   const [jobsCustom, setJobsCustom] = React.useState(() => {
     const latlngs = storage.get('jobsCustom', []);
-    if (latlngs.length > 2) { return latlngs; }
+    if (latlngs && latlngs.length > 2) { return latlngs; }
     return null;
   });
   const [jobsTime, setJobsTime] = React.useState(storage.get('jobsTime'));
@@ -419,7 +419,7 @@ function UpdatePopup(props) {
     }
     // Update stored custom area
     const sJobsCustom = storage.get('jobsCustom', []);
-    if (sJobsCustom.length >= 3) {
+    if (sJobsCustom && sJobsCustom.length >= 3) {
       storage.set('jobsCustom', wrapZone(sJobsCustom));
     }
     // Update current custom area (can be different of stored)
