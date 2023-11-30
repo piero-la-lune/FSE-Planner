@@ -37,7 +37,7 @@ import pointInPolygon from 'point-in-polygon';
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
 import log from '../util/logger.js';
-import { hideAirport, wrapNb } from "../util/utility.js";
+import { apiHits, hideAirport, wrapNb } from "../util/utility.js";
 
 import aircrafts from "../data/aircraft.json";
 
@@ -501,6 +501,9 @@ function UpdatePopup(props) {
       log.error("Error while updating Jobs", error);
       updateAlert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits()
     });
   }
   // Save jobs
@@ -592,6 +595,9 @@ function UpdatePopup(props) {
       log.error("Error while updating Rentable Planes", error);
       updateAlert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits()
     });
   }
   const updateOwnedPlanesRequest = (usernames, planes, callback) => {
@@ -621,6 +627,9 @@ function UpdatePopup(props) {
       log.error("Error while updating User Planes", error);
       updateAlert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits()
     });
   }
   // Planes Update button clicked
@@ -710,6 +719,9 @@ function UpdatePopup(props) {
       log.error("Error while updating assignments", error);
       updateAlert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits()
     });
   }
 

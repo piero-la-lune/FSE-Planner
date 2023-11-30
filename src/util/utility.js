@@ -1,8 +1,10 @@
+import {DateTime} from "luxon";
 import icaodata from "../data/icaodata.json";
 import aircrafts from "../data/aircraft.json";
 
 import pointInPolygon from 'point-in-polygon';
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
+import Storage from "../Storage";
 
 export function hideAirport(icao, s, sim) {
   return (
@@ -266,7 +268,14 @@ export function toLatLngs(str) {
   return null;
 }
 
-// Transform a latitute and longitude into a text GPS coordinates
+// Transform a latitude and longitude into a text GPS coordinates
 export function formatGPSCoord(lat, lng) {
   return Math.abs(lat)+(lat >= 0 ? 'N' : 'S')+' '+Math.abs(lng)+(lng >= 0 ? 'E' : 'W');
+}
+
+// increments fse api hits counter
+export function apiHits(){
+  const storage= new Storage()
+  const hits = storage.get('apiHits', [])?.filter(hit=> DateTime.now().diff(DateTime.fromMillis(hit), 'hours').hours < 7)
+  storage.set('apiHits', [...hits, DateTime.now().valueOf()])
 }
