@@ -397,6 +397,8 @@ function UpdatePopup(props) {
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
+  const hits= (storage.get('apiHits', [])).length
+
   // Update custom area when map center is updated
   React.useEffect(() => {
     const wrapZone = latlngs => {
@@ -788,6 +790,10 @@ function UpdatePopup(props) {
       <DialogContent dividers sx={{ p: 3 }}>
 
         <Alert severity="warning" sx={{ mb: 2 }}>You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
+
+        {!!hits && (
+          <Alert severity={hits > 34 ? 'error' : hits > 24 ? 'warning' : 'info'} sx={{ mb: 2 }}><span style={{fontWeight: 600}}>{hits}</span> request{hits !== 1 ? 's' : ''} in the past 6 hours</Alert>
+        )}
 
         <Box>
           <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')} data-tour="Step4">
