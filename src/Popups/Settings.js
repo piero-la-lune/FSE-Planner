@@ -354,7 +354,8 @@ function SettingsPopup(props) {
           </AccordionSummary>
           <AccordionDetails>
             <div>
-              <Alert severity="warning">After saving, you will need to refresh the app in order to see the changes in Route Finder.</Alert>
+              <Alert severity="warning" sx={{ mb: 2 }}>After saving, you will need to refresh the app in order to see the changes in Route Finder.</Alert>
+              <SettingSwitch s={s} setS={setS} label="Return plane to starting airport" setting="routeFinder.returnLeg" xs={12} />
               <Typography variant="body1" sx={{ my: 3 }}>Advanced algorithm parameters:</Typography>
               <Grid container spacing={3}>
                 <Setting s={s} setS={setS} label="Iterations" setting='routeFinder.maxHops' xs={6} helperText="Maximum algorithm iterations. The total route legs may be more than this, due to deadhead legs and on-route stops." />
