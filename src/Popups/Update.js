@@ -815,6 +815,7 @@ function UpdatePopup(props) {
                   />
                 </Grid>
               </Grid>
+              <Typography variant="body2" sx={{ mt: 1 }}>The Read Access Key is stored on your own computer, and is only used for datafeed updates at your request.</Typography>
             </AccordionDetails>
           </Accordion>
 
