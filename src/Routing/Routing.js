@@ -74,7 +74,7 @@ const Routing = React.memo((props) => {
   const [approachLength, setApproachLength] = React.useState(props.options.settings.routeFinder.approachLength);
   const [memory, setMemory] = React.useState(props.options.settings.routeFinder.memory);
   const [jobsType, setJobsType] = React.useState(props.options.settings.routeFinder.jobsType);
-  const [loop, setLoop] = React.useState(false);
+  const [loop, setLoop] = React.useState(props.options.settings.routeFinder.returnLeg);
   const [type, setType] = React.useState('rent');
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
   const [maxBadLegs, setMaxBadLegs] = React.useState(props.options.settings.routeFinder.maxBadLegs);

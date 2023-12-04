@@ -109,7 +109,8 @@ const defaultSettings = {
     overheadLength: 0,
     approachLength: 10,
     memory: 'normal',
-    pdfImage: null
+    pdfImage: null,
+    returnLeg: false
   },
   update: {
     direction: 'from',
