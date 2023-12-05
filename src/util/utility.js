@@ -274,8 +274,12 @@ export function formatGPSCoord(lat, lng) {
 }
 
 // increments fse api hits counter
-export function apiHits(){
-  const storage= new Storage()
-  const hits = storage.get('apiHits', [])?.filter(hit=> DateTime.now().diff(DateTime.fromMillis(hit), 'hours').hours < 7)
-  storage.set('apiHits', [...hits, DateTime.now().valueOf()])
+export function apiHits(increment = true){
+  const storage= new Storage();
+  const hits = storage.get('apiHits', [])?.filter(hit => DateTime.now().diff(DateTime.fromMillis(hit), 'hours').hours < 7);
+  if (increment) {
+    storage.set('apiHits', [...hits, DateTime.now().valueOf()]);
+    return;
+  }
+  storage.set('apiHits', [...hits]);
 }

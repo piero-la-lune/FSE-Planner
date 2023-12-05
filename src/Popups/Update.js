@@ -397,7 +397,7 @@ function UpdatePopup(props) {
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
-  const hits= (storage.get('apiHits', [])).length
+  const [hits, setHits] = React.useState(0)
 
   // Update custom area when map center is updated
   React.useEffect(() => {
@@ -445,6 +445,8 @@ function UpdatePopup(props) {
     const layers = l.filter(elm => jl.includes(elm.id));
     setLayersOptions(l);
     setJobsLayers(layers);
+    apiHits(false); // remove old entries from counter on init
+    setHits((storage.get('apiHits', [])).length);
   }, [props.open, props.icaos, props.icaodata, props.settings.display.sim]);
 
   // Update the number of request for loading jobs each time one input changes
@@ -505,7 +507,7 @@ function UpdatePopup(props) {
       setLoading(false);
     })
     .finally(() => {
-      apiHits()
+      apiHits();
     });
   }
   // Save jobs
@@ -599,7 +601,7 @@ function UpdatePopup(props) {
       setLoading(false);
     })
     .finally(() => {
-      apiHits()
+      apiHits();
     });
   }
   const updateOwnedPlanesRequest = (usernames, planes, callback) => {
@@ -631,7 +633,7 @@ function UpdatePopup(props) {
       setLoading(false);
     })
     .finally(() => {
-      apiHits()
+      apiHits();
     });
   }
   // Planes Update button clicked
@@ -723,7 +725,7 @@ function UpdatePopup(props) {
       setLoading(false);
     })
     .finally(() => {
-      apiHits()
+      apiHits();
     });
   }
 
