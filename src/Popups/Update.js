@@ -37,7 +37,7 @@ import pointInPolygon from 'point-in-polygon';
 import CustomAreaPopup from './Components/CustomArea.js';
 import Storage from '../Storage.js';
 import log from '../util/logger.js';
-import { hideAirport, wrapNb } from "../util/utility.js";
+import { apiHits, hideAirport, wrapNb } from "../util/utility.js";
 
 import aircrafts from "../data/aircraft.json";
 
@@ -397,6 +397,8 @@ function UpdatePopup(props) {
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
+  const [hits, setHits] = React.useState(0)
+
   // Update custom area when map center is updated
   React.useEffect(() => {
     const wrapZone = latlngs => {
@@ -443,6 +445,8 @@ function UpdatePopup(props) {
     const layers = l.filter(elm => jl.includes(elm.id));
     setLayersOptions(l);
     setJobsLayers(layers);
+    apiHits(false); // remove old entries from counter on init
+    setHits((storage.get('apiHits', [])).length);
   }, [props.open, props.icaos, props.icaodata, props.settings.display.sim]);
 
   // Update the number of request for loading jobs each time one input changes
@@ -501,6 +505,9 @@ function UpdatePopup(props) {
       log.error("Error while updating Jobs", error);
       updateAlert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits();
     });
   }
   // Save jobs
@@ -592,6 +599,9 @@ function UpdatePopup(props) {
       log.error("Error while updating Rentable Planes", error);
       updateAlert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits();
     });
   }
   const updateOwnedPlanesRequest = (usernames, planes, callback) => {
@@ -621,6 +631,9 @@ function UpdatePopup(props) {
       log.error("Error while updating User Planes", error);
       updateAlert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits();
     });
   }
   // Planes Update button clicked
@@ -710,6 +723,9 @@ function UpdatePopup(props) {
       log.error("Error while updating assignments", error);
       updateAlert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits();
     });
   }
 
@@ -776,6 +792,10 @@ function UpdatePopup(props) {
       <DialogContent dividers sx={{ p: 3 }}>
 
         <Alert severity="warning" sx={{ mb: 2 }}>You are limited to 40 requests every 6 hours (~1 request every 10 minutes).</Alert>
+
+        {!!hits && (
+          <Alert severity={hits > 34 ? 'error' : hits > 24 ? 'warning' : 'info'} sx={{ mb: 2 }}><span style={{fontWeight: 600}}>{hits}</span> request{hits !== 1 ? 's' : ''} in the past 6 hours</Alert>
+        )}
 
         <Box>
           <Accordion expanded={expanded === 'panel1'} onChange={panelChange('panel1')} data-tour="Step4">

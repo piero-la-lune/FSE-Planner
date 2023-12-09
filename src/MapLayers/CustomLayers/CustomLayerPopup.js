@@ -20,6 +20,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import { HexColorPicker, HexColorInput } from "react-colorful";
 
 import Storage from '../../Storage.js';
+import { apiHits } from "../../util/utility";
 import CommunityPopup from './CommunityPopup.js';
 import AreaPicker from './Components/AreaPicker.js';
 import SizePicker from './Components/SizePicker.js';
@@ -303,6 +304,9 @@ function CustomLayerPopup(props) {
     .catch(function(error) {
       alert(error);
       setLoading(false);
+    })
+    .finally(() => {
+      apiHits()
     });
   }
 
