@@ -14,7 +14,8 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import NavigationIcon from '@mui/icons-material/Navigation';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import FlightIcon from '@mui/icons-material/Flight';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Card from '@mui/material/Card';
 import Checkbox from '@mui/material/Checkbox';
@@ -114,6 +115,27 @@ const Row = React.memo(function Row(props) {
           :
             <TableCell>?</TableCell>
         )}
+        <TableCell  sx={{px: 0.5, py: 0}}>
+          { row.filteredJobs.length === flight.length ?
+            <IconButton disabled>
+              <AddShoppingCartIcon sx={{color: 'green'}} />
+            </IconButton>
+          :
+            <IconButton disabled sx={{ width :40 }}/>
+          }
+          <Checkbox
+            checked={selected.length === row.filteredJobs.length}
+            indeterminate={selected.length !== 0 && selected.length !== row.filteredJobs.length}
+            onChange={() => {
+              if (selected.length === row.filteredJobs.length) {
+                setSelected(row.id, []);
+              }
+              else {
+                setSelected(row.id, [...row.filteredJobs]);
+              }
+            }}
+          />
+        </TableCell>
         <TableCell sx={{px: 0.5, py: 0}}>
           <IconButton
             onClick={(evt) => setAnchorEl(evt.currentTarget)}
@@ -134,26 +156,6 @@ const Row = React.memo(function Row(props) {
             </MenuItem>
           </Menu>
         </TableCell>
-        <TableCell  sx={{px: 0.5, py: 0}}>
-          { row.filteredJobs.length === flight.length ?
-            <IconButton disabled>
-              <CheckCircleIcon sx={{color: 'green'}} />
-            </IconButton>
-          :
-            <Checkbox
-              checked={selected.length === row.filteredJobs.length}
-              indeterminate={selected.length !== 0 && selected.length !== row.filteredJobs.length}
-              onChange={() => {
-                if (selected.length === row.filteredJobs.length) {
-                  setSelected(row.id, []);
-                }
-                else {
-                  setSelected(row.id, [...row.filteredJobs]);
-                }
-              }}
-            />
-          }
-        </TableCell>
       </TableRow>
       <TableRow>
         <TableCell sx={{ py: 0 }} colSpan={props.allIn ? 10 : 9}>
@@ -161,7 +163,7 @@ const Row = React.memo(function Row(props) {
             <Card
               variant="outlined"
               sx={{
-                maxWidth: 300,
+                maxWidth: 350,
                 mb: 2,
                 mx: 'auto'
               }}
@@ -183,24 +185,25 @@ const Row = React.memo(function Row(props) {
                         <TableCell>Cargo {elm.kg} kg</TableCell>
                       }
                       <TableCell>${elm.pay}</TableCell>
-                      <TableCell padding="checkbox">
+                      <TableCell>
                         { flight.includes(elm.id) ?
                           <IconButton disabled>
-                            <CheckCircleIcon sx={{color: 'green'}} />
+                            <AddShoppingCartIcon sx={{color: 'green'}} />
                           </IconButton>
                         :
-                          <Checkbox
-                            checked={selected.reduce((acc, e) => acc || e.id === elm.id, false)}
-                            onChange={evt => {
-                              if (evt.target.checked) {
-                                setSelected(row.id, [elm, ...selected]);
-                              }
-                              else {
-                                setSelected(row.id, selected.filter(e => e.id !== elm.id));
-                              }
-                            }}
-                          />
+                          <IconButton disabled sx={{ width :40 }}/>
                         }
+                        <Checkbox
+                          checked={selected.reduce((acc, e) => acc || e.id === elm.id, false)}
+                          onChange={evt => {
+                            if (evt.target.checked) {
+                              setSelected(row.id, [elm, ...selected]);
+                            }
+                            else {
+                              setSelected(row.id, selected.filter(e => e.id !== elm.id));
+                            }
+                          }}
+                        />
                       </TableCell>
                     </TableRow>
                   ) }
@@ -245,6 +248,20 @@ function Table(props) {
     if (props.hidden) { return; }
 
     let legs = cleanLegs(props.options.jobs, props.options)[0];
+
+    // Append My Assignements jobs
+    const legsflight = cleanLegs(props.options.flight, props.options)[0];
+    for (const key of Object.keys(legsflight)) {
+      if (!(key in legs)) { legs[key] = legsflight[key]; }
+      else {
+        legs[key].amount += legsflight[key].amount;
+        legs[key].pay += legsflight[key].pay;
+        // Ensure jobs are not both in the Jobs and Flight data
+        const ids = legs[key].filteredJobs.map(elm => elm.id);
+        legs[key].filteredJobs = [...legs[key].filteredJobs, ...legsflight[key].filteredJobs.filter(elm => !ids.includes(elm.id))];
+      }
+    }
+
     const arr = [];
     if (props.options.type === 'Trip-Only') {
       for (const [id, leg] of Object.entries(legs)) {
@@ -327,16 +344,10 @@ function Table(props) {
     const ids = {};
     for (const [id, leg] of Object.entries(props.options.flight)) {
       const arr = [];
-      if (leg.passengers) {
-        for (const type of Object.keys(leg.passengers)) {
-          for (const j of leg.passengers[type]) {
-            arr.push(j.id);
-          }
-        }
-      }
-      if (leg.kg) {
-        for (const type of Object.keys(leg.kg)) {
-          for (const j of leg.kg[type]) {
+      const types = ["Trip-Only", "VIP", "All-In"];
+      for (const type of types) {
+        if (type in leg) {
+          for (const j of leg[type]) {
             arr.push(j.id);
           }
         }
@@ -405,31 +416,44 @@ function Table(props) {
                 }
                 &nbsp;(${pay}) selected
               </Typography>
-              <AddToFlight
-                style={{ flexShrink: 1, display: 'flex' }}
-                onSubmit={(evt) => {
-                  setTimeout(() => {
-                    const ids = {...flight};
-                    for (const [id, leg] of Object.entries(selected)) {
-                      const arr = [];
-                      for (const job of leg) {
-                        arr.push(job.id);
-                      }
-                      if (arr.length) {
-                        if (!ids[id]) { ids[id] = []; }
-                        ids[id] = [...new Set([...ids[id], ...arr])];
-                      }
-                    }
-                    setFlight(ids);
-                    setSelected({});
-                  }, 1000);
-                }}
-                ids={Object.values(selected).reduce((acc, list) => [...acc, ...list.map(elm => elm.id)], [])}
-              >
+              <Box sx={{ display: 'flex' }}>
                 <Button color="secondary" onClick={() => setSelected({})} sx={{ mr: 1 }}>
                   Clear
                 </Button>
-              </AddToFlight>
+                <AddToFlight
+                  style={{ flexShrink: 1, display: 'flex' }}
+                  onSubmit={(evt) => {
+                    setTimeout(() => {
+                      for (const [id, leg] of Object.entries(selected)) {
+                        const [fr, to] = id.split("-");
+                        for (const job of leg) {
+                          props.actions.current.addToFlight(fr, to, job.id);
+                        }
+                      }
+                      setSelected({});
+                    }, 1000);
+                  }}
+                  ids={Object.values(selected).reduce((acc, list) => [...acc, ...list.map(elm => elm.id)], [])}
+                />
+                <Button
+                  color="success"
+                  variant="contained"
+                  onClick={() => {
+                    for (const [id, leg] of Object.entries(selected)) {
+                      const [fr, to] = id.split("-");
+                      for (const job of leg) {
+                        props.actions.current.markAsFlown(fr, to, job.id);
+                      }
+                    }
+                    setSelected({});
+                  }}
+                  sx={{ ml: 1 }}
+                  startIcon={<FlightIcon />}
+                >
+                  Mark as flown
+                </Button>
+              </Box>
+              
             </React.Fragment>
           :
             <React.Fragment>

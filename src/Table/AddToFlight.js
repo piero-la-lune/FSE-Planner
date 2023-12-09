@@ -70,7 +70,7 @@ function EditGroupsPopup (props) {
             value={id}
             onChange={evt => setId(evt.target.value)}
             margin="normal"
-            helperText={<span>Browse to Group > Assignments > <i>My Group</i> and extract the group ID from the page URL: <i>https://server.fseconomy.net/groupassignments.jsp?groupid=</i><b>XXXX</b></span>}
+            helperText={<span>Browse to Group &gt; Assignments &gt; <i>My Group</i> and extract the group ID from the page URL: <i>https://server.fseconomy.net/groupassignments.jsp?groupid=</i><b>XXXX</b></span>}
           />
           <Button onClick={addGroup} disabled={!name || !id}>Add group</Button>
         </DialogContent>

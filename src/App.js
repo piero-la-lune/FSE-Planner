@@ -412,7 +412,54 @@ function App() {
       openTable: () => { setRouteFinder(false); setTable(true); },
       getCustomLayers: (icao) => [],
       addToCustomLayer: () => null,
-      removeFromCustomLayer: () => null
+      removeFromCustomLayer: () => null,
+      addToFlight: (fr, to, id) => {
+        const j = storage.get('jobs', {}, true);
+        const f = storage.get('flight', {});
+        if (!(fr in f)) { f[fr] = {} }
+        if (!(to in f[fr])) { f[fr][to] = [j[fr][to][0], j[fr][to][1], {}] }
+        for (const jobtype of Object.keys(j[fr][to][2])) {
+          for (const elm of j[fr][to][2][jobtype]) {
+            if (elm[2] === id) {
+              if (!(jobtype in f[fr][to][2])) { f[fr][to][2][jobtype] = []; }
+              f[fr][to][2][jobtype].push(elm);
+              j[fr][to][2][jobtype] = j[fr][to][2][jobtype].filter(e => e[2] !== id);
+              break;
+            }
+          }
+        }
+        storage.set('jobs', j, true);
+        storage.set('flight', f);
+        setJobs(transformJobs(j));
+        setFlight(transformJobs(f));
+      },
+      markAsFlown: (fr, to, id) => {
+        const j = storage.get('jobs', {}, true);
+        const f = storage.get('flight', {});
+        if (fr in j && to in j[fr]) {
+          for (const jobtype of Object.keys(j[fr][to][2])) {
+            j[fr][to][2][jobtype] = j[fr][to][2][jobtype].filter(e => e[2] !== id);
+          }
+        }
+        if (fr in f && to in f[fr]) {
+          for (const jobtype of Object.keys(f[fr][to][2])) {
+            f[fr][to][2][jobtype] = f[fr][to][2][jobtype].filter(e => e[2] !== id);
+            if (f[fr][to][2][jobtype].length === 0) {
+              delete f[fr][to][2][jobtype];
+            }
+          }
+          if (Object.keys(f[fr][to][2]).length === 0) {
+            delete f[fr][to];
+            if (Object.keys(f[fr]).length === 0) {
+              delete f[fr];
+            }
+          }
+        }
+        storage.set('jobs', j, true);
+        storage.set('flight', f);
+        setJobs(transformJobs(j));
+        setFlight(transformJobs(f));
+      }
     };
   }
   if (!actions.current) { setActions(); }

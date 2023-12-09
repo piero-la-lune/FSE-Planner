@@ -16,6 +16,7 @@ import FlightIcon from '@mui/icons-material/Flight';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
@@ -164,6 +165,16 @@ function Result({focus, setFocus, options, ...props}) {
             ids={jobIds}
             variant="hidden"
             defaultGroup={defaultAddToGroup}
+            onSubmit={(evt) => {
+              for (const leg of focus.cargos) {
+                for (const j of leg.TripOnly) {
+                  props.actions.current.addToFlight(j.from, j.to, j.id);
+                }
+                for (const j of leg.VIP) {
+                  props.actions.current.addToFlight(j.from, j.to, j.id);
+                }
+              }
+            }}
           >
             <Tooltip title={defaultAddToGroup ? 'Add all assignments to '+defaultAddToGroup[0] : (hasVIP ? 'This route includes VIP jobs, you cannot add the whole route at once' : 'Add all assignments to My Flight')}>
               <span>
@@ -204,6 +215,24 @@ function Result({focus, setFocus, options, ...props}) {
               </Tooltip>
             </form>
           }
+          <Tooltip title="Mark assignments as flown">
+            <IconButton
+              sx={styles.focusAction}
+              onClick={() => {
+                for (const leg of focus.cargos) {
+                  for (const j of leg.TripOnly) {
+                    props.actions.current.markAsFlown(j.from, j.to, j.id);
+                  }
+                  for (const j of leg.VIP) {
+                    props.actions.current.markAsFlown(j.from, j.to, j.id);
+                  }
+                }
+                setFocus(null);
+              }}
+              size="large">
+              <CheckCircleIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
         <Grid container spacing={1} sx={{ mt: 1 }}>
           <Grid item xs={4}>
@@ -290,6 +319,11 @@ function Result({focus, setFocus, options, ...props}) {
                         btnSx={{ lineHeight: 1, textAlign: 'left' }}
                         defaultGroup={defaultAddToGroup}
                         onGroupChange={g => setDefaultAddToGroup(g)}
+                        onSubmit={(evt) => {
+                          for (const j of focus.cargos[i].TripOnly) {
+                            props.actions.current.addToFlight(j.from, j.to, j.id);
+                          }
+                        }}
                       />
                     </Paper>
                   }
@@ -310,6 +344,11 @@ function Result({focus, setFocus, options, ...props}) {
                         btnSx={{ lineHeight: 1, textAlign: 'left' }}
                         defaultGroup={defaultAddToGroup}
                         onGroupChange={g => setDefaultAddToGroup(g)}
+                        onSubmit={(evt) => {
+                          for (const j of focus.cargos[i].VIP) {
+                            props.actions.current.addToFlight(j.from, j.to, j.id);
+                          }
+                        }}
                       />
                     </Paper>
                   }
