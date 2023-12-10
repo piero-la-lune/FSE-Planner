@@ -7,35 +7,57 @@ import { hideAirport, cleanLegs } from "../util/utility.js";
 
 
 function addFlight(legs, jobs, opts) {
-  const keys = Object.keys(jobs);
-  // Get legs
-  for (var i = keys.length - 1; i >= 0; i--) {
-    const leg = jobs[keys[i]];
-    const [frIcao, toIcao] = keys[i].split('-');
-    const fr = { latitude: opts.icaodata[frIcao].lat, longitude: opts.icaodata[frIcao].lon };
-    const to = { latitude: opts.icaodata[toIcao].lat, longitude: opts.icaodata[toIcao].lon };
-    if (!legs.hasOwnProperty(keys[i])) {
-      legs[keys[i]] = {
-        amount: 0,
-        pay: 0,
-        direction: Math.round(getRhumbLineBearing(fr, to)),
-        distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
-      }
+  // const keys = Object.keys(jobs);
+  // // Get legs
+  // for (var i = keys.length - 1; i >= 0; i--) {
+  //   const leg = jobs[keys[i]];
+  //   const [frIcao, toIcao] = keys[i].split('-');
+  //   const fr = { latitude: opts.icaodata[frIcao].lat, longitude: opts.icaodata[frIcao].lon };
+  //   const to = { latitude: opts.icaodata[toIcao].lat, longitude: opts.icaodata[toIcao].lon };
+  //   if (!legs.hasOwnProperty(keys[i])) {
+  //     legs[keys[i]] = {
+  //       amount: 0,
+  //       pay: 0,
+  //       direction: Math.round(getRhumbLineBearing(fr, to)),
+  //       distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
+  //     }
+  //   }
+  //   if (!legs[keys[i]].hasOwnProperty('flight')) {
+  //     legs[keys[i]].flight = {
+  //       pax: 0,
+  //       kg: 0,
+  //       pay: 0,
+  //     }
+  //   }
+  //   for (const type of ['Trip-Only', 'VIP', 'All-In']) {
+  //     if (!leg.hasOwnProperty(type)) { continue; }
+  //     for (const j of leg[type]) {
+  //       legs[keys[i]].flight.pax += j.pax;
+  //       legs[keys[i]].flight.kg += j.pax ? 0 : j.kg;
+  //       legs[keys[i]].flight.pay += j.pay;
+  //     }
+  //   }
+  // }
+  // return legs;
+  const cleanedFlight = cleanLegs(jobs, opts)[0];
+  for (const [key, leg] of Object.entries(cleanedFlight)) {
+    // Need to stored a copy of filteredJobs because original is destroyed just below
+    const filteredJobs = [...leg.filteredJobs];
+    if (!(key in legs)) {
+      legs[key] = leg;
+      legs[key].filteredJobs = [];
+      legs[key].amount = 0;
+      legs[key].pay = 0;
     }
-    if (!legs[keys[i]].hasOwnProperty('flight')) {
-      legs[keys[i]].flight = {
-        pax: 0,
-        kg: 0,
-        pay: 0,
-      }
+    legs[key].flight = {
+      pax: 0,
+      kg: 0,
+      pay: 0,
     }
-    for (const type of ['Trip-Only', 'VIP', 'All-In']) {
-      if (!leg.hasOwnProperty(type)) { continue; }
-      for (const j of leg[type]) {
-        legs[keys[i]].flight.pax += j.pax;
-        legs[keys[i]].flight.kg += j.pax ? 0 : j.kg;
-        legs[keys[i]].flight.pay += j.pay;
-      }
+    for (const j of filteredJobs) {
+      legs[key].flight.pax += j.pax;
+      legs[key].flight.kg += j.pax ? 0 : j.kg;
+      legs[key].flight.pay += j.pay;
     }
   }
   return legs;
