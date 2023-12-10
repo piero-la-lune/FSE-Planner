@@ -1,8 +1,10 @@
+import {DateTime} from "luxon";
 import icaodata from "../data/icaodata.json";
 import aircrafts from "../data/aircraft.json";
 
 import pointInPolygon from 'point-in-polygon';
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
+import Storage from "../Storage";
 
 export function hideAirport(icao, s, sim) {
   return (
@@ -235,6 +237,66 @@ export function cleanLegs(jobs, opts) {
   return [legs, max];
 }
 
+// Same as cleanLegs but add My Assignments info to the legs
+export function cleanLegsWithFlight(jobs, flight, opts) {
+  // // Keeping this code for now if we need to reverse the Filters behavior
+  // const keys = Object.keys(jobs);
+  // // Get legs
+  // for (var i = keys.length - 1; i >= 0; i--) {
+  //   const leg = jobs[keys[i]];
+  //   const [frIcao, toIcao] = keys[i].split('-');
+  //   const fr = { latitude: opts.icaodata[frIcao].lat, longitude: opts.icaodata[frIcao].lon };
+  //   const to = { latitude: opts.icaodata[toIcao].lat, longitude: opts.icaodata[toIcao].lon };
+  //   if (!legs.hasOwnProperty(keys[i])) {
+  //     legs[keys[i]] = {
+  //       amount: 0,
+  //       pay: 0,
+  //       direction: Math.round(getRhumbLineBearing(fr, to)),
+  //       distance: Math.round(convertDistance(getDistance(fr, to), 'sm'))
+  //     }
+  //   }
+  //   if (!legs[keys[i]].hasOwnProperty('flight')) {
+  //     legs[keys[i]].flight = {
+  //       pax: 0,
+  //       kg: 0,
+  //       pay: 0,
+  //     }
+  //   }
+  //   for (const type of ['Trip-Only', 'VIP', 'All-In']) {
+  //     if (!leg.hasOwnProperty(type)) { continue; }
+  //     for (const j of leg[type]) {
+  //       legs[keys[i]].flight.pax += j.pax;
+  //       legs[keys[i]].flight.kg += j.pax ? 0 : j.kg;
+  //       legs[keys[i]].flight.pay += j.pay;
+  //     }
+  //   }
+  // }
+  // return legs;
+  const [legs, max] = cleanLegs(jobs, opts);
+  const [cleanedFlight, ] = cleanLegs(flight, opts);
+  for (const [key, leg] of Object.entries(cleanedFlight)) {
+    // Need to stored a copy of filteredJobs because original is destroyed just below
+    const filteredJobs = [...leg.filteredJobs];
+    if (!(key in legs)) {
+      legs[key] = leg;
+      legs[key].filteredJobs = [];
+      legs[key].amount = 0;
+      legs[key].pay = 0;
+    }
+    legs[key].flight = {
+      pax: 0,
+      kg: 0,
+      pay: 0,
+    }
+    for (const j of filteredJobs) {
+      legs[key].flight.pax += j.pax;
+      legs[key].flight.kg += j.pax ? 0 : j.kg;
+      legs[key].flight.pay += j.pay;
+    }
+  }
+  return [legs, max];
+}
+
 
 export function maximizeTripOnly(i, cargos, maxPax, maxKg) {
   if (i === 0) {
@@ -266,7 +328,18 @@ export function toLatLngs(str) {
   return null;
 }
 
-// Transform a latitute and longitude into a text GPS coordinates
+// Transform a latitude and longitude into a text GPS coordinates
 export function formatGPSCoord(lat, lng) {
   return Math.abs(lat)+(lat >= 0 ? 'N' : 'S')+' '+Math.abs(lng)+(lng >= 0 ? 'E' : 'W');
+}
+
+// increments fse api hits counter
+export function apiHits(increment = true){
+  const storage= new Storage();
+  const hits = storage.get('apiHits', [])?.filter(hit => DateTime.now().diff(DateTime.fromMillis(hit), 'hours').hours < 7);
+  if (increment) {
+    storage.set('apiHits', [...hits, DateTime.now().valueOf()]);
+    return;
+  }
+  storage.set('apiHits', [...hits]);
 }

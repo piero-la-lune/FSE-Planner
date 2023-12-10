@@ -116,6 +116,15 @@
     "fuelType": 1,
     "maxKg": 1654
   },
+  "Airbus Helicopters H160": {
+    "maxPax": 12,
+    "maxCargo": 2080,
+    "fuelCapacity": 382,
+    "speed": 140,
+    "GPH": 114,
+    "fuelType": 1,
+    "maxKg": 2080
+  },
   "Aircreation 582SL": {
     "maxPax": 1,
     "maxCargo": 100,
@@ -395,10 +404,10 @@
     "fuelType": 0,
     "maxKg": 705
   },
-  "Beechcraft Baron 58 - tip tanks (Dreamfleet)": {
+  "Beechcraft Baron 58 - Turbo/tip tanks": {
     "maxPax": 5,
     "maxCargo": 705,
-    "fuelCapacity": 200,
+    "fuelCapacity": 202,
     "speed": 192,
     "GPH": 28,
     "fuelType": 0,
@@ -490,7 +499,7 @@
     "maxCargo": 2604,
     "fuelCapacity": 540,
     "speed": 258,
-    "GPH": 88,
+    "GPH": 80,
     "fuelType": 1,
     "maxKg": 2604
   },
@@ -970,6 +979,15 @@
     "GPH": 14,
     "fuelType": 0,
     "maxKg": 512
+  },
+  "Cessna 182 Spirit of Columbus": {
+    "maxPax": 3,
+    "maxCargo": 753,
+    "fuelCapacity": 250,
+    "speed": 140,
+    "GPH": 13,
+    "fuelType": 0,
+    "maxKg": 753
   },
   "Cessna 185 Skywagon": {
     "maxPax": 5,
@@ -1516,7 +1534,7 @@
     "maxCargo": 4430,
     "fuelCapacity": 830,
     "speed": 155,
-    "GPH": 165,
+    "GPH": 145,
     "fuelType": 0,
     "maxKg": 4430
   },
@@ -1559,7 +1577,7 @@
   "Diamond DA20 Katana": {
     "maxPax": 1,
     "maxCargo": 358,
-    "fuelCapacity": 20,
+    "fuelCapacity": 24,
     "speed": 95,
     "GPH": 5,
     "fuelType": 0,
@@ -1947,6 +1965,15 @@
     "maxPax": 8,
     "maxCargo": 2046,
     "fuelCapacity": 704,
+    "speed": 90,
+    "GPH": 41,
+    "fuelType": 0,
+    "maxKg": 2046
+  },
+  "Fokker F.VIIb/3m Smith Pacific": {
+    "maxPax": 2,
+    "maxCargo": 2046,
+    "fuelCapacity": 1298,
     "speed": 90,
     "GPH": 41,
     "fuelType": 0,
@@ -2600,6 +2627,15 @@
     "fuelType": 0,
     "maxKg": 1111
   },
+  "Pacific P-750 XSTOL": {
+    "maxPax": 9,
+    "maxCargo": 1917,
+    "fuelCapacity": 338,
+    "speed": 158,
+    "GPH": 58,
+    "fuelType": 1,
+    "maxKg": 1917
+  },
   "Pacific Aerospace 750XL": {
     "maxPax": 9,
     "maxCargo": 1932,
@@ -2608,6 +2644,15 @@
     "GPH": 48,
     "fuelType": 1,
     "maxKg": 1932
+  },
+  "Partenavia P68B": {
+    "maxPax": 5,
+    "maxCargo": 683,
+    "fuelCapacity": 108,
+    "speed": 166,
+    "GPH": 22,
+    "fuelType": 0,
+    "maxKg": 683
   },
   "Piaggio 166 Albatross": {
     "maxPax": 5,
@@ -3274,6 +3319,15 @@
     "GPH": 0,
     "fuelType": 0,
     "maxKg": -77
+  },
+  "spare Spare": {
+    "maxPax": 3,
+    "maxCargo": 753,
+    "fuelCapacity": 2,
+    "speed": 140,
+    "GPH": 13,
+    "fuelType": 0,
+    "maxKg": 753
   },
   "Spartan 7W Executive": {
     "maxPax": 4,

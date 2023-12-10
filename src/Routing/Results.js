@@ -365,6 +365,24 @@ const Results = React.memo((props) => {
                   onChange={(evt, value) => {
                     setFilterIcaos(value);
                   }}
+                  onPaste={evt => {
+                    // When pasting data, check if only consituted of multiple valid ICAOs
+                    // If so, update filter with all these ICAOs at once
+                    const arr = evt.clipboardData.getData('Text').split(/\s/).map(e => e.toUpperCase());
+                    const icaos = [];
+                    for (const option of props.icaodataArr) {
+                      if (arr.includes(option.icao)) {
+                        icaos.push(option);
+                      }
+                    }
+                    if (arr.length !== icaos.length) {
+                      return true;
+                    }
+                    setFilterIcaos([...filterIcaos, ...icaos]);
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    return false;
+                  }}
                   value={filterIcaos}
                   multiple
                 />

@@ -15,7 +15,7 @@ import "@maplibre/maplibre-gl-leaflet";
 import "@geoman-io/leaflet-geoman-free";
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 
-import { cleanLegs, wrapNb, formatGPSCoord } from "./util/utility.js";
+import { cleanLegsWithFlight, wrapNb, formatGPSCoord } from "./util/utility.js";
 import Canvas from "./MapLayers/Components/Canvas.js";
 import Marker from "./MapLayers/Components/Marker.js";
 import Job from "./MapLayers/Components/Job.js";
@@ -165,7 +165,7 @@ const FSEMap = React.memo(function FSEMap(props) {
       let legs = [];
       const key = props.search+'-'+props.searchDest;
       if (props.options.jobs[key]) {
-        [legs, ] = cleanLegs({[key]: props.options.jobs[key]}, props.options);
+        [legs, ] = cleanLegsWithFlight({[key]: props.options.jobs[key]}, props.options.flight, props.options);
       }
       if (!legs[key]) {
         const fr = { latitude: props.options.icaodata[props.search].lat, longitude: props.options.icaodata[props.search].lon };

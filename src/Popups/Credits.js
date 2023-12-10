@@ -116,6 +116,25 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.18.0 (2023-12-10)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>Assignments can now be marked as flown: this makes those assignments disappear entirely from FSE Planner without having to refresh the data. This feature is accessible in two places: in the Table view and in the Router Finder result view</ListItem>
+              <ListItem>Added a counter to track the number of requests to FSE datafeeds (by @jsilva74)</ListItem>
+              <ListItem>Added the "Return to starting airport" option to the global Route Finder settings (<IssueLink id={177} />)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Modified the Filters behavior so that it now also apply to My Assignments</ListItem>
+              <ListItem>Added a note to specify that a read access key is stored on the user own computer, and is only used for data updates requested by the said user</ListItem>
+              <ListItem>Updated MSFS data</ListItem>
+              <ListItem>Updated FSE aircraft list</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+              <ListItem>Modified the behavior when pasting data in the Route Finder ICAO filter, to allow for multiple ICAOs to be pasted at once (<IssueLink id={176} />)</ListItem>
+            </List>
+          </Paper>
+          
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.17.0 (2023-07-31)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
@@ -777,6 +796,7 @@ function CreditsPopup(props) {
               <ListItem>Lily418 (contributor)</ListItem>
               <ListItem>John Bayly (contributor)</ListItem>
               <ListItem>jsjunior (contributor)</ListItem>
+              <ListItem>jsilva74 (contributor)</ListItem>
             </List>
           </Paper>
 
