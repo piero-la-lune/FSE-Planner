@@ -1,4 +1,4 @@
-import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
+// import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
 import L from "leaflet";
 
 import Marker from "./Components/Marker.js";
@@ -7,6 +7,7 @@ import { hideAirport, cleanLegs } from "../util/utility.js";
 
 
 function addFlight(legs, jobs, opts) {
+  // // Keeping this code for now if we need to reverse the Filters behavior
   // const keys = Object.keys(jobs);
   // // Get legs
   // for (var i = keys.length - 1; i >= 0; i--) {

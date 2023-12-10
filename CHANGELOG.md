@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.18.0] - 2023-12-10
+
+### Added
+- Assignments can now be marked as flown: this makes those assignments disappear entirely from FSE Planner without having to refresh the data. This feature is accessible in two places: in the Table view and in the Router Finder result view
+- Added a counter to track the number of requests to FSE datafeeds (by @jsilva74 #178)
+- Added the "Return to starting airport" option to the global Route Finder settings (#177)
+
+### Changed
+- Modified the Filters behavior so that it now also apply to My Assignments
+- Added a note to specify that read access key are stored by on the user own computer, and are only used for data updates requested by the said user
+- Updated MSFS data
+- Updated FSE aircraft list
+- Updated project dependencies
+- Modified the behavior when pasting data in the Route Finder ICAO filter, to allow for multiple ICAOs to be pasted at once (#176)
+
+
+
 ## [1.17.0] - 2023-07-31
 
 ### Added
