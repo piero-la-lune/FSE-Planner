@@ -116,6 +116,23 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.18.1 (2024-02-16)</Typography>
+            <Alert sx={{m:1}} severity="warning">
+              <Typography variant="body2">In the previous update, FSE Planner behavior was changed: when adding assignments to your <i>My flight</i> page from FSE Planner, <b>these
+                assignments are also added in the "My Assignments" queue in FSE Planner</b>.</Typography>
+              <Typography variant="body2" sx={{mt: 1}}>Once you have flown those assignments, <b>you must clear the My Assignments queue in FSE Planner</b>,
+                otherwise these jobs will still be shown on the map and in the Route Finder, giving you errors when trying to add/fly them a second time.</Typography>
+              <Typography variant="body2" sx={{mt: 1}}>To clear the queue, you have two options:</Typography>
+              <Typography variant="body2" sx={{ml: 2}}>1. Click the "Mark assignments as flown" icon in the Route Finder</Typography>
+              <Typography variant="body2" sx={{ml: 2}}>2. Click the "Clear" button of the "My Assignments" section in the Load data popup.</Typography>
+            </Alert>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE aircraft list</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+          </Paper>
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.18.0 (2023-12-10)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>

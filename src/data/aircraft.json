@@ -98,6 +98,15 @@
     "fuelType": 1,
     "maxKg": 1353
   },
+  "Airbus Helicopters H130 (EC130 B4 XP)": {
+    "maxPax": 6,
+    "maxCargo": 970,
+    "fuelCapacity": 139,
+    "speed": 120,
+    "GPH": 34,
+    "fuelType": 1,
+    "maxKg": 970
+  },
   "Airbus Helicopters H145": {
     "maxPax": 9,
     "maxCargo": 1654,
@@ -2312,6 +2321,15 @@
     "fuelType": 1,
     "maxKg": 3858
   },
+  "Learjet 35A (FSW)": {
+    "maxPax": 8,
+    "maxCargo": 400,
+    "fuelCapacity": 930,
+    "speed": 462,
+    "GPH": 134,
+    "fuelType": 1,
+    "maxKg": 3858
+  },
   "LearJet LJ25D": {
     "maxPax": 8,
     "maxCargo": 500,
@@ -3311,24 +3329,6 @@
     "fuelType": 1,
     "maxKg": 1177
   },
-  "Spare Spare": {
-    "maxPax": -1,
-    "maxCargo": 0,
-    "fuelCapacity": 26,
-    "speed": 0,
-    "GPH": 0,
-    "fuelType": 0,
-    "maxKg": -77
-  },
-  "spare Spare": {
-    "maxPax": 3,
-    "maxCargo": 753,
-    "fuelCapacity": 2,
-    "speed": 140,
-    "GPH": 13,
-    "fuelType": 0,
-    "maxKg": 753
-  },
   "Spartan 7W Executive": {
     "maxPax": 4,
     "maxCargo": 676,
@@ -3391,6 +3391,15 @@
     "GPH": 11,
     "fuelType": 0,
     "maxKg": 353
+  },
+  "Tecnam P2012 Traveller": {
+    "maxPax": 10,
+    "maxCargo": 1187,
+    "fuelCapacity": 198,
+    "speed": 165,
+    "GPH": 60,
+    "fuelType": 0,
+    "maxKg": 1187
   },
   "Tecnam P92 Echo": {
     "maxPax": 1,
