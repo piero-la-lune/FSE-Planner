@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.18.1] - 2024-02-16
+
+### Changed
+- Updated FSE aircraft list
+- Updated project dependencies
+
+
+
 ## [1.18.0] - 2023-12-10
 
 ### Added
