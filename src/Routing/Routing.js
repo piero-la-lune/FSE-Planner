@@ -266,7 +266,7 @@ const Routing = React.memo((props) => {
       }
 
       allResults[i].payNM = pay/totalDistance;
-      allResults[i].payLeg = pay/allResults[i].icaos.length;
+      allResults[i].payLeg = pay / (allResults[i].icaos.length - 1);
       allResults[i].payTime = pay/time;
       allResults[i].time = h+'H'+(min > 9 ? min : "0"+min);
       allResults[i].timeNb = time;
