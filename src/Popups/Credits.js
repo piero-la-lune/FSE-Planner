@@ -115,6 +115,21 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
+        <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.18.2 (2024-05-11)</Typography>
+            <Alert sx={{m:1}} severity="error">
+              <Typography variant="body2">"FBOs with unbuilt lots" layers are no longer working due to a breaking change made by the FSE BoD. They have clearly stated that they do not want this feature to be available anymore in FSE Planner :(</Typography>
+            </Alert>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE aircraft list</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fix pay per leg sorting option in Route Finder (<IssueLink id={184} /> by jonaseberle)</ListItem>
+            </List>
+          </Paper>
           <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.18.1 (2024-02-16)</Typography>
             <Alert sx={{m:1}} severity="warning">
@@ -814,6 +829,7 @@ function CreditsPopup(props) {
               <ListItem>John Bayly (contributor)</ListItem>
               <ListItem>jsjunior (contributor)</ListItem>
               <ListItem>jsilva74 (contributor)</ListItem>
+              <ListItem>jonaseberle (contributor)</ListItem>
             </List>
           </Paper>
 

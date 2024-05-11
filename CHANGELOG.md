@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.18.2] - 2024-05-11
+
+### Changed
+- Updated FSE aircraft list
+- Updated project dependencies
+
+### Fixed
+- Fix pay per leg sorting option in Route Finder (#184 by jonaseberle)
+
+
+
 ## [1.18.1] - 2024-02-16
 
 ### Changed
