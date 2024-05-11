@@ -422,6 +422,15 @@
     "fuelType": 0,
     "maxKg": 705
   },
+  "Beechcraft Baron 58 RTW": {
+    "maxPax": 4,
+    "maxCargo": 1176,
+    "fuelCapacity": 422,
+    "speed": 192,
+    "GPH": 28,
+    "fuelType": 0,
+    "maxKg": 1176
+  },
   "Beechcraft Bonanza A36": {
     "maxPax": 5,
     "maxCargo": 540,
@@ -1543,7 +1552,7 @@
     "maxCargo": 4430,
     "fuelCapacity": 830,
     "speed": 155,
-    "GPH": 145,
+    "GPH": 120,
     "fuelType": 0,
     "maxKg": 4430
   },
@@ -3193,6 +3202,15 @@
     "GPH": 47,
     "fuelType": 0,
     "maxKg": 2139
+  },
+  "Short SD3-30": {
+    "maxPax": 28,
+    "maxCargo": 3475,
+    "fuelCapacity": 580,
+    "speed": 215,
+    "GPH": 135,
+    "fuelType": 1,
+    "maxKg": 3475
   },
   "Shorts SD3-60": {
     "maxPax": 38,
