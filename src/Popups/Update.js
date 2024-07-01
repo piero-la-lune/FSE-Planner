@@ -394,6 +394,8 @@ function UpdatePopup(props) {
   const [layersOptions, setLayersOptions] = React.useState([]);
   const [jobsLayers, setJobsLayers] = React.useState([]);
   const { readString } = usePapaParse();
+  const { persist } = props.settings.update;
+
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
@@ -525,7 +527,11 @@ function UpdatePopup(props) {
     storage.set('jobsLayers', jobsLayers.map(elm => elm.id));
     // Close popup
     setLoading(false);
-    handleClose();
+    if ( ! persist ) {
+      handleClose();
+    } else {
+      setExpanded(false);
+    }
   }
   // Jobs Update button clicked
   const updateJobs = (evt) => {
@@ -568,7 +574,9 @@ function UpdatePopup(props) {
     setJobsTime(null);
     // Close popup
     setLoading(false);
-    handleClose();
+    if ( ! persist ) {
+      handleClose();
+    }
   }
 
   // Loop function to get planes from FSE
@@ -669,7 +677,11 @@ function UpdatePopup(props) {
         storage.set('planeUser', planeUser);
         // Close popup
         setLoading(false);
-        handleClose();
+        if ( ! persist ) {
+          handleClose();
+        } else {
+          setExpanded(false);
+        }
       });
     });
   }
@@ -684,7 +696,9 @@ function UpdatePopup(props) {
     setPlanesTime(null);
     // Close popup
     setLoading(false);
-    handleClose();
+    if ( ! persist ) {
+      handleClose();
+    }
   }
 
   // Loop function to get assignments from FSE
@@ -744,7 +758,11 @@ function UpdatePopup(props) {
       setFlightTime(date);
       // Close popup
       setLoading(false);
-      handleClose();
+      if ( ! persist ) {
+        handleClose();
+      } else {
+        setExpanded(false);
+      }
     });
   }
   // My assignments Clear button clicked
@@ -758,7 +776,9 @@ function UpdatePopup(props) {
     setFlightTime(null);
     // Close popup
     setLoading(false);
-    handleClose();
+    if ( ! persist ) {
+      handleClose();
+    }
   }
 
   const panelChange = (panel) => (event, isExpanded) => {
