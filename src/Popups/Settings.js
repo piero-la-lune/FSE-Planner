@@ -430,6 +430,7 @@ function SettingsPopup(props) {
               </Grid>
               <Grid container spacing={3} sx={{ mt: 2 }}>
                 <SettingSelect s={s} setS={setS} label="Job direction for the selected area/layer" setting='update.direction' xs={6} options={directionOptions} />
+                <SettingSwitch s={s} setS={setS} label="Keep window open after updating" setting='update.persist' xs={6} />
               </Grid>
               <Grid container spacing={3} sx={{ mt: 2 }}>
                 <SettingSelect s={s} setS={setS} label="Load area around available planes" setting='update.jobsPlanes' xs={12} options={jobsPlanesOptions} />
