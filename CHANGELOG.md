@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.0] - 2024-07-07
+
+### Added
+- "FBOs with unbuilt lots" layer is back!
+- Add setting to keep the Update popup open after clicking an update button (new default behavior) (#186 by machouinard)
+- New option in Route Finder filters to exclude the given ICAO(s) from the results (#183)
+- Display current number of loaded jobs/planes in the Update popup
+
+### Changed
+- Updated FSE aircraft list
+- Updated project dependencies
+
+### Fixed
+- Fix pay numbers in Route Finder PDFs
+
+
+
 ## [1.18.2] - 2024-05-11
 
 ### Changed

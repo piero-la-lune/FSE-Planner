@@ -370,7 +370,7 @@ function CustomLayerPopup(props) {
                   onChange={e => setType(e.target.value)}
                 >
                   <FormControlLabel value="all" control={<Radio />} label="All FSE airports" />
-                  <FormControlLabel value="unbuilt" control={<Radio />} disabled label="FBOs with unbuilt lots**" />
+                  <FormControlLabel value="unbuilt" control={<Radio />} label="FBOs with unbuilt lots*" />
                   <FormControlLabel value="forsale" control={<Radio />} label="FBOs for sale*" />
                   <FormControlLabel value="custom" control={<Radio />} label="Owned FBOs or manual list" />
                 </RadioGroup>
@@ -383,8 +383,6 @@ function CustomLayerPopup(props) {
                   }}
                 >
                   *Data is updated every 6 hours (02:00, 08:00, 14:00 and 20:00 GMT).
-                  <br />
-                  **No longer available due to a FSE BoD decision
                 </Typography>
               </Box>
             }

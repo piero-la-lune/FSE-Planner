@@ -147,9 +147,12 @@ const Routing = React.memo((props) => {
       // Compute ground fees: 10% for each assignment
       // (could be 0 or 5% if there is no FBO at the originating or destination airport,
       // but there is no way of knowing if that is the case, so 10% is always applied)
-      const feeGround = pay*0.1;
+      let feeGround = pay*0.1;
       if (fees.includes('Ground')) {
         pay -= feeGround;
+      }
+      else {
+        feeGround = 0;
       }
 
       // Compute booking fees : X%, where X is the number of PT assignments loaded in the
@@ -184,6 +187,9 @@ const Routing = React.memo((props) => {
       }
       if (fees.includes('Booking')) {
         pay -= feeBooking;
+      }
+      else {
+        feeBooking = 0;
       }
 
       // Get plane reg, and compute rental cost and bonus
@@ -255,9 +261,16 @@ const Routing = React.memo((props) => {
       if (fees.includes('Rental')) {
         pay -= rentalCost - bonus;
       }
+      else {
+        rentalCost = 0;
+        bonus = 0;
+      }
       // Subtract fuel usage to total pay
       if (fees.includes('Fuel') && rentalType !== 'wet') {
         pay -= fuelCost;
+      }
+      else {
+        fuelCost = 0;
       }
 
       // If rental is wet, no fuel cost
