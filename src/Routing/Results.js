@@ -138,6 +138,7 @@ const Results = React.memo((props) => {
   const [minTime, setMinTime] = React.useState('');
   const [maxTime, setMaxTime] = React.useState('');
   const [filterIcaos, setFilterIcaos] = React.useState([]);
+  const [filterExcludeIcaos, setFilterExcludeIcaos] = React.useState([]);
   const [nbDisplay, setNbDisplay] = React.useState(20);
   const [filteredResults, setFilteredResults] = React.useState(() => props.results.sort(sortFunctions['payTime']));
   const [sortBy, setSortBy] = React.useState('payTime');
@@ -174,6 +175,7 @@ const Results = React.memo((props) => {
         || (minTimeNb && elm.timeNb < minTimeNb)
         || (maxTimeNb && elm.timeNb > maxTimeNb)
         || (filterIcaos.length && !filterIcaos.every(x => elm.icaos.includes(x.icao)))
+        || (filterExcludeIcaos.length && !filterExcludeIcaos.every(x => !elm.icaos.includes(x.icao)))
       );
     })
     r.sort(sortFunctions[sortBy]);
@@ -384,6 +386,42 @@ const Results = React.memo((props) => {
                     return false;
                   }}
                   value={filterIcaos}
+                  multiple
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <IcaoSearch
+                  options={props.icaodataArr}
+                  label="Exclude ICAO(s)"
+                  inputProps={{
+                    InputLabelProps:{
+                      shrink: true,
+                    },
+                    size:"small",
+                    sx:styles.filtersInput
+                  }}
+                  onChange={(evt, value) => {
+                    setFilterExcludeIcaos(value);
+                  }}
+                  onPaste={evt => {
+                    // When pasting data, check if only consituted of multiple valid ICAOs
+                    // If so, update filter with all these ICAOs at once
+                    const arr = evt.clipboardData.getData('Text').split(/\s/).map(e => e.toUpperCase());
+                    const icaos = [];
+                    for (const option of props.icaodataArr) {
+                      if (arr.includes(option.icao)) {
+                        icaos.push(option);
+                      }
+                    }
+                    if (arr.length !== icaos.length) {
+                      return true;
+                    }
+                    setFilterExcludeIcaos([...filterExcludeIcaos, ...icaos]);
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    return false;
+                  }}
+                  value={filterExcludeIcaos}
                   multiple
                 />
               </Grid>
