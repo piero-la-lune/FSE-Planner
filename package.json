@@ -7,14 +7,14 @@
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
-    "@geoman-io/leaflet-geoman-free": "^2.16.0",
-    "@maplibre/maplibre-gl-leaflet": "^0.0.20",
-    "@mui/icons-material": "^5.15.17",
-    "@mui/lab": "^5.0.0-alpha.170",
-    "@mui/material": "^5.15.17",
+    "@geoman-io/leaflet-geoman-free": "^2.17.0",
+    "@maplibre/maplibre-gl-leaflet": "^0.0.21",
+    "@mui/icons-material": "^5.16.0",
+    "@mui/lab": "^5.0.0-alpha.171",
+    "@mui/material": "^5.16.0",
     "@react-pdf/renderer": "^3.4.4",
-    "@testing-library/jest-dom": "^6.4.5",
-    "@testing-library/react": "^15.0.7",
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
@@ -28,7 +28,7 @@
     "lodash": "^4.17.21",
     "luxon": "^3.4.4",
     "lz-string": "^1.5.0",
-    "maplibre-gl": "^4.2.0",
+    "maplibre-gl": "^4.5.0",
     "match-sorter": "^6.3.4",
     "point-in-polygon": "^1.1.0",
     "process": "^0.11.10",
@@ -39,7 +39,7 @@
     "react-papaparse": "^4.4.0",
     "react-scripts": "5.0.1",
     "react-use": "^17.5.0",
-    "reactour": "^1.19.3",
+    "reactour": "^1.19.4",
     "semver": "^7.6.2",
     "stream-browserify": "^3.0.0",
     "styled-components": "^6.1.11",
@@ -65,5 +65,8 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "."
+  "homepage": ".",
+  "devDependencies": {
+    "@babel/plugin-transform-private-property-in-object": "^7.24.7"
+  }
 }
