@@ -306,6 +306,11 @@ const styles = {
   },
   title: {
     flexGrow: 1
+  },
+  chip: {
+    fontSize: '0.8em',
+    height: 'auto',
+    marginBottom: '2px'
   }
 };
 
@@ -393,13 +398,30 @@ function UpdatePopup(props) {
   const [assignmentKeys, setAssignmentKeys] = React.useState(storage.get('assignmentKeys', [{name: 'Personal assignments', enabled: true}]));
   const [layersOptions, setLayersOptions] = React.useState([]);
   const [jobsLayers, setJobsLayers] = React.useState([]);
+  const [jobsNb, setJobsNb] = React.useState(0);
+  const [flightNb, setFlightNb] = React.useState(0);
+  const [planesNb, setPlanesNb] = React.useState(0);
   const { readString } = usePapaParse();
   const { persist } = props.settings.update;
 
 
   const areas = React.useState(() => getAreas(props.icaodata, props.icaos))[0];
 
-  const [hits, setHits] = React.useState(0)
+  const [hits, setHits] = React.useState(0);
+
+  // Update jobs counter when jobs are updated
+  React.useEffect(() => {
+    setJobsNb(Object.values(props.jobs).reduce((acc,e) => acc + (e["Trip-Only"] ?? []).length + (e["VIP"] ?? []).length + (e["All-In"] ?? []).length, 0));
+  }, [props.jobs]);
+  // Update flight counter when flight is updated
+  React.useEffect(() => {
+    setFlightNb(Object.values(props.flight).reduce((acc,e) => acc + (e["Trip-Only"] ?? []).length + (e["VIP"] ?? []).length + (e["All-In"] ?? []).length, 0));
+  }, [props.flight]);
+  // Update planes counter when planes are updated
+  React.useEffect(() => {
+    console.log(Object.values(props.planes).reduce((acc,e) => acc + e.length, 0));
+    setPlanesNb(Object.values(props.planes).reduce((acc,e) => acc + e.length, 0));
+  }, [props.planes]);
 
   // Update custom area when map center is updated
   React.useEffect(() => {
@@ -861,7 +883,7 @@ function UpdatePopup(props) {
 
           <Accordion expanded={expanded === 'panel2'} onChange={panelChange('panel2')} data-tour="Step5">
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
-              <Typography sx={styles.title}>Jobs</Typography>
+              <Typography sx={styles.title}>Jobs {jobsNb > 0 && <Chip label={jobsNb} color="primary" size="small" component="span" sx={styles.chip} />}</Typography>
               <Button color="secondary" onClick={clearJobs}>
                 Clear
               </Button>
@@ -985,7 +1007,7 @@ function UpdatePopup(props) {
 
           <Accordion expanded={expanded === 'panel3'} onChange={panelChange('panel3')} data-tour="Step6">
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
-              <Typography sx={styles.title}>Available planes</Typography>
+              <Typography sx={styles.title}>Available planes {planesNb > 0 && <Chip label={planesNb} color="primary" size="small" component="span" sx={styles.chip} />}</Typography>
               <Button color="secondary" onClick={clearPlanes}>
                 Clear
               </Button>
@@ -1040,7 +1062,7 @@ function UpdatePopup(props) {
 
           <Accordion expanded={expanded === 'panel4'} onChange={panelChange('panel4')}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
-              <Typography sx={styles.title}>My assignments</Typography>
+              <Typography sx={styles.title}>My assignments {flightNb > 0 && <Chip label={flightNb} color="primary" size="small" component="span" sx={styles.chip} />}</Typography>
               <Button color="secondary" onClick={clearFlight}>
                 Clear
               </Button>
