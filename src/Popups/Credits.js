@@ -115,7 +115,29 @@ function CreditsPopup(props) {
       </DialogTitle>
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
-        <Paper sx={styles.content}>
+          <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.19.0 (2024-07-07)</Typography>
+            <Alert sx={{m:1}} severity="success">
+              <Typography variant="body2">"FBOs with unbuilt lots" layer is back!</Typography>
+            </Alert>
+            <Typography variant="h6">Added</Typography>
+              <List dense>
+                <ListItem>"FBOs with unbuilt lots" layer is back!</ListItem>
+                <ListItem>Add setting to keep the Update popup open after clicking an update button (new default behavior) (<IssueLink id={186} /> by machouinard)</ListItem>
+                <ListItem>New option in Route Finder filters to exclude the given ICAO(s) from the results (#183)</ListItem>
+                <ListItem>Display current number of loaded jobs/planes in the Update popup</ListItem>
+              </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE aircraft list</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fix pay numbers in Route Finder PDFs</ListItem>
+            </List>
+          </Paper>
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.18.2 (2024-05-11)</Typography>
             <Alert sx={{m:1}} severity="error">
               <Typography variant="body2">"FBOs with unbuilt lots" layers are no longer working due to a breaking change made by the FSE BoD. They have clearly stated that they do not want this feature to be available anymore in FSE Planner :(</Typography>
@@ -830,6 +852,7 @@ function CreditsPopup(props) {
               <ListItem>jsjunior (contributor)</ListItem>
               <ListItem>jsilva74 (contributor)</ListItem>
               <ListItem>jonaseberle (contributor)</ListItem>
+              <ListItem>machouinard (contributor)</ListItem>
             </List>
           </Paper>
 

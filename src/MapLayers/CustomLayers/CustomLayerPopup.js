@@ -370,7 +370,7 @@ function CustomLayerPopup(props) {
                   onChange={e => setType(e.target.value)}
                 >
                   <FormControlLabel value="all" control={<Radio />} label="All FSE airports" />
-                  <FormControlLabel value="unbuilt" control={<Radio />} label="FBOs with unbuilt lots**" />
+                  <FormControlLabel value="unbuilt" control={<Radio />} label="FBOs with unbuilt lots*" />
                   <FormControlLabel value="forsale" control={<Radio />} label="FBOs for sale*" />
                   <FormControlLabel value="custom" control={<Radio />} label="Owned FBOs or manual list" />
                 </RadioGroup>

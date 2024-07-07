@@ -118,7 +118,7 @@ const defaultSettings = {
     jobsPlanesRequests: 1,
     jobsPlanesMax: 10,
     express: true,
-    persist: false,
+    persist: true,
     expiration: ''
   },
   filters: {
