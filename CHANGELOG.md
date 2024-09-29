@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.1] - 2024-09-29
+
+### Changed
+- Updated MSFS airports list
+- Updated project dependencies
+
+
+
 ## [1.19.0] - 2024-07-07
 
 ### Added
