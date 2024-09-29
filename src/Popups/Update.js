@@ -419,7 +419,6 @@ function UpdatePopup(props) {
   }, [props.flight]);
   // Update planes counter when planes are updated
   React.useEffect(() => {
-    console.log(Object.values(props.planes).reduce((acc,e) => acc + e.length, 0));
     setPlanesNb(Object.values(props.planes).reduce((acc,e) => acc + e.length, 0));
   }, [props.planes]);
 
