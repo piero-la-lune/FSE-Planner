@@ -116,6 +116,14 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.19.1 (2024-09-29)</Typography>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated MSFS airports list</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+          </Paper>
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.19.0 (2024-07-07)</Typography>
             <Alert sx={{m:1}} severity="success">
               <Typography variant="body2">"FBOs with unbuilt lots" layer is back!</Typography>
