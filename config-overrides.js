@@ -13,7 +13,8 @@ module.exports = function override(config, env) {
     "zlib": require.resolve("browserify-zlib"),
     "util": require.resolve("util/"),
     "buffer": require.resolve("buffer/"),
-    "assert": require.resolve("assert/")
+    "assert": require.resolve("assert/"),
+    "vm": require.resolve("vm-browserify")
   }
   config.plugins = [
     ...config.plugins,

@@ -44,6 +44,7 @@
     "stream-browserify": "^3.0.0",
     "styled-components": "^6.1.13",
     "util": "^0.12.5",
+    "vm-browserify": "^1.1.2",
     "worker-loader": "^3.0.8"
   },
   "scripts": {
