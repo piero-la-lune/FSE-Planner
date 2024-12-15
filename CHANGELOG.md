@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.2] - 2024-12-15
+
+### Changed
+- Updated FSE plane list (AW109SP and C408 - thx jonaseberle)
+- Updated project dependencies
+
+
+
 ## [1.19.1] - 2024-09-29
 
 ### Changed
