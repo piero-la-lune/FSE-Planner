@@ -62,6 +62,15 @@
     "fuelType": 1,
     "maxKg": 1846
   },
+  "Agusta Westwind AW109SP (X-Trident)": {
+    "maxPax": 7,
+    "maxCargo": 1048,
+    "fuelCapacity": 215,
+    "speed": 158,
+    "GPH": 60,
+    "fuelType": 1,
+    "maxKg": 1048
+  },
   "Airbus A320": {
     "maxPax": 149,
     "maxCargo": 30279,
