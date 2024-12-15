@@ -1115,6 +1115,15 @@
     "fuelType": 0,
     "maxKg": 1541
   },
+  "Cessna 408 SkyCourier": {
+    "maxPax": 19,
+    "maxCargo": 2950,
+    "fuelCapacity": 720,
+    "speed": 210,
+    "GPH": 100,
+    "fuelType": 1,
+    "maxKg": 2950
+  },
   "Cessna 414A Chancellor": {
     "maxPax": 7,
     "maxCargo": 1007,
