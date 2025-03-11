@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.3] - 2025-03-11
+
+### Changed
+- Updated FSE airport list to include the 20 new airports
+- Updated FSE aircraft list
+- Updated project dependencies
+
+
+
 ## [1.19.2] - 2024-12-15
 
 ### Changed
