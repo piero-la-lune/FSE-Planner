@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.4] - 2025-03-16
+
+### Fix
+- Fixed panning bug on alternative map
+- Fixed missing airports on map
+
+
+
 ## [1.19.3] - 2025-03-11
 
 ### Changed
