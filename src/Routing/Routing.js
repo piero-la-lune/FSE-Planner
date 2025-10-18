@@ -593,7 +593,6 @@ const Routing = React.memo((props) => {
           <CloseIcon />
         </IconButton>
       </Typography>
-
       {results && !loading &&
         <React.Fragment>
           <Results
@@ -624,7 +623,6 @@ const Routing = React.memo((props) => {
           }
         </React.Fragment>
       }
-
       {!results && !loading &&
         <Box sx={{ ...styles.content, ...{ p: 2 }}}>
 
@@ -698,7 +696,7 @@ const Routing = React.memo((props) => {
               </Box>
               <Typography variant="body1" sx={styles.formLabel}>Restrict search to specific route:</Typography>
               <Grid container spacing={1}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <IcaoSearch
                     options={icaodataArr}
                     label="From"
@@ -714,7 +712,7 @@ const Routing = React.memo((props) => {
                     value={fromIcao ? props.options.icaodata[fromIcao] : null}
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <IcaoSearch
                     options={icaodataArr}
                     label="To"
@@ -785,7 +783,7 @@ const Routing = React.memo((props) => {
               {editSpecs ?
                 <React.Fragment>
                   <Grid container spacing={1} style={{marginTop:12}}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         label="Max passengers"
                         placeholder="10"
@@ -795,7 +793,7 @@ const Routing = React.memo((props) => {
                         onChange={(evt) => setMaxPax(evt.target.value.replace(/[^0-9]/g, ''))}
                       />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         label="Max cargo"
                         placeholder="500"
@@ -810,7 +808,7 @@ const Routing = React.memo((props) => {
                     </Grid>
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Tooltip title="Maximum weight of fuel AND cargo (passengers + packages) the plane can handle.">
                         <TextField
                           label="Max weight (fuel + load)"
@@ -825,7 +823,7 @@ const Routing = React.memo((props) => {
                         />
                       </Tooltip>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         label="Cruise speed"
                         placeholder="250"
@@ -841,7 +839,7 @@ const Routing = React.memo((props) => {
 
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         label="Fuel capacity"
                         placeholder="500"
@@ -854,7 +852,7 @@ const Routing = React.memo((props) => {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Tooltip title="Used to compute an estimated fuel consumption cost.">
                         <TextField
                           label="Fuel consumption"
@@ -871,7 +869,7 @@ const Routing = React.memo((props) => {
                     </Grid>
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>
-                    <Grid item xs={4}>
+                    <Grid size={4}>
                       <TextField
                         label="Fuel type"
                         variant="outlined"
@@ -885,7 +883,7 @@ const Routing = React.memo((props) => {
                         <MenuItem value="1">Jet-A</MenuItem>
                       </TextField>
                     </Grid>
-                    <Grid item xs={5}>
+                    <Grid size={5}>
                       <Tooltip title="Leave it to 0 if using your own plane.">
                         <TextField
                           label="Rental price"
@@ -900,7 +898,7 @@ const Routing = React.memo((props) => {
                         />
                       </Tooltip>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid size={3}>
                       <TextField
                         label="Rent type"
                         variant="outlined"
@@ -916,7 +914,7 @@ const Routing = React.memo((props) => {
                     </Grid>
                   </Grid>
                   <Grid container spacing={1} style={{marginTop:12}}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         label="Bonus"
                         placeholder="0"
@@ -928,7 +926,7 @@ const Routing = React.memo((props) => {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <IcaoSearch
                         options={icaodataArr}
                         label="Aircraft home"
@@ -998,7 +996,7 @@ const Routing = React.memo((props) => {
 
               <Typography variant="body1" sx={{...styles.formLabel, mt: 1}}>Advanced algorithm parameters:</Typography>
               <Grid container spacing={1}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Maximum number of legs in a route.">
                     <TextField
                       label="Max number of legs"
@@ -1010,7 +1008,7 @@ const Routing = React.memo((props) => {
                     />
                   </Tooltip>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Number of possible stops along a leg to drop passengers/cargo, in order to better fill the plane part of the leg.">
                     <TextField
                       label="Max intermediate stops"
@@ -1024,7 +1022,7 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
               <Grid container spacing={1} style={{marginTop:12}}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Try to always keep the plane at least this full.">
                     <TextField
                       label="Min plane load"
@@ -1039,7 +1037,7 @@ const Routing = React.memo((props) => {
                     />
                   </Tooltip>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Number of possible legs bellow the minimum plane load or in the wrong direction (if destination is set).">
                     <TextField
                       label='Max number of "bad" legs'
@@ -1053,7 +1051,7 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
               <Grid container spacing={1} style={{marginTop:12}}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Maximum distance of entirely empty legs (no cargo/pax at all). Do not set this too high in dense airports areas, it quickly becomes very computer intensive.">
                     <TextField
                       label="Max length of empty legs"
@@ -1068,7 +1066,7 @@ const Routing = React.memo((props) => {
                     />
                   </Tooltip>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Adjust this setting if Route Finder is crashing">
                     <TextField
                       label="Memory usage"
@@ -1090,7 +1088,7 @@ const Routing = React.memo((props) => {
 
               <Typography variant="body1" sx={styles.formLabel}>Route parameters:</Typography>
               <Grid container spacing={1}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Time spent on ground at each stop (flight checks, taxi, etc.)">
                     <TextField
                       label="Idle and taxi time"
@@ -1105,7 +1103,7 @@ const Routing = React.memo((props) => {
                     />
                   </Tooltip>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Added to the leg straight distance, to account for not straight routes.">
                     <TextField
                       label="Distance overhead"
@@ -1122,7 +1120,7 @@ const Routing = React.memo((props) => {
                 </Grid>
               </Grid>
               <Grid container spacing={1} style={{marginTop:12}}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Tooltip title="Added to the leg straight distance, to account for approach circuits.">
                     <TextField
                       label="Approach distance"
@@ -1137,7 +1135,7 @@ const Routing = React.memo((props) => {
                     />
                   </Tooltip>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <TextField
                     label="Net earnings"
                     variant="outlined"
@@ -1281,7 +1279,6 @@ const Routing = React.memo((props) => {
           </Box>
         </Box>
       }
-
       {loading &&
         <Box
           sx={{

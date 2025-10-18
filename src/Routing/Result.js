@@ -84,7 +84,6 @@ function Result({focus, setFocus, options, ...props}) {
   const hasVIP = React.useMemo(() => focus.cargos.reduce((acc, leg) => acc || leg.VIP.length > 0, false), [focus]);
 
   return (
-
     <React.Fragment>
       <Box
         onClick={() => setFocus(null)}
@@ -109,7 +108,6 @@ function Result({focus, setFocus, options, ...props}) {
           <ArrowBackIcon />&nbsp;Back to results
         </Typography>
       </Box>
-
       <Box sx={{
         overflowX: "hidden",
         overflowY: "auto",
@@ -235,13 +233,13 @@ function Result({focus, setFocus, options, ...props}) {
           </Tooltip>
         </Box>
         <Grid container spacing={1} sx={{ mt: 1 }}>
-          <Grid item xs={4}>
+          <Grid size={4}>
             <Typography variant="body1" sx={styles.tlGridText}><AttachMoneyIcon sx={styles.icon} />{focus.pay}</Typography>
           </Grid>
-          <Grid item xs={4}>
+          <Grid size={4}>
             <Typography variant="body1" sx={styles.tlGridText}><SettingsEthernetIcon sx={styles.icon} />{focus.distance} NM</Typography>
           </Grid>
-          <Grid item xs={4}>
+          <Grid size={4}>
             <Typography variant="body1" sx={styles.tlGridText}><AccessTimeIcon sx={styles.icon} />{focus.time}</Typography>
           </Grid>
         </Grid>
@@ -359,7 +357,6 @@ function Result({focus, setFocus, options, ...props}) {
         </Timeline>
       </Box>
     </React.Fragment>
-
   );
 }
 

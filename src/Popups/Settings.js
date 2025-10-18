@@ -34,7 +34,7 @@ const storage = new Storage();
 
 function Setting({xs, setting, s, setS, end, ...props}) {
   return (
-    <Grid item xs={xs || 6}>
+    <Grid size={xs || 6}>
       <TextField
         {...props}
         variant="outlined"
@@ -55,7 +55,7 @@ function Setting({xs, setting, s, setS, end, ...props}) {
 }
 function SettingSlider({xs, setting, s, setS, label, ...props}) {
   return (
-    <Grid item xs={xs || 6}>
+    <Grid size={xs || 6}>
       <Typography variant="body2">{label}:</Typography>
       <Slider
         defaultValue={0}
@@ -77,7 +77,7 @@ function SettingSlider({xs, setting, s, setS, label, ...props}) {
 }
 function SettingSwitch({xs, setting, s, setS, label, ...props}) {
   return (
-    <Grid item xs={xs || 6}>
+    <Grid size={xs || 6}>
       <FormControlLabel
         control={
           <Switch
@@ -101,7 +101,7 @@ function SettingSlider2({xs, setting, s, setS, label, ...props}) {
   const computeVal = val => val > 3500 ? 3500+(val-3500)/10 : val;
   const inverseVal = val => val > 3500 ? 3500+(val-3500)*10 : val;
   return (
-    <Grid item xs={xs || 6}>
+    <Grid size={xs || 6}>
       <Typography variant="body2">{label}:</Typography>
       <Slider
         min={0}
@@ -124,7 +124,7 @@ function SettingSlider3({xs, setting, s, setS, label, ...props}) {
   const computeVal = val => val > 15000 ? 15000 : val;
   const inverseVal = val => val === 15000 ? 30000 : val;
   return (
-    <Grid item xs={xs || 6}>
+    <Grid size={xs || 6}>
       <Typography variant="body2">{label}:</Typography>
       <Slider
         min={0}
@@ -144,7 +144,7 @@ function SettingSlider3({xs, setting, s, setS, label, ...props}) {
 }
 function SettingSelect({xs, setting, s, setS, options, multiple, ...props}) {
   return (
-    <Grid item xs={xs || 6}>
+    <Grid size={xs || 6}>
       <TextField
         {...props}
         variant="outlined"
@@ -296,7 +296,7 @@ function SettingsPopup(props) {
               <SettingSelect s={s} setS={setS} label="Job type" setting='filters.cargo' options={jobsCargoOptions} multiple={true} xs={6} />
             </Grid>
             <Grid container spacing={3}>
-              <Grid item container xs={9} sx={{ alignContent: 'flex-start '}}>
+              <Grid container sx={{ alignContent: 'flex-start '}} size={9}>
                 <Typography variant="body1" sx={{ mb: 1 }}>From ICAO settings:</Typography>
                 <Typography variant="body2" sx={{ mb: 1 }}>You may use up to 3 different constraints. Leave the input empty to disable a constraint.</Typography>
                 <Grid container spacing={3}>
@@ -305,12 +305,12 @@ function SettingsPopup(props) {
                   <Setting s={s} setS={setS} label="Max α" setting='from.angle' xs={4} placeholder="30°" />
                 </Grid>
               </Grid>
-              <Grid item xs={3}>
+              <Grid size={3}>
                 <img src="settings/helpFrom.png" alt="Schema" />
               </Grid>
             </Grid>
             <Grid container spacing={3}>
-              <Grid item container xs={9} sx={{ alignContent: 'flex-start '}}>
+              <Grid container sx={{ alignContent: 'flex-start '}} size={9}>
                 <Typography variant="body1" sx={{ mb: 1 }}>To ICAO settings:</Typography>
                 <Typography variant="body2" sx={{ mb: 1 }}>You may use up to 3 different constraints. Leave the input empty to disable a constraint.</Typography>
                 <Grid container spacing={3}>
@@ -319,7 +319,7 @@ function SettingsPopup(props) {
                   <Setting s={s} setS={setS} label="Max α" setting='to.angle' xs={4} placeholder="30°" />
                 </Grid>
               </Grid>
-              <Grid item xs={3}>
+              <Grid size={3}>
                 <img src="settings/helpTo.png" alt="Schema" />
               </Grid>
             </Grid>
@@ -335,7 +335,7 @@ function SettingsPopup(props) {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={3}>
-              <Grid item container xs={12}>
+              <Grid container size={12}>
                 <Alert severity="info">This is used by all default layers and by the Route Finder.</Alert>
               </Grid>
               <SettingSlider2 s={s} setS={setS} label="Airport size (combined length of all runways in meters)" setting='airport.size' xs={12} />
@@ -374,7 +374,7 @@ function SettingsPopup(props) {
               </Grid>
               <Typography variant="body1" sx={{ my: 3 }}>PDF export image (500px * 180px):</Typography>
               <Grid container spacing={3}>
-                <Grid item xs={3}>
+                <Grid size={3}>
                   <label htmlFor="pdfImage">
                     <input
                       accept="image/*"
@@ -411,7 +411,7 @@ function SettingsPopup(props) {
                     </Button>
                   }
                 </Grid>
-                <Grid item xs={9}>
+                <Grid size={9}>
                   {s.routeFinder.pdfImage && <img src={s.routeFinder.pdfImage} alt="PDF export" style={{ maxWidth: '100%' }} />}
                 </Grid>
               </Grid>
