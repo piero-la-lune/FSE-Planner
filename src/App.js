@@ -103,6 +103,7 @@ const defaultSettings = {
     minLoad: 80,
     maxBadLegs: 2,
     maxEmptyLeg: 20,
+    minDistLeg: 0,
     idleTime: 2,
     fees: ['Ground', 'Booking', 'Rental', 'Fuel'],
     jobsType: ['pax-sys', 'pax-trip', 'pax-vip', 'cargo-sys', 'cargo-vip'],

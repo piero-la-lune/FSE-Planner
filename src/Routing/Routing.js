@@ -79,6 +79,7 @@ const Routing = React.memo((props) => {
   const [minLoad, setMinLoad] = React.useState(props.options.settings.routeFinder.minLoad);
   const [maxBadLegs, setMaxBadLegs] = React.useState(props.options.settings.routeFinder.maxBadLegs);
   const [maxEmptyLeg, setMaxEmptyLeg] = React.useState(props.options.settings.routeFinder.maxEmptyLeg);
+  const [minDistLeg, setMinDistLeg] = React.useState(props.options.settings.routeFinder.minDistLeg);
   const [focus, setFocus] = React.useState(null);
   const [progress, setProgress] = React.useState(0);
   const [cancel, setCancel] = React.useState(null);
@@ -395,12 +396,14 @@ const Routing = React.memo((props) => {
       const [fr, to] = k.split('-');
       if (hideAirport(fr, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
       if (hideAirport(to, props.options.settings.airport, props.options.settings.display.sim)) { continue; }
+      const d = props.options.jobs[k] ? props.options.jobs[k].distance : props.options.flight[k].distance;
+      if (d < minDistLeg) { continue; }
       const obj = {
         cargos: {
           TripOnly: [],
           VIP: []
         },
-        distance: props.options.jobs[k] ? props.options.jobs[k].distance : props.options.flight[k].distance,
+        distance: d,
         direction: props.options.jobs[k] ? props.options.jobs[k].direction : props.options.flight[k].direction,
       }
       const append = (v, obj) => {
@@ -532,6 +535,7 @@ const Routing = React.memo((props) => {
       planesSpecs: planesSpecs,
       maxStops: maxStops,
       maxEmptyLeg: maxEmptyLeg,
+      minDistLeg: minDistLeg,
       maxHops: maxHops,
       maxBadLegs: maxBadLegs
     });
@@ -733,8 +737,8 @@ const Routing = React.memo((props) => {
                     placeholder="180"
                     value={heading}
                     onChange={(evt) => setHeading(evt.target.value.replace(/[^0-9]/g, ''))}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">°</InputAdornment>,
+                    slotProps={{
+                      input: {endAdornment: <InputAdornment position="end">°</InputAdornment>},
                     }}
                     sx={{mt: 1}}
                     disabled={toIcao !== null}
@@ -801,8 +805,8 @@ const Routing = React.memo((props) => {
                         required
                         value={maxCargo}
                         onChange={(evt) => setMaxCargo(evt.target.value.replace(/[^0-9]/g, ''))}
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
+                        slotProps={{
+                          input: {endAdornment: <InputAdornment position="end">Kg</InputAdornment>},
                         }}
                       />
                     </Grid>
@@ -815,8 +819,8 @@ const Routing = React.memo((props) => {
                           variant="outlined"
                           placeholder="2000"
                           required
-                          InputProps={{
-                            endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
+                          slotProps={{
+                            input: {endAdornment: <InputAdornment position="end">Kg</InputAdornment>},
                           }}
                           value={maxKg}
                           onChange={(evt) => setMaxKg(evt.target.value.replace(/[^0-9]/g, ''))}
@@ -831,8 +835,8 @@ const Routing = React.memo((props) => {
                         value={speed}
                         onChange={(evt) => setSpeed(evt.target.value.replace(/[^0-9]/g, ''))}
                         required
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">Kts</InputAdornment>,
+                        slotProps={{
+                          input: {endAdornment: <InputAdornment position="end">Kts</InputAdornment>},
                         }}
                       />
                     </Grid>
@@ -847,8 +851,8 @@ const Routing = React.memo((props) => {
                         value={fuelCapacity}
                         onChange={(evt) => setFuelCapacity(evt.target.value.replace(/[^0-9]/g, ''))}
                         required
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">Gallons</InputAdornment>,
+                        slotProps={{
+                          input: {endAdornment: <InputAdornment position="end">Gallons</InputAdornment>},
                         }}
                       />
                     </Grid>
@@ -861,8 +865,8 @@ const Routing = React.memo((props) => {
                           value={consumption}
                           onChange={(evt) => setConsumption(evt.target.value.replace(/[^0-9]/g, ''))}
                           required
-                          InputProps={{
-                            endAdornment: <InputAdornment position="end">Gallons/Hour</InputAdornment>,
+                          slotProps={{
+                            input: {endAdornment: <InputAdornment position="end">Gallons/Hour</InputAdornment>},
                           }}
                         />
                       </Tooltip>
@@ -892,8 +896,8 @@ const Routing = React.memo((props) => {
                           value={rentFee}
                           onChange={(evt) => setRentFee(evt.target.value.replace(/[^0-9]/g, ''))}
                           required
-                          InputProps={{
-                            endAdornment: <InputAdornment position="end">$/hour</InputAdornment>,
+                          slotProps={{
+                            input: {endAdornment: <InputAdornment position="end">$/hour</InputAdornment>},
                           }}
                         />
                       </Tooltip>
@@ -921,8 +925,8 @@ const Routing = React.memo((props) => {
                         variant="outlined"
                         value={planeBonus}
                         onChange={(evt) => setPlaneBonus(evt.target.value.replace(/[^0-9]/g, ''))}
-                        InputProps={{
-                          endAdornment: <InputAdornment position="end">$/</InputAdornment>,
+                        slotProps={{
+                          input: {endAdornment: <InputAdornment position="end">$</InputAdornment>},
                         }}
                       />
                     </Grid>
@@ -1031,8 +1035,8 @@ const Routing = React.memo((props) => {
                       value={minLoad}
                       onChange={(evt) => setMinLoad(evt.target.value.replace(/[^0-9]/g, ''))}
                       required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                      slotProps={{
+                        input: {endAdornment: <InputAdornment position="end">%</InputAdornment>},
                       }}
                     />
                   </Tooltip>
@@ -1060,12 +1064,29 @@ const Routing = React.memo((props) => {
                       value={maxEmptyLeg}
                       onChange={(evt) => setMaxEmptyLeg(evt.target.value.replace(/[^0-9]/g, ''))}
                       required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                      slotProps={{
+                        input: {endAdornment: <InputAdornment position="end">NM</InputAdornment>},
                       }}
                     />
                   </Tooltip>
                 </Grid>
+                <Grid size={6}>
+                  <Tooltip title="Minimum distance of legs with cargo/pax.">
+                    <TextField
+                      label="Min distance of legs"
+                      variant="outlined"
+                      placeholder="2"
+                      value={minDistLeg}
+                      onChange={(evt) => setMinDistLeg(evt.target.value.replace(/[^0-9]/g, ''))}
+                      required
+                      slotProps={{
+                        input: {endAdornment: <InputAdornment position="end">NM</InputAdornment>},
+                      }}
+                    />
+                  </Tooltip>
+                </Grid>
+              </Grid>
+              <Grid container spacing={1} style={{marginTop:12}}>
                 <Grid size={6}>
                   <Tooltip title="Adjust this setting if Route Finder is crashing">
                     <TextField
@@ -1097,8 +1118,8 @@ const Routing = React.memo((props) => {
                       value={idleTime}
                       onChange={(evt) => setIdleTime(evt.target.value.replace(/[^0-9]/g, ''))}
                       required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">min</InputAdornment>,
+                      slotProps={{
+                        input: {endAdornment: <InputAdornment position="end">min</InputAdornment>},
                       }}
                     />
                   </Tooltip>
@@ -1112,8 +1133,8 @@ const Routing = React.memo((props) => {
                       value={overheadLength}
                       onChange={(evt) => setOverheadLength(evt.target.value.replace(/[^0-9]/g, ''))}
                       required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                      slotProps={{
+                        input: {endAdornment: <InputAdornment position="end">%</InputAdornment>},
                       }}
                     />
                   </Tooltip>
@@ -1129,8 +1150,8 @@ const Routing = React.memo((props) => {
                       value={approachLength}
                       onChange={(evt) => setApproachLength(evt.target.value.replace(/[^0-9]/g, ''))}
                       required
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">NM</InputAdornment>,
+                      slotProps={{
+                        input: {endAdornment: <InputAdornment position="end">NM</InputAdornment>},
                       }}
                     />
                   </Tooltip>
@@ -1269,7 +1290,7 @@ const Routing = React.memo((props) => {
               onClick={startSearch}
               disabled={
                 !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
-                         || overheadLength === '' || approachLength === '' || maxEmptyLeg === ''
+                         || overheadLength === '' || approachLength === '' || maxEmptyLeg === '' || minDistLeg === ''
                          || (type === "free" && (!fromIcao || !maxPax || !maxCargo || !maxKg || !speed || !consumption || !fuelCapacity || !aircraftSpecsModel))
                          || (type === "rent" && (!availableModels.length))
               }

@@ -46,8 +46,8 @@ function Setting({xs, setting, s, setS, end, ...props}) {
           _set(obj, setting, evt.target.value)
           setS(obj);
         }}
-        InputProps={{
-          endAdornment: end ? <InputAdornment position="end">{end}</InputAdornment> : null,
+        slotProps={{
+          input: {endAdornment: end ? <InputAdornment position="end">{end}</InputAdornment> : null}
         }}
       />
     </Grid>
@@ -363,6 +363,7 @@ function SettingsPopup(props) {
                 <Setting s={s} setS={setS} label="Min plane load" setting='routeFinder.minLoad' xs={6} end="%" helperText="Try to always keep the plane at least this full." />
                 <Setting s={s} setS={setS} label="Max bad legs" setting='routeFinder.maxBadLegs' xs={6} helperText="Number of possible legs bellow the minimum plane load." />
                 <Setting s={s} setS={setS} label="Max empty legs" setting='routeFinder.maxEmptyLeg' xs={6} end="NM" helperText="Maximum length of entirely empty legs (no cargo/pax at all). Do not set this too high, it quickly becomes very computer intensive."/>
+                <Setting s={s} setS={setS} label="Max empty legs" setting='routeFinder.minDistLeg' xs={6} end="NM" helperText="Minimum distance of legs with cargo/pax."/>
                 <SettingSelect s={s} setS={setS} label="Memory usage" setting='routeFinder.memory' xs={6} options={memoryOptions} helperText="Adjust this setting if Route Finder is crashing" />
               </Grid>
               <Typography variant="body1" sx={{ my: 3 }}>Route parameters:</Typography>
