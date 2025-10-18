@@ -116,6 +116,18 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.19.5 (2025-10-18)</Typography>
+            <Typography variant="h6">Added</Typography>
+            <List dense>
+              <ListItem>New Route Finder option to exclude short distance legs ("Min distance of legs" in "More options...")</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE aircraft list (added Beechcraft Starship 2000A - <IssueLink id={200} /> by AndyReifman, thanks!)</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+          </Paper>
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.19.4 (2025-03-16)</Typography>
             <Typography variant="h6">Fixed</Typography>
             <List dense>
@@ -886,6 +898,7 @@ function CreditsPopup(props) {
               <ListItem>jsilva74 (contributor)</ListItem>
               <ListItem>jonaseberle (contributor)</ListItem>
               <ListItem>machouinard (contributor)</ListItem>
+              <ListItem>AndyReifman (contributor)</ListItem>
             </List>
           </Paper>
 
