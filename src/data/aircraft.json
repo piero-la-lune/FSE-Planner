@@ -575,6 +575,15 @@
     "fuelType": 1,
     "maxKg": 1011
   },
+  "Beechcraft Starship 2000a": {
+    "maxPax": 8,
+    "maxCargo": 2108,
+    "fuelCapacity": 564,
+    "speed": 315,
+    "GPH": 140,
+    "fuelType": 1,
+    "maxKg": 2108
+  },
   "Beechcraft T-34 Mentor": {
     "maxPax": 1,
     "maxCargo": 305,
