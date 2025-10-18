@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.5] - 2025-10-18
+
+### Added
+- New Route Finder option to exclude short distance legs ("Min distance of legs" in "More options...")
+
+### Changed
+- Updated FSE aircraft list (added Beechcraft Starship 2000A) (#200 by AndyReifman)
+- Updated project dependencies
+
+
+
 ## [1.19.4] - 2025-03-16
 
 ### Fix

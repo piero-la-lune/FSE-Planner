@@ -46,77 +46,74 @@ function filterText(sortBy, result) {
 
 // List of results
 const List = React.memo(({results, showDetail, goTo, setRoute, nbDisplay, sortBy}) => {
-  return (
-    results.slice(0, nbDisplay).map(result =>
-      <Box
+  return (results.slice(0, nbDisplay).map(result =>
+    <Box
+      sx={{
+        padding: 3,
+        borderBottom: "1px solid #eee",
+        cursor: "pointer",
+        "&:hover": {
+          background: "#f9f9f9"
+        },
+        position: "relative"
+      }}
+      key={result.id}
+      onClick={() => showDetail(result)}
+      onMouseEnter={() => setRoute(result)}
+    >
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize="small" />}
         sx={{
-          padding: 3,
-          borderBottom: "1px solid #eee",
-          cursor: "pointer",
-          "&:hover": {
-            background: "#f9f9f9"
-          },
-          position: "relative"
+          '& .MuiBreadcrumbs-separator': {
+            marginLeft: '1px',
+            marginRight: '1px'
+          }
         }}
-        key={result.id}
-        onClick={() => showDetail(result)}
-        onMouseEnter={() => setRoute(result)}
+        maxItems={5}
+        itemsBeforeCollapse={3}
+        onClick={(evt) => {
+          // Show all ICAOs and do not display the result details when clicking the ... button
+          if (evt.target.closest('button')) {
+            evt.stopPropagation();
+          }
+        }}
       >
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          sx={{
-            '& .MuiBreadcrumbs-separator': {
-              marginLeft: '1px',
-              marginRight: '1px'
-            }
-          }}
-          maxItems={5}
-          itemsBeforeCollapse={3}
-          onClick={(evt) => {
-            // Show all ICAOs and do not display the result details when clicking the ... button
-            if (evt.target.closest('button')) {
+        {result.icaos.map((icao, i) =>
+          <Link
+            href="#"
+            onClick={evt => {
               evt.stopPropagation();
-            }
-          }}
-        >
-          {result.icaos.map((icao, i) =>
-            <Link
-              href="#"
-              onClick={evt => {
-                evt.stopPropagation();
-                evt.preventDefault();
-                goTo(icao)
-              }}
-              key={i}
-            >{icao}</Link>
-          )}
-        </Breadcrumbs>
-        <Grid container spacing={1} sx={{ mt: 1, ml: -2 }}>
-          <Grid item xs={4}>
-            <Typography variant="body2" sx={styles.gridText}><AttachMoneyIcon sx={styles.icon} />{result.pay}</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="body2" sx={styles.gridText}><SettingsEthernetIcon sx={styles.icon} />{result.distance} NM</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="body2" sx={styles.gridText}><AccessTimeIcon sx={styles.icon} />{result.time}</Typography>
-          </Grid>
+              evt.preventDefault();
+              goTo(icao)
+            }}
+            key={i}
+          >{icao}</Link>
+        )}
+      </Breadcrumbs>
+      <Grid container spacing={1} sx={{ mt: 1, ml: -2 }}>
+        <Grid size={4}>
+          <Typography variant="body2" sx={styles.gridText}><AttachMoneyIcon sx={styles.icon} />{result.pay}</Typography>
         </Grid>
-        <Typography
-          variant="body2"
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            color: "#aaa",
-            fontSize: "0.8em"
-          }}
-        >
-          {filterText(sortBy, result)}
-        </Typography>
-      </Box>
-    )
-  );
+        <Grid size={4}>
+          <Typography variant="body2" sx={styles.gridText}><SettingsEthernetIcon sx={styles.icon} />{result.distance} NM</Typography>
+        </Grid>
+        <Grid size={4}>
+          <Typography variant="body2" sx={styles.gridText}><AccessTimeIcon sx={styles.icon} />{result.time}</Typography>
+        </Grid>
+      </Grid>
+      <Typography
+        variant="body2"
+        sx={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          color: "#aaa",
+          fontSize: "0.8em"
+        }}
+      >
+        {filterText(sortBy, result)}
+      </Typography>
+    </Box>));
 });
 
 
@@ -251,7 +248,7 @@ const Results = React.memo((props) => {
           >
             <Typography variant="body1" sx={{ mb: 2 }}>Route filters:</Typography>
             <Grid container spacing={1}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="Min distance"
                   variant="outlined"
@@ -267,7 +264,7 @@ const Results = React.memo((props) => {
                   sx={styles.filtersInput}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="Max distance"
                   variant="outlined"
@@ -283,7 +280,7 @@ const Results = React.memo((props) => {
                   sx={styles.filtersInput}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="Min duration"
                   variant="outlined"
@@ -302,7 +299,7 @@ const Results = React.memo((props) => {
                   sx={styles.filtersInput}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="Max duration"
                   variant="outlined"
@@ -321,7 +318,7 @@ const Results = React.memo((props) => {
                   sx={styles.filtersInput}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="Min pay"
                   variant="outlined"
@@ -337,7 +334,7 @@ const Results = React.memo((props) => {
                   sx={styles.filtersInput}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="Max pay"
                   variant="outlined"
@@ -353,7 +350,7 @@ const Results = React.memo((props) => {
                   sx={styles.filtersInput}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <IcaoSearch
                   options={props.icaodataArr}
                   label="Include ICAO(s)"
@@ -389,7 +386,7 @@ const Results = React.memo((props) => {
                   multiple
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <IcaoSearch
                   options={props.icaodataArr}
                   label="Exclude ICAO(s)"
@@ -497,7 +494,7 @@ const Results = React.memo((props) => {
         />
       </Box>
     </Box>
-  )
+  );
 });
 
 export default Results;

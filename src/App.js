@@ -103,6 +103,7 @@ const defaultSettings = {
     minLoad: 80,
     maxBadLegs: 2,
     maxEmptyLeg: 20,
+    minDistLeg: 0,
     idleTime: 2,
     fees: ['Ground', 'Booking', 'Rental', 'Fuel'],
     jobsType: ['pax-sys', 'pax-trip', 'pax-vip', 'cargo-sys', 'cargo-vip'],
@@ -659,7 +660,7 @@ function App() {
               options={searchOptions}
               getOptionLabel={(a) => a.icao ? (a.from ? a.from + ' > ' + a.icao : a.icao) : a.gps ? formatGPSCoord(a.lat, a.lng) : ''}
               renderOption={(props, a) =>
-                <li {...props}>
+                <li {...props} key={props.key}>
                   <Box
                     component="span"
                     sx={{

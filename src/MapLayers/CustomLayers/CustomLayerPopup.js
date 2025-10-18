@@ -397,15 +397,15 @@ function CustomLayerPopup(props) {
         { step === 1 && type === 'gps' &&
           <Box>
             <Grid container spacing={3}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <Typography variant="h6">GPS points</Typography>
                 <Typography variant="body2">Enter in the field below the GPS points you would like to display on the map. For each point, you need to specify its latitude, its longitude, and an optional label.</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <Typography variant="h6">Connections</Typography>
                 <Typography variant="body2">Enter in the field below the connections between two GPS points you would like to display on the map (to draw a route). Only IDs (first GPS point has ID 0, second has ID 1, etc.) of GPS points specified on the left field are accepted.</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="GPS points"
                   multiline
@@ -424,7 +424,7 @@ function CustomLayerPopup(props) {
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="List of connections"
                   multiline
@@ -473,15 +473,15 @@ function CustomLayerPopup(props) {
               </Button>
             </Box>
             <Grid container spacing={3}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <Typography variant="h6">FSE Airports</Typography>
                 <Typography variant="body2">Enter in the field below the airport ICAOs you would like to display on the map. Only valid FSE ICAOs are accepted.</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <Typography variant="h6">Connections</Typography>
                 <Typography variant="body2">Enter in the field below the connections between two airports you would like to display on the map (to draw a route or a FBO network for instance). Only valid FSE ICAOs are accepted.</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="List of FSE ICAOs"
                   multiline
@@ -500,7 +500,7 @@ EGLL
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   label="List of connections"
                   multiline

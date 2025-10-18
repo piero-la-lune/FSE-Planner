@@ -845,7 +845,7 @@ function UpdatePopup(props) {
             </AccordionSummary>
             <AccordionDetails sx={styles.accDetails}>
               <Grid container spacing={3}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <TextField
                     label="Read Access Key"
                     type="text"
@@ -861,7 +861,7 @@ function UpdatePopup(props) {
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <TextField
                     label="Username"
                     type="text"
@@ -883,13 +883,13 @@ function UpdatePopup(props) {
           <Accordion expanded={expanded === 'panel2'} onChange={panelChange('panel2')} data-tour="Step5">
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
               <Typography sx={styles.title}>Jobs {jobsNb > 0 && <Chip label={jobsNb} color="primary" size="small" component="span" sx={styles.chip} />}</Typography>
-              <Button color="secondary" onClick={clearJobs}>
+              <Button color="secondary" onClick={clearJobs} component="span">
                 Clear
               </Button>
               &nbsp;
               <Tooltip title={<span>Last update : {jobsTime ? ((new Date(jobsTime)).toLocaleString()) : "never"}</span>}>
                 <span>
-                  <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading !== false || !key || (!jobsAreas.length && !jobsLayers.length) || jobsRequests > 10}>
+                  <Button variant="contained" color="primary" onClick={updateJobs} disabled={loading !== false || !key || (!jobsAreas.length && !jobsLayers.length) || jobsRequests > 10} component="span">
                     Update
                     {loading === 'panel2' && <CircularProgress size={24} sx={styles.buttonProgress} />}
                   </Button>
@@ -924,7 +924,7 @@ function UpdatePopup(props) {
                 clearOnBlur
                 handleHomeEndKeys
                 renderOption={(props, option) => (
-                  <li {...props}>
+                  <li {...props} key={option}>
                     { option === 'Custom area' ?
                       <Box
                         component="span"
@@ -1007,13 +1007,13 @@ function UpdatePopup(props) {
           <Accordion expanded={expanded === 'panel3'} onChange={panelChange('panel3')} data-tour="Step6">
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
               <Typography sx={styles.title}>Available planes {planesNb > 0 && <Chip label={planesNb} color="primary" size="small" component="span" sx={styles.chip} />}</Typography>
-              <Button color="secondary" onClick={clearPlanes}>
+              <Button color="secondary" onClick={clearPlanes} component="span">
                 Clear
               </Button>
               &nbsp;
               <Tooltip title={<span>Last update : {planesTime ? ((new Date(planesTime)).toLocaleString()) : "never"}</span>}>
                 <span>
-                  <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading !== false || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10}>
+                  <Button variant="contained" color="primary" onClick={updatePlanes} disabled={loading !== false || !key || (!planeModel.length && !planeUser.length) || rentablePlanesRequests + ownedPlanesRequests > 10} component="span">
                     Update
                     {loading === 'panel3' && <CircularProgress size={24} sx={styles.buttonProgress} />}
                   </Button>
@@ -1062,13 +1062,13 @@ function UpdatePopup(props) {
           <Accordion expanded={expanded === 'panel4'} onChange={panelChange('panel4')}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={styles.accSummary}>
               <Typography sx={styles.title}>My assignments {flightNb > 0 && <Chip label={flightNb} color="primary" size="small" component="span" sx={styles.chip} />}</Typography>
-              <Button color="secondary" onClick={clearFlight}>
+              <Button color="secondary" onClick={clearFlight} component="span">
                 Clear
               </Button>
               &nbsp;
               <Tooltip title={<span>Last update : {flightTime ? ((new Date(flightTime)).toLocaleString()) : "never"}</span>}>
                 <span>
-                  <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading !== false || !key}>
+                  <Button variant="contained" color="primary" onClick={updateFlight} disabled={loading !== false || !key} component="span">
                     Update
                     {loading === 'panel4' && <CircularProgress size={24} sx={styles.buttonProgress} />}
                   </Button>

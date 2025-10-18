@@ -575,6 +575,15 @@
     "fuelType": 1,
     "maxKg": 1011
   },
+  "Beechcraft Starship 2000A": {
+    "maxPax": 8,
+    "maxCargo": 2108,
+    "fuelCapacity": 564,
+    "speed": 315,
+    "GPH": 140,
+    "fuelType": 1,
+    "maxKg": 2108
+  },
   "Beechcraft T-34 Mentor": {
     "maxPax": 1,
     "maxCargo": 305,
@@ -708,7 +717,7 @@
     "speed": 176,
     "GPH": 12,
     "fuelType": 0,
-    "maxKg": 265
+    "maxKg": 489
   },
   "Beriev BE-103": {
     "maxPax": 5,
@@ -1280,11 +1289,11 @@
   "Cirrus SR22 G2": {
     "maxPax": 3,
     "maxCargo": 445,
-    "fuelCapacity": 80,
-    "speed": 200,
-    "GPH": 10,
+    "fuelCapacity": 92,
+    "speed": 180,
+    "GPH": 12,
     "fuelType": 0,
-    "maxKg": 445
+    "maxKg": 450
   },
   "Cirrus Vision SF50": {
     "maxPax": 4,
@@ -1442,7 +1451,7 @@
   "DeHavilland Dash 7": {
     "maxPax": 52,
     "maxCargo": 7047,
-    "fuelCapacity": 1462,
+    "fuelCapacity": 1460,
     "speed": 230,
     "GPH": 300,
     "fuelType": 1,
@@ -3532,7 +3541,7 @@
     "maxCargo": 397,
     "fuelCapacity": 48,
     "speed": 120,
-    "GPH": 18,
+    "GPH": 11,
     "fuelType": 0,
     "maxKg": 397
   },
