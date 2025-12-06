@@ -39009,7 +39009,7 @@
   "1VA5": {
     "lat": 37.2704,
     "lon": -76.3927,
-    "type": "civil",
+    "type": "water",
     "size": 2256,
     "name": "Hoffman's Farm",
     "city": "Severn",
@@ -134298,8 +134298,8 @@
     "lon": -95.8983,
     "type": "civil",
     "size": 1091,
-    "name": "Air Rice",
-    "city": "Katy",
+    "name": "Houston Executive",
+    "city": "Brookshire",
     "state": "Texas",
     "country": "United States",
     "icao": "78TX",
@@ -169524,8 +169524,8 @@
       "9WA3",
       "KNET"
     ],
-    "surface": 8,
-    "runway": 7170,
+    "surface": 4,
+    "runway": 3750,
     "fsx": [
       "9WA3"
     ],
@@ -171776,7 +171776,7 @@
     "type": "civil",
     "size": 1128,
     "name": "Dog Fish Bay",
-    "city": "Anchorage",
+    "city": "Nanwalek",
     "state": "Alaska",
     "country": "United States",
     "icao": "AK07",
@@ -182576,7 +182576,7 @@
     "msfs": [
       null
     ],
-    "surface": 6,
+    "surface": 4,
     "runway": 4999,
     "fsx": [
       "CBJ6"
@@ -189852,7 +189852,7 @@
     "msfs": [
       null
     ],
-    "surface": 6,
+    "surface": 3,
     "runway": 3449,
     "fsx": [
       "CJQ9"
@@ -230983,9 +230983,9 @@
   "EGDG": {
     "lat": 50.4406,
     "lon": -4.99541,
-    "type": "military",
+    "type": "civil",
     "size": 6000,
-    "name": "St Mawgan AB",
+    "name": "Cornwall Airport Newquay",
     "city": "St Mawgan",
     "state": "",
     "country": "United Kingdom",
@@ -248199,7 +248199,7 @@
     "lon": -101.661,
     "type": "civil",
     "size": 1158,
-    "name": "Slaton Mun",
+    "name": "Larry T. Neal Memorial",
     "city": "Slaton",
     "state": "Texas",
     "country": "United States",
@@ -255715,7 +255715,7 @@
     "msfs": [
       null
     ],
-    "surface": 6,
+    "surface": 3,
     "runway": 1968,
     "fsx": [
       "FCPE"
@@ -306795,8 +306795,8 @@
     "lon": -105.117,
     "type": "civil",
     "size": 5970,
-    "name": "Jeffco",
-    "city": "Denver",
+    "name": "Rocky Mountain Metropolitain",
+    "city": "Broomfield",
     "state": "Colorado",
     "country": "United States",
     "icao": "KBJC",
@@ -346411,7 +346411,7 @@
     "lon": -113.593,
     "type": "civil",
     "size": 1939,
-    "name": "St George Mun",
+    "name": "St George Regional",
     "city": "St George",
     "state": "Utah",
     "country": "United States",
@@ -411563,7 +411563,7 @@
   "MY86": {
     "lat": 45.1508,
     "lon": -93.74,
-    "type": "civil",
+    "type": "water",
     "size": 1585,
     "name": "Johnson",
     "city": "Rockford",
@@ -464182,7 +464182,7 @@
   "RJTX": {
     "lat": 35.2914,
     "lon": 139.676,
-    "type": "water",
+    "type": "civil",
     "size": 999,
     "name": "Yokosuka Heliport",
     "city": "Yokosuka",
@@ -482697,9 +482697,9 @@
   "SBNT": {
     "lat": -5.90833,
     "lon": -35.2492,
-    "type": "civil",
+    "type": "military",
     "size": 5889,
-    "name": "Augusto Severo Intl",
+    "name": "Natal Air Force Base",
     "city": "Natal",
     "state": "",
     "country": "Brazil",
@@ -490862,7 +490862,7 @@
     "lon": -47.3822,
     "type": "civil",
     "size": 1100,
-    "name": "Leme",
+    "name": "Yolanda Penteado",
     "city": "Leme",
     "state": "",
     "country": "Brazil",
@@ -503547,7 +503547,7 @@
       "SSOT"
     ],
     "surface": 6,
-    "runway": 5380,
+    "runway": 0,
     "fsx": [
       "SNRA"
     ],
@@ -505337,7 +505337,7 @@
       null
     ],
     "surface": 6,
-    "runway": 3280,
+    "runway": 0,
     "fsx": [
       "SPAM"
     ],
@@ -505360,7 +505360,7 @@
       null
     ],
     "surface": 6,
-    "runway": 3542,
+    "runway": 0,
     "fsx": [
       "SPAP"
     ],
@@ -505577,7 +505577,7 @@
       null
     ],
     "surface": 6,
-    "runway": 3815,
+    "runway": 0,
     "fsx": [
       "SPCP"
     ],
@@ -505911,7 +505911,7 @@
       null,
       "SPMF"
     ],
-    "surface": 6,
+    "surface": 1,
     "runway": 3871,
     "fsx": [
       "SPIP",
@@ -505987,7 +505987,7 @@
       "SPCH"
     ],
     "surface": 6,
-    "runway": 3444,
+    "runway": 0,
     "fsx": [
       "SPIZ"
     ],
@@ -506373,7 +506373,7 @@
     "msfs": [
       null
     ],
-    "surface": 6,
+    "surface": 3,
     "runway": 7545,
     "fsx": [
       "SPNP"
@@ -509372,7 +509372,7 @@
       "SJCQ",
       "SNJH"
     ],
-    "surface": 6,
+    "surface": 4,
     "runway": 3280,
     "fsx": [
       "SSQN"
@@ -513817,7 +513817,7 @@
       "SLCM"
     ],
     "surface": 6,
-    "runway": 3280,
+    "runway": 0,
     "fsx": [
       "SWBS"
     ],
@@ -517196,7 +517196,7 @@
     "msfs": [
       null
     ],
-    "surface": 6,
+    "surface": 3,
     "runway": 3499,
     "fsx": [
       "SYKK"
@@ -569838,8 +569838,8 @@
     "lon": 153.505,
     "type": "civil",
     "size": 2630,
-    "name": "Coolangatta",
-    "city": "Coolangatta",
+    "name": "Gold Coast",
+    "city": "Bilinga",
     "state": "Queensland",
     "country": "Australia",
     "icao": "YBCG",
@@ -570444,7 +570444,7 @@
     "lon": 153.091,
     "type": "civil",
     "size": 2454,
-    "name": "Maroochydore/Sunshine Coast",
+    "name": "Sunshine Coast Airport",
     "city": "Maroochydore",
     "state": "Queensland",
     "country": "Australia",
@@ -571334,7 +571334,7 @@
     "lon": 149.267,
     "type": "civil",
     "size": 2169,
-    "name": "Connabarabran",
+    "name": "Coonabarabran",
     "city": "Coonabarabran",
     "state": "New South Wales",
     "country": "Australia",
@@ -574014,7 +574014,7 @@
     "size": 2119,
     "name": "Hillston",
     "city": "Hillston",
-    "state": "Queensland",
+    "state": "New South Wales",
     "country": "Australia",
     "icao": "YHLS",
     "msfs": [
@@ -579961,7 +579961,7 @@
     "size": 1098,
     "name": "Tumby Bay",
     "city": "Tumby Bay",
-    "state": "Western Australia",
+    "state": "South Australia",
     "country": "Australia",
     "icao": "YTBB",
     "msfs": [
@@ -581301,7 +581301,7 @@
   "YXFV": {
     "lat": -32.9204,
     "lon": 151.73,
-    "type": "water",
+    "type": "civil",
     "size": 999,
     "name": "Newcastle Westpac Base",
     "city": "Newcastle Westpac Base",
@@ -581327,7 +581327,7 @@
   "YXMW": {
     "lat": -32.1434,
     "lon": 150.361,
-    "type": "water",
+    "type": "civil",
     "size": 999,
     "name": "Merriwa Hospital",
     "city": "Merriwa",
@@ -581355,7 +581355,7 @@
   "YXWL": {
     "lat": -34.4242,
     "lon": 150.882,
-    "type": "water",
+    "type": "civil",
     "size": 999,
     "name": "Wollongong Hospital",
     "city": "Wollongong",
@@ -586452,7 +586452,7 @@
     "lon": 104.432,
     "type": "civil",
     "size": 2399,
-    "name": "Dalanzadgad",
+    "name": "Gurvansaikhan",
     "city": "Dalanzadgad",
     "state": "",
     "country": "Mongolia",
