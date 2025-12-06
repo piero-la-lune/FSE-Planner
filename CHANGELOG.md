@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.6] - 2025-12-06
+
+### Changed
+- Changed X-Plane data: X-Plane 11.55 data has been replaced by X-Plane 12.3 (#202 by jonaseberle)
+- Updated airport database to take into account FSE 2025/11/29 update
+- Updated FSE aircraft list (added Piper PA-60 Aerostar 600 (A2A), Bell 206L Long Ranger)
+- Updated project dependencies
+
+
+
 ## [1.19.5] - 2025-10-18
 
 ### Added
