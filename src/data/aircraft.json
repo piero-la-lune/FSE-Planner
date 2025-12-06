@@ -53,6 +53,15 @@
     "fuelType": 1,
     "maxKg": 715
   },
+  "Agusta Westland AW109SP (X-Trident)": {
+    "maxPax": 7,
+    "maxCargo": 1048,
+    "fuelCapacity": 215,
+    "speed": 158,
+    "GPH": 60,
+    "fuelType": 1,
+    "maxKg": 1048
+  },
   "Agusta Westland AW139": {
     "maxPax": 15,
     "maxCargo": 1846,
@@ -61,15 +70,6 @@
     "GPH": 150,
     "fuelType": 1,
     "maxKg": 1846
-  },
-  "Agusta Westwind AW109SP (X-Trident)": {
-    "maxPax": 7,
-    "maxCargo": 1048,
-    "fuelCapacity": 215,
-    "speed": 158,
-    "GPH": 60,
-    "fuelType": 1,
-    "maxKg": 1048
   },
   "Airbus A320": {
     "maxPax": 149,
@@ -619,6 +619,15 @@
     "GPH": 29,
     "fuelType": 1,
     "maxKg": 576
+  },
+  "Bell 206L Long Ranger": {
+    "maxPax": 6,
+    "maxCargo": 807,
+    "fuelCapacity": 119,
+    "speed": 115,
+    "GPH": 37,
+    "fuelType": 1,
+    "maxKg": 807
   },
   "Bell 206L RTW N3911Z": {
     "maxPax": 1,
@@ -1658,7 +1667,7 @@
   "Diamond DA62": {
     "maxPax": 6,
     "maxCargo": 752,
-    "fuelCapacity": 98,
+    "fuelCapacity": 88,
     "speed": 172,
     "GPH": 17,
     "fuelType": 1,
@@ -3022,6 +3031,15 @@
     "GPH": 42,
     "fuelType": 0,
     "maxKg": 695
+  },
+  "Piper PA-60 Aerostar 600 (A2A)": {
+    "maxPax": 5,
+    "maxCargo": 760,
+    "fuelCapacity": 165,
+    "speed": 212,
+    "GPH": 26,
+    "fuelType": 0,
+    "maxKg": 760
   },
   "Progressive Aerodyne SeaRey RTW": {
     "maxPax": 1,
