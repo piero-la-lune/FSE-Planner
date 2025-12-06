@@ -116,6 +116,16 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.19.6 (2025-12-06)</Typography>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Changed X-Plane data: X-Plane 11.55 data has been replaced by X-Plane 12.3 (<IssueLink id={202} /> by jonaseberle)</ListItem>
+              <ListItem>Updated airport database to take into account FSE 2025/11/29 update</ListItem>
+              <ListItem>Updated FSE aircraft list (added Piper PA-60 Aerostar 600 (A2A), Bell 206L Long Ranger)</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+          </Paper>
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.19.5 (2025-10-18)</Typography>
             <Typography variant="h6">Added</Typography>
             <List dense>
