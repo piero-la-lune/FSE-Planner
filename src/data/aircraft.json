@@ -427,7 +427,7 @@
     "maxCargo": 705,
     "fuelCapacity": 142,
     "speed": 192,
-    "GPH": 28,
+    "GPH": 26,
     "fuelType": 0,
     "maxKg": 705
   },
@@ -436,7 +436,7 @@
     "maxCargo": 705,
     "fuelCapacity": 202,
     "speed": 192,
-    "GPH": 28,
+    "GPH": 26,
     "fuelType": 0,
     "maxKg": 705
   },
@@ -773,6 +773,15 @@
     "fuelType": 0,
     "maxKg": 28196
   },
+  "Boeing 707-320": {
+    "maxPax": 142,
+    "maxCargo": 0,
+    "fuelCapacity": 23855,
+    "speed": 450,
+    "GPH": 1900,
+    "fuelType": 1,
+    "maxKg": 83973
+  },
   "Boeing 727-100/200": {
     "maxPax": 134,
     "maxCargo": 30325,
@@ -783,13 +792,13 @@
     "maxKg": 31249
   },
   "Boeing 737-800": {
-    "maxPax": 161,
+    "maxPax": 160,
     "maxCargo": 28389,
     "fuelCapacity": 6875,
     "speed": 435,
     "GPH": 700,
     "fuelType": 1,
-    "maxKg": 29313
+    "maxKg": 29005
   },
   "Boeing 747-400": {
     "maxPax": 416,
@@ -938,7 +947,7 @@
   "Britten Norman BN-2A Mk3-3 Trislander": {
     "maxPax": 15,
     "maxCargo": 1974,
-    "fuelCapacity": 136,
+    "fuelCapacity": 190,
     "speed": 145,
     "GPH": 45,
     "fuelType": 0,
@@ -1425,10 +1434,19 @@
     "maxPax": 9,
     "maxCargo": 500,
     "fuelCapacity": 2295,
-    "speed": 450,
+    "speed": 470,
     "GPH": 433,
     "fuelType": 1,
     "maxKg": 8360
+  },
+  "Dassault Falcon 50 (Contrail)": {
+    "maxPax": 9,
+    "maxCargo": 500,
+    "fuelCapacity": 2315,
+    "speed": 470,
+    "GPH": 400,
+    "fuelType": 1,
+    "maxKg": 8306
   },
   "Dassault Falcon 7X": {
     "maxPax": 14,
@@ -1660,7 +1678,7 @@
     "maxCargo": 461,
     "fuelCapacity": 78,
     "speed": 161,
-    "GPH": 10,
+    "GPH": 7,
     "fuelType": 1,
     "maxKg": 461
   },
@@ -1681,6 +1699,15 @@
     "GPH": 95,
     "fuelType": 1,
     "maxKg": 2988
+  },
+  "Dornier 228-100 (MSFS)": {
+    "maxPax": 13,
+    "maxCargo": 2126,
+    "fuelCapacity": 630,
+    "speed": 210,
+    "GPH": 86,
+    "fuelType": 1,
+    "maxKg": 2126
   },
   "Dornier 328": {
     "maxPax": 31,
@@ -1898,6 +1925,15 @@
     "fuelType": 1,
     "maxKg": 3142
   },
+  "Epic Aircraft Epic E1000-G (Aerobask)": {
+    "maxPax": 5,
+    "maxCargo": 1466,
+    "fuelCapacity": 290,
+    "speed": 310,
+    "GPH": 55,
+    "fuelType": 1,
+    "maxKg": 1466
+  },
   "ERCO Ercoupe 415-C": {
     "maxPax": 1,
     "maxCargo": 156,
@@ -1929,8 +1965,8 @@
     "maxPax": 12,
     "maxCargo": 1823,
     "fuelCapacity": 306,
-    "speed": 145,
-    "GPH": 155,
+    "speed": 120,
+    "GPH": 75,
     "fuelType": 1,
     "maxKg": 1823
   },
@@ -2753,6 +2789,15 @@
     "fuelType": 0,
     "maxKg": 580
   },
+  "Piaggio P180 Avanti (FFX)": {
+    "maxPax": 8,
+    "maxCargo": 1761,
+    "fuelCapacity": 418,
+    "speed": 340,
+    "GPH": 119,
+    "fuelType": 1,
+    "maxKg": 1761
+  },
   "Pilatus PC-12": {
     "maxPax": 10,
     "maxCargo": 1818,
@@ -3397,7 +3442,7 @@
     "maxCargo": 1195,
     "fuelCapacity": 300,
     "speed": 310,
-    "GPH": 64,
+    "GPH": 58,
     "fuelType": 1,
     "maxKg": 1195
   },
@@ -3521,7 +3566,7 @@
   "Vans RV-7/7A": {
     "maxPax": 1,
     "maxCargo": 244,
-    "fuelCapacity": 42,
+    "fuelCapacity": 50,
     "speed": 180,
     "GPH": 12,
     "fuelType": 0,
@@ -3595,7 +3640,7 @@
     "maxCargo": 386,
     "fuelCapacity": 9,
     "speed": 70,
-    "GPH": 51,
+    "GPH": 1,
     "fuelType": 0,
     "maxKg": 386
   },
