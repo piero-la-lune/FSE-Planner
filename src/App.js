@@ -4,13 +4,11 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Button from '@mui/material/Button';
-import InputBase from '@mui/material/InputBase';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
-import IconButton from '@mui/material/IconButton';
 import Popper from '@mui/material/Popper';
 import UpdateIcon from '@mui/icons-material/Update';
-import CloseIcon from '@mui/icons-material/Close';
 import TuneIcon from '@mui/icons-material/Tune';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
@@ -167,12 +165,15 @@ const styles = {
     }
   },
   inputSearch: {
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-    color: "#fff",
-    borderRadius: 1,
-    paddingLeft: 1,
-    paddingTop: 0.5,
-    paddingBottom: 0.5,
+    '& .MuiInputBase-input': {
+      backgroundColor: "rgba(0, 0, 0, 0.2)",
+      color: "#fff",
+      borderRadius: 1,
+      paddingLeft: 1,
+      paddingTop: 0.5,
+      paddingBottom: 0.5,
+    },
+    "& fieldset": { border: 'none' },
     width: {
       xs: "100px",
       lg: "300px",
@@ -745,27 +746,10 @@ function App() {
               }
               filterOptions={x => x}
               renderInput={(params) =>
-                <InputBase
+                <TextField
                   placeholder="Search..."
                   sx={styles.inputSearch}
-                  ref={params.InputProps.ref}
-                  inputProps={params.inputProps}
-                  endAdornment={params.inputProps.value ?
-                      <IconButton
-                        size="small"
-                        onClick={() => {
-                          setSearchDest(null);
-                          setSearch(null);
-                          setSearchGps(null);
-                          setSearchInput('');
-                          window.history.replaceState(null, '', '?');
-                        }}
-                      >
-                        <CloseIcon />
-                      </IconButton>
-                    :
-                      null
-                  }
+                  {...params}
                 />
               }
               isOptionEqualToValue={(option, value) => {
@@ -781,7 +765,18 @@ function App() {
               }}
               value={search ? (searchDest ? searchDestRef.current : icaodataSrc[search]) : searchGps ? searchGps : null}
               inputValue={searchInput}
-              onInputChange={(evt, value) => setSearchInput(value)}
+              onInputChange={(evt, value, reason) => {
+                if (reason === 'clear') {
+                  setSearchDest(null);
+                  setSearch(null);
+                  setSearchGps(null);
+                  setSearchInput('');
+                  window.history.replaceState(null, '', '?');
+                }
+                else {
+                  setSearchInput(value);
+                }
+              }}
               autoHighlight={true}
               selectOnFocus={false}
             />

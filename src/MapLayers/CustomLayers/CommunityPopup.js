@@ -28,7 +28,7 @@ const CommunityAccordion = React.memo(({e, expanded, handleExpand, handleImport}
     <Accordion
       expanded={expanded}
       onChange={handleExpand(e.id)}
-      TransitionProps={{ unmountOnExit: true }}
+      slotProps={{ transition: { unmountOnExit: true } }}
       key={e.id}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ "& .MuiAccordionSummary-content": { flexDirection: 'column' }}}>
@@ -91,7 +91,7 @@ function Community(props) {
   }
 
   return (
-    <Dialog open fullWidth maxWidth="md" PaperProps={{ sx: { minHeight: 'calc(100% - 64px);'}}} hideBackdrop>
+    <Dialog open fullWidth maxWidth="md" hideBackdrop>
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ flexGrow: 1 }}>
@@ -101,8 +101,10 @@ function Community(props) {
             placeholder="Search"
             variant="outlined"
             type="search"
-            InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>
+            slotProps={{
+              input: {
+                startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>
+              }
             }}
             size="small"
             sx={{ width: 400 }}

@@ -115,9 +115,7 @@ function SizePicker(props) {
           variant="outlined"
           value={min}
           onChange={handleChangeMin}
-          InputLabelProps={{
-            shrink: true,
-          }}
+          slotProps={{ inputLabel: { shrink: true } }}
           size="small"
           sx={{
             maxWidth: 100,
@@ -130,9 +128,7 @@ function SizePicker(props) {
           variant="outlined"
           value={max}
           onChange={handleChangeMax}
-          InputLabelProps={{
-            shrink: true,
-          }}
+          slotProps={{ inputLabel: { shrink: true } }}
           size="small"
           sx={{
             maxWidth: 100,

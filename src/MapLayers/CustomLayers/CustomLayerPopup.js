@@ -119,6 +119,7 @@ function CustomLayerPopup(props) {
   const [gpsConnections, setGpsConnections] = React.useState(layer.data.connections);
   const [key, setKey] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const [showSelectColor, setShowSelectColor] = React.useState(false);
   const { readString } = usePapaParse();
 
   React.useEffect(() => {
@@ -421,7 +422,7 @@ function CustomLayerPopup(props) {
                   onChange={(evt) => {
                     setGpsPointsVal(evt.target.value);
                   }}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Grid>
               <Grid size={6}>
@@ -439,7 +440,7 @@ function CustomLayerPopup(props) {
                   onChange={(evt) => {
                     setGpsConnectionsVal(evt.target.value);
                   }}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Grid>
             </Grid>
@@ -460,7 +461,7 @@ function CustomLayerPopup(props) {
                 onChange={(evt) => {
                   setKey(evt.target.value);
                 }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
               <Button
                 onClick={loadUserFBOs}
@@ -497,7 +498,7 @@ EGLL
                   onChange={(evt) => {
                     setCustomIcaosVal(evt.target.value);
                   }}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Grid>
               <Grid size={6}>
@@ -515,7 +516,7 @@ EGLL LFPO
                   onChange={(evt) => {
                     setCustomConnectionsVal(evt.target.value);
                   }}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Grid>
             </Grid>
@@ -600,7 +601,7 @@ EGLL LFPO
               value={name}
               onChange={evt => setName(evt.target.value)}
               fullWidth
-              inputProps={{ maxLength: 60 }}
+              slotProps={{ input: {maxLength:60}}}
             />
             <Box sx={{ display: 'flex', mt: 3, alignItems: 'center' }}>
               <TextField
@@ -608,45 +609,48 @@ EGLL LFPO
                 variant="outlined"
                 select
                 sx={{ width: 234, minWidth: 234 }}
-                SelectProps={{
-                  renderValue: value => <Box sx={{ backgroundColor: color, color: color }}>{color}</Box>,
-                  displayEmpty: true,
-                  MenuProps: {
-                    sx: {
-                      '& .MuiPaper-root': {
-                        border: '1px solid #ccc',
-                        padding: 2,
-                        boxSizing: 'border-box'
-                      },
-                      '& .MuiList-root': {
-                        padding: 0
-                      },
-                      '& input': {
-                        font: 'inherit',
-                        letterSpacing: 'inherit',
-                        color: 'inherit',
-                        border: '1px solid',
-                        borderColor: 'rgba(0, 0, 0, 0.23)',
-                        borderRadius: '4px',
-                        paddingX: 2,
-                        paddingY: 1,
-                        marginRight: 1,
-                        flex: 1,
-                        minWidth: 0,
-                      },
-                      '& input:hover': {
-                        borderColor: 'rgba(0, 0, 0, 0.87)'
-                      },
-                      '& input:focus': {
-                        outline: '2px solid',
-                        outlineColor: (theme) => theme.palette.primary.main,
-                        borderColor: '#fff'
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  select: {
+                    renderValue: value => <Box sx={{ backgroundColor: color, color: color }}>{color}</Box>,
+                    displayEmpty: true,
+                    open: showSelectColor,
+                    onOpen: () => setShowSelectColor(true),
+                    onClose: () => setShowSelectColor(false),
+                    MenuProps: {
+                      sx: {
+                        '& .MuiPaper-root': {
+                          border: '1px solid #ccc',
+                          padding: 2,
+                          boxSizing: 'border-box'
+                        },
+                        '& .MuiList-root': {
+                          padding: 0
+                        },
+                        '& input': {
+                          font: 'inherit',
+                          letterSpacing: 'inherit',
+                          color: 'inherit',
+                          border: '1px solid',
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                          borderRadius: '4px',
+                          paddingX: 2,
+                          paddingY: 1,
+                          marginRight: 1,
+                          flex: 1,
+                          minWidth: 0,
+                        },
+                        '& input:hover': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)'
+                        },
+                        '& input:focus': {
+                          outline: '2px solid',
+                          outlineColor: (theme) => theme.palette.primary.main,
+                          borderColor: '#fff'
+                        }
                       }
                     }
                   }
-                }}
-                InputLabelProps={{
-                  shrink: true
                 }}
               >
                 <HexColorPicker color={color} onChange={setColor} />
@@ -658,7 +662,7 @@ EGLL LFPO
                   }}
                 >
                   <HexColorInput color={color} onChange={setColor} onClick={stopPropagation} />
-                  <Button variant="contained" sx={{flex: '0 1 auto'}}>Ok</Button>
+                  <Button variant="contained" sx={{flex: '0 1 auto'}} onClick={() => setShowSelectColor(false)}>Ok</Button>
                 </Box>
               </TextField>
               <TextField
@@ -722,7 +726,7 @@ EGLL LFPO
               value={desc}
               onChange={evt => setDesc(evt.target.value)}
               fullWidth
-              inputProps={{ maxLength: 3000 }}
+              slotProps={{ input: {maxLength:3000}}}
               multiline
               rows={6}
               sx={{ mt: 3 }}

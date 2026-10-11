@@ -1232,22 +1232,24 @@ function LayerControl(props) {
             onFocus={event => {
               event.target.select();
             }}
-            InputProps={{
-              endAdornment:
-                <InputAdornment position="end">
-                  <Tooltip title={copied ? 'Copied!' : 'Copy URL to clipboard'}>
-                    <IconButton
-                      disabled={shareID === null}
-                      onClick={() => {
-                        navigator.clipboard.writeText('https://fse-planner.piero-la-lune.fr/?layer='+shareID)
-                        setTimeout(() => setCopied(false), 1000);
-                        setCopied(true);
-                      }}
-                      size="large">
-                      <FileCopyIcon />
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
+            slotProps={{
+              input: {
+                endAdornment:
+                  <InputAdornment position="end">
+                    <Tooltip title={copied ? 'Copied!' : 'Copy URL to clipboard'}>
+                      <IconButton
+                        disabled={shareID === null}
+                        onClick={() => {
+                          navigator.clipboard.writeText('https://fse-planner.piero-la-lune.fr/?layer='+shareID)
+                          setTimeout(() => setCopied(false), 1000);
+                          setCopied(true);
+                        }}
+                        size="large">
+                        <FileCopyIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+              }
             }}
           />
           {
@@ -1265,21 +1267,23 @@ function LayerControl(props) {
                 onFocus={event => {
                   event.target.select();
                 }}
-                InputProps={{
-                  endAdornment:
-                    <InputAdornment position="end">
-                      <Tooltip title={copied ? 'Copied!' : 'Copy URL to clipboard'}>
-                        <IconButton
-                          onClick={() => {
-                            navigator.clipboard.writeText('https://fse-planner.piero-la-lune.fr/?edit='+shareEditID+'&layer='+shareID)
-                            setTimeout(() => setCopied(false), 1000);
-                            setCopied(true);
-                          }}
-                          size="large">
-                          <FileCopyIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </InputAdornment>
+                slotProps={{
+                  input: {
+                    endAdornment:
+                      <InputAdornment position="end">
+                        <Tooltip title={copied ? 'Copied!' : 'Copy URL to clipboard'}>
+                          <IconButton
+                            onClick={() => {
+                              navigator.clipboard.writeText('https://fse-planner.piero-la-lune.fr/?edit='+shareEditID+'&layer='+shareID)
+                              setTimeout(() => setCopied(false), 1000);
+                              setCopied(true);
+                            }}
+                            size="large">
+                            <FileCopyIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                  }
                 }}
               />
             </Box>

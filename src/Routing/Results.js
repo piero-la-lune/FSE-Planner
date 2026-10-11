@@ -16,7 +16,7 @@ import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
-import IcaoSearch from './IcaoSearch.js';
+import IcaoSearch from './IcaoSearch.js'; 
 
 const styles = {
   icon: {
@@ -254,11 +254,11 @@ const Results = React.memo((props) => {
                   variant="outlined"
                   value={minDist}
                   onChange={(evt) => setMinDist(evt.target.value.replace(/[^0-9]/g, ''))}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                  }}
-                  InputLabelProps={{
-                    shrink: true,
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    input: {
+                      endAdornment: <InputAdornment position="end">NM</InputAdornment>
+                    }
                   }}
                   size="small"
                   sx={styles.filtersInput}
@@ -270,11 +270,11 @@ const Results = React.memo((props) => {
                   variant="outlined"
                   value={maxDist}
                   onChange={(evt) => setMaxDist(evt.target.value.replace(/[^0-9]/g, ''))}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">NM</InputAdornment>,
-                  }}
-                  InputLabelProps={{
-                    shrink: true,
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    input: {
+                      endAdornment: <InputAdornment position="end">NM</InputAdornment>
+                    }
                   }}
                   size="small"
                   sx={styles.filtersInput}
@@ -292,9 +292,7 @@ const Results = React.memo((props) => {
                       setMinTime(val);
                     }
                   }}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                   size="small"
                   sx={styles.filtersInput}
                 />
@@ -311,9 +309,7 @@ const Results = React.memo((props) => {
                       setMaxTime(val);
                     }
                   }}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                   size="small"
                   sx={styles.filtersInput}
                 />
@@ -324,11 +320,11 @@ const Results = React.memo((props) => {
                   variant="outlined"
                   value={minPay}
                   onChange={(evt) => setMinPay(evt.target.value.replace(/[^0-9]/g, ''))}
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                  }}
-                  InputLabelProps={{
-                    shrink: true,
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    input: {
+                      startAdornment: <InputAdornment position="start">$</InputAdornment>
+                    }
                   }}
                   size="small"
                   sx={styles.filtersInput}
@@ -340,11 +336,11 @@ const Results = React.memo((props) => {
                   variant="outlined"
                   value={maxPay}
                   onChange={(evt) => setMaxPay(evt.target.value.replace(/[^0-9]/g, ''))}
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                  }}
-                  InputLabelProps={{
-                    shrink: true,
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    input: {
+                      startAdornment: <InputAdornment position="start">$</InputAdornment>
+                    }
                   }}
                   size="small"
                   sx={styles.filtersInput}
@@ -355,9 +351,7 @@ const Results = React.memo((props) => {
                   options={props.icaodataArr}
                   label="Include ICAO(s)"
                   inputProps={{
-                    InputLabelProps:{
-                      shrink: true,
-                    },
+                    slotProps: { inputLabel: { shrink: true } },
                     size:"small",
                     sx:styles.filtersInput
                   }}
@@ -391,9 +385,7 @@ const Results = React.memo((props) => {
                   options={props.icaodataArr}
                   label="Exclude ICAO(s)"
                   inputProps={{
-                    InputLabelProps:{
-                      shrink: true,
-                    },
+                    slotProps: { inputLabel: { shrink: true } },
                     size:"small",
                     sx:styles.filtersInput
                   }}
@@ -444,8 +436,10 @@ const Results = React.memo((props) => {
               width: 150,
               fontSize: "0.8em"
             }}
-            InputProps={{style:{fontSize:"1em"}}}
-            InputLabelProps={{style:{fontSize:"1em"}}}
+            slotProps={{
+              inputLabel: {style:{fontSize:"1em"}},
+              input: {style:{fontSize:"1em"}}
+            }}
           >
             <MenuItem value="payNM">Pay per NM</MenuItem>
             <MenuItem value="payLeg">Pay per leg</MenuItem>

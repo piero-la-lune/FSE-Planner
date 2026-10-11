@@ -152,7 +152,7 @@ function SettingSelect({xs, setting, s, setS, options, multiple, ...props}) {
         size="small"
         value={setting.split('.').reduce((a, b) => a[b], s)}
         select
-        SelectProps={{multiple: multiple}}
+        slotProps={{select: {multiple: multiple}}}
         onChange={(evt) => {
           const obj = Object.assign({}, s);
           _set(obj, setting, evt.target.value)
@@ -257,7 +257,7 @@ function SettingsPopup(props) {
         </IconButton>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 3 }}>
-        <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')} TransitionProps={{ unmountOnExit: true }}>
+        <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Display settings</Typography>
           </AccordionSummary>
@@ -285,7 +285,7 @@ function SettingsPopup(props) {
             </Grid>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')} TransitionProps={{ unmountOnExit: true }}>
+        <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <FilterAltIcon />&nbsp;<Typography>Filters settings</Typography>
           </AccordionSummary>
@@ -329,7 +329,7 @@ function SettingsPopup(props) {
             </Grid>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')} TransitionProps={{ unmountOnExit: true }}>
+        <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <BusinessIcon />&nbsp;<Typography>Airport filtering</Typography>
           </AccordionSummary>
@@ -348,7 +348,7 @@ function SettingsPopup(props) {
             </Grid>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')} TransitionProps={{ unmountOnExit: true }}>
+        <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <DirectionsIcon />&nbsp;<Typography>Route Finder default parameters</Typography>
           </AccordionSummary>
@@ -419,7 +419,7 @@ function SettingsPopup(props) {
             </div>
           </AccordionDetails>
         </Accordion>
-        <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')} TransitionProps={{ unmountOnExit: true }}>
+        <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <UpdateIcon />&nbsp;<Typography>Data update settings</Typography>
           </AccordionSummary>

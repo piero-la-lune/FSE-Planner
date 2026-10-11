@@ -23,7 +23,7 @@ function SurfacePicker(props) {
         fullWidth
         value={props.surface}
         select
-        SelectProps={{multiple: true}}
+        slotProps={{select: {multiple: true}}}
         onChange={(evt) => {
           props.setSurface(evt.target.value);
         }}

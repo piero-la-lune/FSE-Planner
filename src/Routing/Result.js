@@ -295,7 +295,7 @@ function Result({focus, setFocus, options, ...props}) {
                             <Typography variant="body2">Flight total bonus : ${focus.b}</Typography>
                           </React.Fragment>
                       }
-                      <Typography variant="body2" paragraph>Fuel usage : {focus.fuel} gallons</Typography>
+                      <Typography variant="body2" sx={{ mb: 1}}>Fuel usage : {focus.fuel} gallons</Typography>
                     </React.Fragment>
                   }
                   {i < focus.icaos.length-1 && focus.cargos[i].TripOnly.length > 0 &&

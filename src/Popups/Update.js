@@ -30,7 +30,7 @@ import Stack from '@mui/material/Stack';
 import { usePapaParse } from 'react-papaparse';
 import L from "leaflet";
 import { getDistance, getRhumbLineBearing, convertDistance } from "geolib";
-import he from 'he';
+import { decode } from 'he';
 import { matchSorter } from 'match-sorter';
 import pointInPolygon from 'point-in-polygon';
 
@@ -1052,7 +1052,7 @@ function UpdatePopup(props) {
                   setOwnedPlanesRequests(value.length);
                 }}
                 filterOptions={(options, params) => advancedFilter(options, params)}
-                getOptionLabel={option => he.decode(option)}
+                getOptionLabel={option => decode(option)}
                 value={planeUser}
                 sx={{ mt: 2 }}
               />

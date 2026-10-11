@@ -1177,11 +1177,10 @@ const Routing = React.memo((props) => {
                     }}
                     select
                     fullWidth
-                    SelectProps={{
-                      multiple: true,
-                      renderValue: (selected) => selected.join(', '),
-                      MenuProps: {
-                        getContentAnchorEl: null,
+                    slotProps={{
+                      select: {
+                        multiple: true,
+                        renderValue: (selected) => selected.join(', ')
                       }
                     }}
                   >
@@ -1216,37 +1215,39 @@ const Routing = React.memo((props) => {
                 onChange={(evt) => setJobsType(evt.target.value)}
                 select
                 fullWidth
-                SelectProps={{
-                  multiple: true,
-                  renderValue: (selected) => {
-                    if (selected.length === 5) { return 'All' }
-                    const arr = [];
-                    if (selected.includes("pax-sys")) {
-                      if (selected.includes("cargo-sys")) {
-                        arr.push('Black');
+                slotProps={{
+                  select: {
+                    multiple: true,
+                    renderValue: (selected) => {
+                      if (selected.length === 5) { return 'All' }
+                      const arr = [];
+                      if (selected.includes("pax-sys")) {
+                        if (selected.includes("cargo-sys")) {
+                          arr.push('Black');
+                        }
+                        else {
+                          arr.push('Black pax');
+                        }
                       }
-                      else {
-                        arr.push('Black pax');
+                      else if (selected.includes("cargo-sys")) {
+                        arr.push('Black cargo');
                       }
-                    }
-                    else if (selected.includes("cargo-sys")) {
-                      arr.push('Black cargo');
-                    }
-                    if (selected.includes("pax-trip")) {
-                      arr.push('Green');
-                    }
-                    if (selected.includes("pax-vip")) {
-                      if (selected.includes("cargo-vip")) {
-                        arr.push('VIP');
+                      if (selected.includes("pax-trip")) {
+                        arr.push('Green');
                       }
-                      else {
-                        arr.push('VIP pax');
+                      if (selected.includes("pax-vip")) {
+                        if (selected.includes("cargo-vip")) {
+                          arr.push('VIP');
+                        }
+                        else {
+                          arr.push('VIP pax');
+                        }
                       }
+                      else if (selected.includes("cargo-vip")) {
+                        arr.push('VIP cargo');
+                      }
+                      return arr.join(', ');
                     }
-                    else if (selected.includes("cargo-vip")) {
-                      arr.push('VIP cargo');
-                    }
-                    return arr.join(', ');
                   }
                 }}
                 sx={styles.formLabel}

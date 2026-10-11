@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 
+import { default as _merge } from 'lodash/merge';
 import { matchSorter } from 'match-sorter';
 
 const PopperMy = function (props) {
@@ -84,6 +85,7 @@ function IcaoSearch({options, label, required = false, inputProps = {}, ...props
           placeholder="ICAO"
           required={required ? true : false}
           {...inputProps}
+          slotProps={_merge(params.slotProps || {}, inputProps.slotProps || {})}
         />
       }
       PopperComponent={PopperMy}

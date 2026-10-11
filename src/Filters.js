@@ -66,7 +66,7 @@ const styles = {
 }
 
 const MyTooltip = ({ children, ...props}) => (
-  <Tooltip componentsProps={{ tooltip: { sx: styles.tooltip }}} arrow {...props}>
+  <Tooltip slotProps={{ tooltip: { sx: styles.tooltip }}} arrow {...props}>
     {children}
   </Tooltip>
 );
@@ -230,7 +230,7 @@ function Filters({setFilters, clear, ...props}) {
             <InputBase
               placeholder="From"
               sx={styles.inputM}
-              inputProps={{maxLength:4}}
+              slotProps={{ input: {maxLength:4}}}
               value={fromIcaoInput}
               onChange={evt => setFrom(evt.target.value)}
             />
@@ -240,7 +240,7 @@ function Filters({setFilters, clear, ...props}) {
             <InputBase
               placeholder="To"
               sx={styles.inputM}
-              inputProps={{maxLength:4}}
+              slotProps={{ input: {maxLength:4}}}
               value={toIcaoInput}
               onChange={evt => setTo(evt.target.value)}
             />
@@ -253,7 +253,7 @@ function Filters({setFilters, clear, ...props}) {
             <InputBase
               placeholder="145°"
               sx={styles.inputS}
-              inputProps={{maxLength:3}}
+              slotProps={{ input: {maxLength:3}}}
               value={directionInput}
               onChange={evt => { setDirectionInput(evt.target.value); }}
             />

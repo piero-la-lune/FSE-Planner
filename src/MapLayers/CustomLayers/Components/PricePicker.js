@@ -15,9 +15,7 @@ function PricePicker(props) {
           onChange={evt => {
             props.setPrice([parseInt(evt.target.value) || 0, props.price[1]]);
           }}
-          InputLabelProps={{
-            shrink: true,
-          }}
+          slotProps={{ inputLabel: { shrink: true } }}
           size="small"
           sx={{
             maxWidth: 150,
@@ -32,9 +30,7 @@ function PricePicker(props) {
           onChange={evt => {
             props.setPrice([props.price[0], parseInt(evt.target.value) || 0]);
           }}
-          InputLabelProps={{
-            shrink: true,
-          }}
+          slotProps={{ inputLabel: { shrink: true } }}
           size="small"
           sx={{
             maxWidth: 150,
