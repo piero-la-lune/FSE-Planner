@@ -30,8 +30,11 @@ import Results from './Results.js';
 import IcaoSearch from './IcaoSearch.js';
 import { hideAirport, Plane } from "../util/utility.js";
 import log from "../util/logger.js";
+import Storage from "../Storage.js";
 
 import aircrafts from "../data/aircraft.json";
+
+const storage = new Storage();
 
 const styles = {
   content: {
@@ -48,23 +51,25 @@ const styles = {
 
 
 const Routing = React.memo((props) => {
+  const [savedSelections] = React.useState(() => storage.get('routeFinderSelections', {}));
+  const savedAircraft = aircrafts[savedSelections.aircraftSpecsModel] ? new Plane(savedSelections.aircraftSpecsModel) : null;
   const [results, setResults] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [nbResults, setNbResults] = React.useState(0);
   const [moreSettings, setMoreSettings] = React.useState(false);
-  const [maxPax, setMaxPax] = React.useState('');
-  const [maxCargo, setMaxCargo] = React.useState('');
-  const [maxKg, setMaxKg] = React.useState('');
-  const [speed, setSpeed] = React.useState(250);
-  const [consumption, setConsumption] = React.useState(60);
-  const [fuelCapacity, setFuelCapacity] = React.useState(500);
-  const [fuelType, setFuelType] = React.useState(1);
+  const [maxPax, setMaxPax] = React.useState(savedAircraft ? savedAircraft.maxPax : '');
+  const [maxCargo, setMaxCargo] = React.useState(savedAircraft ? savedAircraft.maxCargo : '');
+  const [maxKg, setMaxKg] = React.useState(savedAircraft ? savedAircraft.maxKg : '');
+  const [speed, setSpeed] = React.useState(savedAircraft ? savedAircraft.speed : 250);
+  const [consumption, setConsumption] = React.useState(savedAircraft ? savedAircraft.GPH : 60);
+  const [fuelCapacity, setFuelCapacity] = React.useState(savedAircraft ? savedAircraft.fuelCapacity : 500);
+  const [fuelType, setFuelType] = React.useState(savedAircraft ? savedAircraft.fuelType : 1);
   const [rentFee, setRentFee] = React.useState(0);
   const [rentType, setRentType] = React.useState('dry');
   const [planeHome, setPlaneHome] = React.useState('');
   const [planeBonus, setPlaneBonus] = React.useState('');
-  const [fromIcao, setFromIcao] = React.useState(null);
-  const [toIcao, setToIcao] = React.useState(null);
+  const [fromIcao, setFromIcao] = React.useState(() => props.options.icaodata[savedSelections.fromIcao] ? savedSelections.fromIcao : null);
+  const [toIcao, setToIcao] = React.useState(() => props.options.icaodata[savedSelections.toIcao] ? savedSelections.toIcao : null);
   const [heading, setHeading] = React.useState('');
   const [maxHops, setMaxHops] = React.useState(props.options.settings.routeFinder.maxHops);
   const [maxStops, setMaxStops] = React.useState(props.options.settings.routeFinder.maxStops);
@@ -85,9 +90,13 @@ const Routing = React.memo((props) => {
   const [cancel, setCancel] = React.useState(null);
   const [availableModels, setAvailableModels] = React.useState([]);
   const [aircraftModels, setAircraftModels] = React.useState([]);
-  const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(null);
+  const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(() => savedAircraft ? savedSelections.aircraftSpecsModel : null);
   const [editSpecs, setEditSpecs] = React.useState(false);
   const [planes, setPlanes] = React.useState({});
+
+  React.useEffect(() => {
+    storage.set('routeFinderSelections', { fromIcao, toIcao, aircraftSpecsModel });
+  }, [fromIcao, toIcao, aircraftSpecsModel]);
 
   const icaodataArr = React.useMemo(() => Object.values(props.options.icaodata), [props.options.icaodata]);
 
