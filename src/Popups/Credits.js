@@ -116,6 +116,18 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.19.7 (2026-10-13)</Typography>
+            <Typography variant="h6">New</Typography>
+            <List dense>
+              <ListItem>Save Route Finder free search to/from icaos and aircraft model (by alfredrajo)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE aircraft list</ListItem>
+              <ListItem>Updated project dependencies</ListItem>
+            </List>
+          </Paper>
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.19.6 (2025-12-06)</Typography>
             <Typography variant="h6">Changed</Typography>
             <List dense>
@@ -909,6 +921,7 @@ function CreditsPopup(props) {
               <ListItem>jonaseberle (contributor)</ListItem>
               <ListItem>machouinard (contributor)</ListItem>
               <ListItem>AndyReifman (contributor)</ListItem>
+              <ListItem>alfredrajo (contributor)</ListItem>
             </List>
           </Paper>
 

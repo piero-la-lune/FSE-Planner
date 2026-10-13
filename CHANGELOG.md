@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.7] - 2026-10-13
+
+### Added
+- Save Route Finder free search to/from icaos and aircraft model (by alfredrajo)
+
+### Changed
+- Updated FSE aircraft list
+- Updated project dependencies
+
+
+
 ## [1.19.6] - 2025-12-06
 
 ### Changed
