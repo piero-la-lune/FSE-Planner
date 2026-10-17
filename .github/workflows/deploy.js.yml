@@ -8,9 +8,9 @@ jobs:
 
     steps:
     - name: Git checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v27
     - name: Setup nodejs
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v27
       with:
         node-version: 26.x
     - name: npm install
