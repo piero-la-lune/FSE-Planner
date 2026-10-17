@@ -116,6 +116,21 @@ function CreditsPopup(props) {
       <DialogContent dividers sx={{ px: 3, pt: 0 }}>
         <div hidden={expanded !== 0}>
           <Paper sx={styles.content}>
+            <Typography variant="h5" sx={styles.version}>v1.19.8 (2026-10-17)</Typography>
+            <Typography variant="h6">New</Typography>
+            <List dense>
+              <ListItem>Save routes in Route Finder for future use: click the star button on the route detail to save a route, then on the home screen click the "view saved routes" to display a list of all saved routes (<IssueLink id={146} />)</ListItem>
+            </List>
+            <Typography variant="h6">Changed</Typography>
+            <List dense>
+              <ListItem>Updated FSE airport list to include the 10 new airports</ListItem>
+            </List>
+            <Typography variant="h6">Fixed</Typography>
+            <List dense>
+              <ListItem>Fix jobs loading bug, when new airports are added in FSE but not yet added in FSE Planner (jobs from/to those airports will be ignored, but other jobs should now load as expected)</ListItem>
+            </List>
+          </Paper>
+          <Paper sx={styles.content}>
             <Typography variant="h5" sx={styles.version}>v1.19.7 (2026-10-13)</Typography>
             <Typography variant="h6">New</Typography>
             <List dense>

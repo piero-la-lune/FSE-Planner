@@ -20,6 +20,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
+import StarIcon from '@mui/icons-material/Star';
 
 
 import { getDistance, convertDistance, getBounds } from "geolib";
@@ -93,6 +94,8 @@ const Routing = React.memo((props) => {
   const [aircraftSpecsModel, setAircraftSpecsModel] = React.useState(() => savedAircraft ? savedSelections.aircraftSpecsModel : null);
   const [editSpecs, setEditSpecs] = React.useState(false);
   const [planes, setPlanes] = React.useState({});
+  const [savedResults, setSavedResults] = React.useState([]);
+  const [savedResultsUids, setSavedResultsUids] = React.useState(new Set());
 
   React.useEffect(() => {
     storage.set('routeFinderSelections', { fromIcao, toIcao, aircraftSpecsModel });
@@ -307,6 +310,7 @@ const Routing = React.memo((props) => {
       allResults[i].rentalCost = Math.ceil(rentalCost);
       allResults[i].fuelCost = Math.ceil(fuelCost);
       allResults[i].plane = plane;
+      allResults[i].uid = `${allResults[i].icaos.join('-')}-${allResults[i].model}-${allResults[i].pay}-${allResults[i].time}`;
     }
 
     setResults(allResults);
@@ -569,6 +573,28 @@ const Routing = React.memo((props) => {
     setCancel(null);
   }
 
+  // Save/unsave a result for future reference
+  const toggleSaveResult = (result) => {
+    if (savedResultsUids.has(result.uid)) {
+      setSavedResultsUids(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(result.uid);
+        return newSet;
+      });
+      setSavedResults(prev => prev.filter(r => r.uid !== result.uid));
+    }
+    else {
+      setSavedResultsUids(prev => new Set([...prev, result.uid]));
+      setSavedResults(prev => [...prev, result]);
+    }
+  };
+
+  // Clear all saved results
+  const clearSavedResults = () => {
+    setSavedResultsUids(new Set());
+    setSavedResults([]);
+  };
+
   if (props.hidden) { return null; }
 
   return (
@@ -619,7 +645,8 @@ const Routing = React.memo((props) => {
               setMoreSettings(false);
             }}
             results={results}
-            type={type}
+            savedResultsUids={savedResultsUids}
+            clearSavedResults={clearSavedResults}
             display={focus ? false : true}
           />
 
@@ -632,6 +659,8 @@ const Routing = React.memo((props) => {
               approachLength={approachLength}
               options={props.options}
               actions={props.actions}
+              isSaved={savedResultsUids.has(focus.uid)}
+              onToggleSave={toggleSaveResult}
             />
           }
         </React.Fragment>
@@ -1298,6 +1327,7 @@ const Routing = React.memo((props) => {
               color="primary"
               size="large"
               onClick={startSearch}
+              sx={{ m: 1}}
               disabled={
                 !maxHops || maxStops === '' || minLoad === '' || maxBadLegs === '' || idleTime === ''
                          || overheadLength === '' || approachLength === '' || maxEmptyLeg === '' || minDistLeg === ''
@@ -1306,6 +1336,15 @@ const Routing = React.memo((props) => {
               }
             >
               Find best routes
+            </Button>
+            <Button
+              size="large"
+              disabled={savedResults.length === 0}
+              sx={{ m: 1}}
+              startIcon={<StarIcon sx={{ color: savedResults.length === 0 ? "inherit" : "gold" }} />}
+              onClick={() => setResults(savedResults)}
+            >
+              View saved routes
             </Button>
           </Box>
         </Box>

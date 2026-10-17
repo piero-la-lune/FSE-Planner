@@ -254,6 +254,9 @@ function cleanJobs(list, icaodata, settings, icaos = null) {
       if (expire < minExpiration) { continue; }
     }
 
+    // Do not keep jobs with unknown airport (happens when FSE adds news airports)
+    if (!icaodata.hasOwnProperty(frIcao) || !icaodata.hasOwnProperty(toIcao)) { continue; }
+
     // Ensure leg exist in jobs object
     if (!jobs.hasOwnProperty(frIcao)) {
       jobs[frIcao] = {};

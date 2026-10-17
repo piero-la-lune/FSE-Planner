@@ -22,6 +22,8 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import StarIcon from '@mui/icons-material/Star';
 
 import PDFRoute from './PDFRoute.js';
 import AddToFlight from '../Table/AddToFlight.js';
@@ -229,6 +231,15 @@ function Result({focus, setFocus, options, ...props}) {
               }}
               size="large">
               <CheckCircleIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={props.isSaved ? 'Unsave route result' : 'Save route result'}>
+            <IconButton
+              sx={styles.focusAction}
+              onClick={() => props.onToggleSave(focus)}
+              size="large"
+            >
+              {props.isSaved ? <StarIcon sx={{color: "#f5c518"}} /> : <StarBorderIcon />}
             </IconButton>
           </Tooltip>
         </Box>

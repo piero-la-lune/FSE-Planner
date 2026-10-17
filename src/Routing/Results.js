@@ -15,6 +15,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import StarIcon from '@mui/icons-material/Star';
 
 import IcaoSearch from './IcaoSearch.js'; 
 
@@ -45,7 +46,7 @@ function filterText(sortBy, result) {
 }
 
 // List of results
-const List = React.memo(({results, showDetail, goTo, setRoute, nbDisplay, sortBy}) => {
+const List = React.memo(({results, showDetail, goTo, setRoute, nbDisplay, sortBy, savedResultsUids}) => {
   return (results.slice(0, nbDisplay).map(result =>
     <Box
       sx={{
@@ -87,7 +88,11 @@ const List = React.memo(({results, showDetail, goTo, setRoute, nbDisplay, sortBy
               goTo(icao)
             }}
             key={i}
-          >{icao}</Link>
+            sx={{ display: 'flex', alignItems: 'center' }}
+          >
+            {i === 0 && savedResultsUids.has(result.uid) && <StarIcon sx={{ color: "#f5c518", mr: 0.5, fontSize: "1.3em" }} />}
+            {icao}
+          </Link>
         )}
       </Breadcrumbs>
       <Grid container spacing={1} sx={{ mt: 1, ml: -2 }}>
@@ -446,7 +451,7 @@ const Results = React.memo((props) => {
             <MenuItem value="payTime">Pay per flight time</MenuItem>
             <MenuItem value="pay">Total pay</MenuItem>
             <MenuItem value="distance">Shortest distance</MenuItem>
-            {props.type === "rent" && <MenuItem value="bonus">Plane bonus</MenuItem>}
+            <MenuItem value="bonus">Plane bonus</MenuItem>
           </TextField>
         </Box>
       </Box>
@@ -457,12 +462,21 @@ const Results = React.memo((props) => {
           padding: 1
         }}
       >
-        {
-          filteredResults.length > 0 ?
-            <Typography variant="body2">{filteredResults.length} routes found.</Typography>
-          :
-            <Typography variant="body2">No route found.</Typography>
-        }
+        <Typography variant="body2">
+          {
+            filteredResults.length > 0 ?
+              filteredResults.length+" routes found."
+            :
+              "No route found."
+          }
+          <Link
+            href="#"
+            onClick={props.clearSavedResults}
+            sx={{ ml: 2 }}
+          >
+            Clear saved routes
+          </Link>
+        </Typography>
       </Box>
       <Box
         ref={resultsDiv}
@@ -485,6 +499,7 @@ const Results = React.memo((props) => {
           setRoute={props.setRoute}
           nbDisplay={nbDisplay}
           sortBy={sortBy}
+          savedResultsUids={props.savedResultsUids}
         />
       </Box>
     </Box>

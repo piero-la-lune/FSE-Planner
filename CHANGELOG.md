@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.19.8] - 2026-10-17
+
+### Added
+- Save routes in Route Finder for future use: click the star button on the route detail to save a route, then on the home screen click the "view saved routes" to display a list of all saved routes
+
+### Changed
+- Updated FSE airport list to include the 10 new airports
+
+### Fix
+- Fix jobs loading bug, when new airports are added in FSE but not yet added in FSE Planner (jobs from/to those airports will be ignored, but other jobs should now load as expected)
+
+
+
 ## [1.19.7] - 2026-10-13
 
 ### Added
